@@ -1,13 +1,9 @@
-// Critical Issue #6: Missing Security Middleware
-// Impact: No protection against common attacks
-// Solution: Comprehensive security middleware
-
+// Simplified security middleware to prevent browser lockup
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
-import { SecurityHeaders } from "@/lib/critical-fixes"
 
-// IP-based rate limiting
-const ipRateLimiter = new Map<string, { count: number; resetTime: number }>()
+// Simple in-memory rate limiting
+const rateLimitMap = new Map<string, { count: number; resetTime: number }>()
 
 function getClientIP(request: NextRequest): string {
   const forwarded = request.headers.get("x-forwarded-for")
@@ -24,20 +20,30 @@ function getClientIP(request: NextRequest): string {
   return "unknown"
 }
 
-function isRateLimited(ip: string, limit = 100, windowMs = 60000): boolean {
+function isRateLimited(ip: string, limit = 60, windowMs = 60000): boolean {
   const now = Date.now()
-  const record = ipRateLimiter.get(ip)
+  const key = `${ip}-${Math.floor(now / windowMs)}`
 
-  if (!record || now > record.resetTime) {
-    ipRateLimiter.set(ip, { count: 1, resetTime: now + windowMs })
-    return false
-  }
+  const current = rateLimitMap.get(key) || { count: 0, resetTime: now + windowMs }
 
-  if (record.count >= limit) {
+  if (current.count >= limit) {
     return true
   }
 
-  record.count++
+  current.count++
+  rateLimitMap.set(key, current)
+
+  // Clean up old entries periodically
+  if (Math.random() < 0.01) {
+    // 1% chance
+    const cutoff = now - windowMs * 2
+    for (const [k, v] of rateLimitMap.entries()) {
+      if (v.resetTime < cutoff) {
+        rateLimitMap.delete(k)
+      }
+    }
+  }
+
   return false
 }
 
@@ -46,66 +52,46 @@ export function middleware(request: NextRequest) {
   const ip = getClientIP(request)
   const pathname = request.nextUrl.pathname
 
-  // Apply security headers
-  Object.entries(SecurityHeaders.headers).forEach(([key, value]) => {
-    response.headers.set(key, value)
-  })
+  // Basic security headers
+  response.headers.set("X-Frame-Options", "DENY")
+  response.headers.set("X-Content-Type-Options", "nosniff")
+  response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin")
+  response.headers.set("X-XSS-Protection", "1; mode=block")
 
-  // Set CSP header
-  response.headers.set("Content-Security-Policy", SecurityHeaders.CSP)
+  // Simple CSP for development
+  if (process.env.NODE_ENV === "development") {
+    response.headers.set(
+      "Content-Security-Policy-Report-Only",
+      "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: ws: wss: http: https:;",
+    )
+  }
 
-  // Rate limiting for API routes
+  // Rate limiting for API routes only
   if (pathname.startsWith("/api/")) {
     if (isRateLimited(ip, 100, 60000)) {
       return new NextResponse("Rate limit exceeded", {
         status: 429,
         headers: {
           "Retry-After": "60",
-          "X-RateLimit-Limit": "100",
-          "X-RateLimit-Remaining": "0",
         },
       })
     }
 
     // Stricter rate limiting for sensitive endpoints
-    if (pathname.includes("/notify-payment") || pathname.includes("/customers")) {
-      if (isRateLimited(`${ip}-sensitive`, 10, 60000)) {
-        return new NextResponse("Rate limit exceeded for sensitive operation", {
+    if (pathname.includes("/admin") || pathname.includes("/auth")) {
+      if (isRateLimited(`${ip}-sensitive`, 20, 60000)) {
+        return new NextResponse("Rate limit exceeded", {
           status: 429,
           headers: {
             "Retry-After": "60",
-            "X-RateLimit-Limit": "10",
-            "X-RateLimit-Remaining": "0",
           },
         })
       }
     }
   }
 
-  // Block suspicious requests
-  const userAgent = request.headers.get("user-agent") || ""
-  const suspiciousPatterns = [/bot/i, /crawler/i, /spider/i, /scraper/i, /curl/i, /wget/i]
-
-  // Allow legitimate bots but block malicious ones
-  const isLegitimateBot = /googlebot|bingbot|slurp|duckduckbot/i.test(userAgent)
-  const isSuspicious = suspiciousPatterns.some((pattern) => pattern.test(userAgent)) && !isLegitimateBot
-
-  if (isSuspicious && pathname.startsWith("/api/")) {
-    return new NextResponse("Forbidden", { status: 403 })
-  }
-
   // Add request ID for tracing
-  const requestId = crypto.randomUUID()
-  response.headers.set("X-Request-ID", requestId)
-
-  // Log suspicious activity
-  if (pathname.includes("admin") && !request.headers.get("authorization")) {
-    console.warn(`Unauthorized admin access attempt from ${ip}`, {
-      pathname,
-      userAgent,
-      requestId,
-    })
-  }
+  response.headers.set("X-Request-ID", crypto.randomUUID())
 
   return response
 }

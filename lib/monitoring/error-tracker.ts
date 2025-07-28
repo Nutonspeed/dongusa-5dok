@@ -43,13 +43,16 @@ class ErrorTracker {
   private performanceQueue: PerformanceMetric[] = []
   private isOnline = true
   private flushInterval: NodeJS.Timeout | null = null
+  private isInitialized = false
+  private errorReportingEnabled = true
 
   constructor() {
     this.sessionId = this.generateSessionId()
-    this.setupGlobalErrorHandlers()
-    this.setupPerformanceMonitoring()
-    this.setupNetworkMonitoring()
-    this.startPeriodicFlush()
+    // Don't initialize immediately to prevent issues
+    if (typeof window !== "undefined") {
+      // Use setTimeout to defer initialization
+      setTimeout(() => this.safeInitialize(), 100)
+    }
   }
 
   static getInstance(): ErrorTracker {
@@ -57,6 +60,20 @@ class ErrorTracker {
       ErrorTracker.instance = new ErrorTracker()
     }
     return ErrorTracker.instance
+  }
+
+  private safeInitialize(): void {
+    if (this.isInitialized) return
+
+    try {
+      this.setupGlobalErrorHandlers()
+      this.setupNetworkMonitoring()
+      this.startPeriodicFlush()
+      this.isInitialized = true
+    } catch (error) {
+      console.error("Failed to initialize error tracker:", error)
+      this.errorReportingEnabled = false
+    }
   }
 
   setUser(userId: string, additionalData?: Record<string, any>): void {
@@ -72,28 +89,40 @@ class ErrorTracker {
     context?: Partial<ErrorContext>,
     severity: ErrorReport["severity"] = "medium",
   ): string {
-    const errorMessage = typeof error === "string" ? error : error.message
-    const stack = typeof error === "object" ? error.stack : undefined
+    if (!this.errorReportingEnabled) return ""
 
-    const errorReport: ErrorReport = {
-      id: this.generateErrorId(),
-      message: errorMessage,
-      stack,
-      type: this.determineErrorType(error, context),
-      severity,
-      context: this.buildContext(context),
-      fingerprint: this.generateFingerprint(errorMessage, stack),
-      count: 1,
-      firstSeen: new Date().toISOString(),
-      lastSeen: new Date().toISOString(),
-      resolved: false,
-      tags: this.extractTags(error, context),
+    try {
+      const errorMessage = typeof error === "string" ? error : error.message
+      const stack = typeof error === "object" ? error.stack : undefined
+
+      // Prevent recursive error reporting
+      if (errorMessage.includes("ErrorTracker") || errorMessage.includes("error-tracker")) {
+        return ""
+      }
+
+      const errorReport: ErrorReport = {
+        id: this.generateErrorId(),
+        message: errorMessage,
+        stack,
+        type: this.determineErrorType(error, context),
+        severity,
+        context: this.buildContext(context),
+        fingerprint: this.generateFingerprint(errorMessage, stack),
+        count: 1,
+        firstSeen: new Date().toISOString(),
+        lastSeen: new Date().toISOString(),
+        resolved: false,
+        tags: this.extractTags(error, context),
+      }
+
+      this.addToQueue(errorReport)
+      this.notifyIfCritical(errorReport)
+
+      return errorReport.id
+    } catch (err) {
+      console.error("Error in captureError:", err)
+      return ""
     }
-
-    this.addToQueue(errorReport)
-    this.notifyIfCritical(errorReport)
-
-    return errorReport.id
   }
 
   captureException(error: Error, context?: Partial<ErrorContext>): string {
@@ -106,91 +135,148 @@ class ErrorTracker {
   }
 
   captureEvent(eventName: string, data?: Record<string, any>): void {
-    const event = {
-      name: eventName,
-      data,
-      timestamp: new Date().toISOString(),
-      context: this.buildContext(),
-    }
+    if (!this.errorReportingEnabled) return
 
-    // Send event to analytics
-    this.sendEvent(event)
+    try {
+      const event = {
+        name: eventName,
+        data,
+        timestamp: new Date().toISOString(),
+        context: this.buildContext(),
+      }
+
+      // Send event to analytics (non-blocking)
+      this.sendEvent(event).catch(() => {
+        // Silently fail to prevent recursive errors
+      })
+    } catch (error) {
+      // Silently fail to prevent recursive errors
+    }
   }
 
   capturePerformanceMetric(name: string, value: number, unit = "ms"): void {
-    const metric: PerformanceMetric = {
-      name,
-      value,
-      unit,
-      timestamp: new Date().toISOString(),
-      context: this.buildContext(),
-    }
+    if (!this.errorReportingEnabled || !isFinite(value) || value < 0) return
 
-    this.performanceQueue.push(metric)
+    try {
+      const metric: PerformanceMetric = {
+        name,
+        value,
+        unit,
+        timestamp: new Date().toISOString(),
+        context: this.buildContext(),
+      }
+
+      this.performanceQueue.push(metric)
+
+      // Limit queue size
+      if (this.performanceQueue.length > 100) {
+        this.performanceQueue = this.performanceQueue.slice(-50)
+      }
+    } catch (error) {
+      // Silently fail
+    }
   }
 
   addBreadcrumb(message: string, category = "default", data?: Record<string, any>): void {
-    const breadcrumb = {
-      message,
-      category,
-      data,
-      timestamp: new Date().toISOString(),
-      level: "info",
+    if (!this.errorReportingEnabled) return
+
+    try {
+      const breadcrumb = {
+        message,
+        category,
+        data,
+        timestamp: new Date().toISOString(),
+        level: "info",
+      }
+
+      // Store breadcrumbs in session storage for context
+      const breadcrumbs = this.getBreadcrumbs()
+      breadcrumbs.push(breadcrumb)
+
+      // Keep only last 20 breadcrumbs (reduced from 50)
+      if (breadcrumbs.length > 20) {
+        breadcrumbs.shift()
+      }
+
+      sessionStorage.setItem("error_breadcrumbs", JSON.stringify(breadcrumbs))
+    } catch (error) {
+      // Silently fail if sessionStorage is not available
     }
-
-    // Store breadcrumbs in session storage for context
-    const breadcrumbs = this.getBreadcrumbs()
-    breadcrumbs.push(breadcrumb)
-
-    // Keep only last 50 breadcrumbs
-    if (breadcrumbs.length > 50) {
-      breadcrumbs.shift()
-    }
-
-    sessionStorage.setItem("error_breadcrumbs", JSON.stringify(breadcrumbs))
   }
 
   setTag(key: string, value: string): void {
-    const tags = this.getTags()
-    tags[key] = value
-    sessionStorage.setItem("error_tags", JSON.stringify(tags))
+    if (!this.errorReportingEnabled) return
+
+    try {
+      const tags = this.getTags()
+      tags[key] = value
+      sessionStorage.setItem("error_tags", JSON.stringify(tags))
+    } catch (error) {
+      // Silently fail
+    }
   }
 
   setContext(key: string, value: any): void {
-    const contexts = this.getContexts()
-    contexts[key] = value
-    sessionStorage.setItem("error_contexts", JSON.stringify(contexts))
+    if (!this.errorReportingEnabled) return
+
+    try {
+      const contexts = this.getContexts()
+      contexts[key] = value
+      sessionStorage.setItem("error_contexts", JSON.stringify(contexts))
+    } catch (error) {
+      // Silently fail
+    }
   }
 
   private setupGlobalErrorHandlers(): void {
+    if (typeof window === "undefined") return
+
     // JavaScript errors
-    window.addEventListener("error", (event) => {
-      this.captureError(
-        event.error || event.message,
-        {
-          additionalData: {
-            filename: event.filename,
-            lineno: event.lineno,
-            colno: event.colno,
-            type: "javascript",
+    window.addEventListener(
+      "error",
+      (event) => {
+        // Prevent infinite loops
+        if (event.filename?.includes("error-tracker") || event.message?.includes("ErrorTracker")) {
+          return
+        }
+
+        this.captureError(
+          event.error || event.message,
+          {
+            additionalData: {
+              filename: event.filename,
+              lineno: event.lineno,
+              colno: event.colno,
+              type: "javascript",
+            },
           },
-        },
-        "high",
-      )
-    })
+          "high",
+        )
+      },
+      { passive: true },
+    )
 
     // Promise rejections
-    window.addEventListener("unhandledrejection", (event) => {
-      this.captureError(
-        event.reason,
-        {
-          additionalData: {
-            type: "unhandled_promise_rejection",
+    window.addEventListener(
+      "unhandledrejection",
+      (event) => {
+        // Prevent infinite loops
+        if (event.reason?.message?.includes("ErrorTracker")) {
+          return
+        }
+
+        this.captureError(
+          event.reason,
+          {
+            additionalData: {
+              type: "unhandled_promise_rejection",
+            },
           },
-        },
-        "high",
-      )
-    })
+          "high",
+        )
+      },
+      { passive: true },
+    )
 
     // React error boundary integration
     if (typeof window !== "undefined") {
@@ -198,55 +284,30 @@ class ErrorTracker {
     }
   }
 
-  private setupPerformanceMonitoring(): void {
-    // Web Vitals
-    if ("web-vital" in window) {
-      this.measureWebVitals()
-    }
-
-    // Navigation timing
-    window.addEventListener("load", () => {
-      setTimeout(() => {
-        const navigation = performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming
-
-        if (navigation) {
-          this.capturePerformanceMetric("page_load_time", navigation.loadEventEnd - navigation.fetchStart)
-          this.capturePerformanceMetric(
-            "dom_content_loaded",
-            navigation.domContentLoadedEventEnd - navigation.fetchStart,
-          )
-          this.capturePerformanceMetric("first_byte", navigation.responseStart - navigation.fetchStart)
-        }
-      }, 0)
-    })
-
-    // Resource timing
-    const observer = new PerformanceObserver((list) => {
-      list.getEntries().forEach((entry) => {
-        if (entry.entryType === "resource") {
-          const resource = entry as PerformanceResourceTiming
-          this.capturePerformanceMetric(`resource_${resource.name}`, resource.duration)
-        }
-      })
-    })
-
-    observer.observe({ entryTypes: ["resource"] })
-  }
-
   private setupNetworkMonitoring(): void {
+    if (typeof window === "undefined") return
+
     // Monitor online/offline status
-    window.addEventListener("online", () => {
-      this.isOnline = true
-      this.captureEvent("network_online")
-      this.flushQueue()
-    })
+    window.addEventListener(
+      "online",
+      () => {
+        this.isOnline = true
+        this.captureEvent("network_online")
+        this.flushQueue()
+      },
+      { passive: true },
+    )
 
-    window.addEventListener("offline", () => {
-      this.isOnline = false
-      this.captureEvent("network_offline")
-    })
+    window.addEventListener(
+      "offline",
+      () => {
+        this.isOnline = false
+        this.captureEvent("network_offline")
+      },
+      { passive: true },
+    )
 
-    // Intercept fetch requests for API monitoring
+    // Simplified fetch monitoring to prevent issues
     const originalFetch = window.fetch
     window.fetch = async (...args) => {
       const startTime = performance.now()
@@ -256,14 +317,17 @@ class ErrorTracker {
         const response = await originalFetch(...args)
         const duration = performance.now() - startTime
 
-        this.capturePerformanceMetric(`api_${url}`, duration)
+        // Only track if duration is reasonable
+        if (isFinite(duration) && duration > 0 && duration < 60000) {
+          this.capturePerformanceMetric(`api_${this.sanitizeUrl(url)}`, duration)
+        }
 
-        if (!response.ok) {
+        if (!response.ok && response.status >= 400) {
           this.captureError(
             `API Error: ${response.status} ${response.statusText}`,
             {
               additionalData: {
-                url,
+                url: this.sanitizeUrl(url),
                 status: response.status,
                 method: args[1]?.method || "GET",
                 type: "api",
@@ -276,13 +340,16 @@ class ErrorTracker {
         return response
       } catch (error) {
         const duration = performance.now() - startTime
-        this.capturePerformanceMetric(`api_${url}_failed`, duration)
+
+        if (isFinite(duration) && duration > 0 && duration < 60000) {
+          this.capturePerformanceMetric(`api_${this.sanitizeUrl(url)}_failed`, duration)
+        }
 
         this.captureError(
           error as Error,
           {
             additionalData: {
-              url,
+              url: this.sanitizeUrl(url),
               method: args[1]?.method || "GET",
               type: "network",
             },
@@ -295,39 +362,38 @@ class ErrorTracker {
     }
   }
 
-  private measureWebVitals(): void {
-    // This would integrate with web-vitals library
-    // For now, we'll use basic performance measurements
-
-    // Largest Contentful Paint
-    const observer = new PerformanceObserver((list) => {
-      const entries = list.getEntries()
-      const lastEntry = entries[entries.length - 1]
-      this.capturePerformanceMetric("largest_contentful_paint", lastEntry.startTime)
-    })
-
-    observer.observe({ entryTypes: ["largest-contentful-paint"] })
-
-    // First Input Delay
-    const fidObserver = new PerformanceObserver((list) => {
-      list.getEntries().forEach((entry) => {
-        this.capturePerformanceMetric("first_input_delay", entry.processingStart - entry.startTime)
-      })
-    })
-
-    fidObserver.observe({ entryTypes: ["first-input"] })
+  private sanitizeUrl(url: string): string {
+    try {
+      const parsed = new URL(url)
+      return parsed.pathname.replace(/[^a-zA-Z0-9/_-]/g, "_").substring(0, 50)
+    } catch {
+      return "unknown"
+    }
   }
 
   private buildContext(additionalContext?: Partial<ErrorContext>): ErrorContext {
-    return {
-      userId: this.userId,
-      sessionId: this.sessionId,
-      userAgent: navigator.userAgent,
-      url: window.location.href,
-      timestamp: new Date().toISOString(),
-      buildVersion: process.env.NEXT_PUBLIC_BUILD_VERSION,
-      environment: process.env.NODE_ENV || "development",
-      ...additionalContext,
+    try {
+      return {
+        userId: this.userId,
+        sessionId: this.sessionId,
+        userAgent: typeof navigator !== "undefined" ? navigator.userAgent : "unknown",
+        url: typeof window !== "undefined" ? window.location.href : "unknown",
+        timestamp: new Date().toISOString(),
+        buildVersion: process.env.NEXT_PUBLIC_BUILD_VERSION,
+        environment: process.env.NODE_ENV || "development",
+        ...additionalContext,
+      }
+    } catch {
+      return {
+        userId: this.userId,
+        sessionId: this.sessionId,
+        userAgent: "unknown",
+        url: "unknown",
+        timestamp: new Date().toISOString(),
+        buildVersion: "unknown",
+        environment: "unknown",
+        ...additionalContext,
+      }
     }
   }
 
@@ -358,83 +424,110 @@ class ErrorTracker {
   }
 
   private generateFingerprint(message: string, stack?: string): string {
-    const content = stack || message
-    // Simple hash function for fingerprinting
+    const content = (stack || message).substring(0, 200) // Limit content length
     let hash = 0
     for (let i = 0; i < content.length; i++) {
       const char = content.charCodeAt(i)
       hash = (hash << 5) - hash + char
       hash = hash & hash // Convert to 32-bit integer
     }
-    return hash.toString(36)
+    return Math.abs(hash).toString(36)
   }
 
   private extractTags(error: Error | string, context?: Partial<ErrorContext>): string[] {
     const tags: string[] = []
 
-    if (context?.additionalData?.type) {
-      tags.push(`type:${context.additionalData.type}`)
+    try {
+      if (context?.additionalData?.type) {
+        tags.push(`type:${context.additionalData.type}`)
+      }
+
+      if (this.userId) {
+        tags.push(`user:${this.userId}`)
+      }
+
+      tags.push(`environment:${process.env.NODE_ENV || "development"}`)
+
+      // Add custom tags from session storage
+      const customTags = this.getTags()
+      Object.entries(customTags).forEach(([key, value]) => {
+        if (tags.length < 10) {
+          // Limit number of tags
+          tags.push(`${key}:${value}`)
+        }
+      })
+    } catch {
+      // Silently fail
     }
-
-    if (this.userId) {
-      tags.push(`user:${this.userId}`)
-    }
-
-    tags.push(`environment:${process.env.NODE_ENV || "development"}`)
-
-    // Add custom tags from session storage
-    const customTags = this.getTags()
-    Object.entries(customTags).forEach(([key, value]) => {
-      tags.push(`${key}:${value}`)
-    })
 
     return tags
   }
 
   private addToQueue(errorReport: ErrorReport): void {
-    // Check if similar error already exists in queue
-    const existingIndex = this.errorQueue.findIndex((existing) => existing.fingerprint === errorReport.fingerprint)
+    try {
+      // Check if similar error already exists in queue
+      const existingIndex = this.errorQueue.findIndex((existing) => existing.fingerprint === errorReport.fingerprint)
 
-    if (existingIndex !== -1) {
-      // Update existing error
-      this.errorQueue[existingIndex].count++
-      this.errorQueue[existingIndex].lastSeen = errorReport.lastSeen
-    } else {
-      // Add new error
-      this.errorQueue.push(errorReport)
-    }
+      if (existingIndex !== -1) {
+        // Update existing error
+        this.errorQueue[existingIndex].count++
+        this.errorQueue[existingIndex].lastSeen = errorReport.lastSeen
+      } else {
+        // Add new error
+        this.errorQueue.push(errorReport)
+      }
 
-    // Flush if queue is getting large
-    if (this.errorQueue.length >= 10) {
-      this.flushQueue()
+      // Limit queue size
+      if (this.errorQueue.length > 50) {
+        this.errorQueue = this.errorQueue.slice(-25)
+      }
+
+      // Flush if queue is getting large
+      if (this.errorQueue.length >= 10) {
+        this.flushQueue()
+      }
+    } catch (error) {
+      // Silently fail
     }
   }
 
   private notifyIfCritical(errorReport: ErrorReport): void {
     if (errorReport.severity === "critical") {
-      // Send immediate notification
-      this.sendImmediateAlert(errorReport)
+      // Send immediate notification (non-blocking)
+      this.sendImmediateAlert(errorReport).catch(() => {
+        // Silently fail
+      })
     }
   }
 
   private async sendImmediateAlert(errorReport: ErrorReport): Promise<void> {
     try {
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 5000) // 5 second timeout
+
       await fetch("/api/errors/alert", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(errorReport),
+        signal: controller.signal,
       })
+
+      clearTimeout(timeoutId)
     } catch (error) {
-      console.error("Failed to send immediate alert:", error)
+      // Silently fail
     }
   }
 
   private startPeriodicFlush(): void {
+    if (this.flushInterval) {
+      clearInterval(this.flushInterval)
+    }
+
     this.flushInterval = setInterval(() => {
       this.flushQueue()
-    }, 30000) // Flush every 30 seconds
+    }, 60000) // Flush every 60 seconds (increased from 30)
   }
 
   private async flushQueue(): Promise<void> {
@@ -449,48 +542,67 @@ class ErrorTracker {
     this.performanceQueue = []
 
     try {
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 second timeout
+
+      const promises = []
+
       if (errors.length > 0) {
-        await fetch("/api/errors/batch", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            errors,
-            breadcrumbs: this.getBreadcrumbs(),
-            contexts: this.getContexts(),
+        promises.push(
+          fetch("/api/errors/batch", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              errors,
+              breadcrumbs: this.getBreadcrumbs(),
+              contexts: this.getContexts(),
+            }),
+            signal: controller.signal,
           }),
-        })
+        )
       }
 
       if (metrics.length > 0) {
-        await fetch("/api/metrics/batch", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ metrics }),
-        })
+        promises.push(
+          fetch("/api/metrics/batch", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ metrics }),
+            signal: controller.signal,
+          }),
+        )
       }
+
+      await Promise.allSettled(promises)
+      clearTimeout(timeoutId)
     } catch (error) {
-      // Re-add to queue if failed to send
-      this.errorQueue.unshift(...errors)
-      this.performanceQueue.unshift(...metrics)
-      console.error("Failed to flush error queue:", error)
+      // Re-add to queue if failed to send (but limit size)
+      this.errorQueue.unshift(...errors.slice(0, 10))
+      this.performanceQueue.unshift(...metrics.slice(0, 20))
     }
   }
 
   private async sendEvent(event: any): Promise<void> {
     try {
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 5000)
+
       await fetch("/api/analytics/events", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(event),
+        signal: controller.signal,
       })
+
+      clearTimeout(timeoutId)
     } catch (error) {
-      console.error("Failed to send event:", error)
+      // Silently fail
     }
   }
 
@@ -528,26 +640,37 @@ class ErrorTracker {
 
   // Cleanup method
   destroy(): void {
+    this.errorReportingEnabled = false
+
     if (this.flushInterval) {
       clearInterval(this.flushInterval)
+      this.flushInterval = null
     }
+
+    // Clear queues
+    this.errorQueue = []
+    this.performanceQueue = []
   }
 }
 
 // React Error Boundary integration
 export class ErrorBoundaryReporter {
   static captureError(error: Error, errorInfo: any): void {
-    const tracker = ErrorTracker.getInstance()
-    tracker.captureError(
-      error,
-      {
-        additionalData: {
-          componentStack: errorInfo.componentStack,
-          type: "react_error_boundary",
+    try {
+      const tracker = ErrorTracker.getInstance()
+      tracker.captureError(
+        error,
+        {
+          additionalData: {
+            componentStack: errorInfo.componentStack,
+            type: "react_error_boundary",
+          },
         },
-      },
-      "high",
-    )
+        "high",
+      )
+    } catch {
+      // Silently fail
+    }
   }
 }
 
@@ -575,25 +698,33 @@ export function usePerformanceTracking() {
     measureFunction: <T extends (...args: any[]) => any>(fn: T, name: string): T => {
       return ((...args: any[]) => {
         const start = performance.now()
-        const result = fn(...args)
-        const duration = performance.now() - start
-        errorTracker.capturePerformanceMetric(name, duration)
-        return result
+        let result
+        try {
+          result = fn(...args)
+          const duration = performance.now() - start
+          if (isFinite(duration) && duration > 0) {
+            errorTracker.capturePerformanceMetric(name, duration)
+          }
+          return result
+        } catch (error) {
+          const duration = performance.now() - start
+          if (isFinite(duration) && duration > 0) {
+            errorTracker.capturePerformanceMetric(`${name}_failed`, duration)
+          }
+          throw error
+        }
       }) as T
     },\
     measureAsync: async <T>(promise: Promise<T>, name: string): Promise<T> => {\
       const start = performance.now()\
-      try {\
-        const result = await promise\
-        const duration = performance.now() - start\
-        errorTracker.capturePerformanceMetric(name, duration)\
-        return result\
-      } catch (error) {
-        const duration = performance.now() - start
-        errorTracker.capturePerformanceMetric(`${name}_failed`, duration)
-        throw error
+      const result = await promise\
+      const duration = performance.now() - start\
+      if (isFinite(duration) && duration > 0) {\
+        errorTracker.capturePerformanceMetric(name, duration)
       }
-    }
+  return result
+  \
 }
-\
+,
+  }
 }

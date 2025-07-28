@@ -1,45 +1,28 @@
 "use client"
 
 import React from "react"
-import { ErrorBoundaryReporter } from "@/lib/monitoring/error-tracker"
+import { AlertTriangle, RefreshCw } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { AlertTriangle, RefreshCw, Home, Bug } from "lucide-react"
 
 interface ErrorBoundaryState {
   hasError: boolean
-  error: Error | null
-  errorInfo: React.ErrorInfo | null
-  errorId: string | null
+  error?: Error
+  errorInfo?: React.ErrorInfo
 }
 
 interface ErrorBoundaryProps {
   children: React.ReactNode
-  fallback?: React.ComponentType<{
-    error: Error
-    errorInfo: React.ErrorInfo
-    resetError: () => void
-    errorId: string | null
-  }>
-  onError?: (error: Error, errorInfo: React.ErrorInfo) => void
-  showDetails?: boolean
-  level?: "page" | "component" | "section"
+  fallback?: React.ComponentType<{ error: Error; retry: () => void }>
 }
 
 export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
-  private resetTimeoutId: number | null = null
-
   constructor(props: ErrorBoundaryProps) {
     super(props)
-    this.state = {
-      hasError: false,
-      error: null,
-      errorInfo: null,
-      errorId: null,
-    }
+    this.state = { hasError: false }
   }
 
-  static getDerivedStateFromError(error: Error): Partial<ErrorBoundaryState> {
+  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
     return {
       hasError: true,
       error,
@@ -47,102 +30,81 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    // Report error to tracking system
-    ErrorBoundaryReporter.captureError(error, errorInfo)
-
-    // Call custom error handler if provided
-    this.props.onError?.(error, errorInfo)
-
-    // Generate error ID for user reference
-    const errorId = `ERR-${Date.now().toString(36).toUpperCase()}`
-
     this.setState({
+      error,
       errorInfo,
-      errorId,
     })
 
-    // Auto-retry for component-level errors after 5 seconds
-    if (this.props.level === "component") {
-      this.resetTimeoutId = window.setTimeout(() => {
-        this.handleReset()
-      }, 5000)
-    }
-  }
-
-  componentWillUnmount() {
-    if (this.resetTimeoutId) {
-      clearTimeout(this.resetTimeoutId)
-    }
-  }
-
-  handleReset = () => {
-    if (this.resetTimeoutId) {
-      clearTimeout(this.resetTimeoutId)
-      this.resetTimeoutId = null
+    // Report error to monitoring service
+    try {
+      if (typeof window !== "undefined" && (window as any).__ERROR_TRACKER__) {
+        ;(window as any).__ERROR_TRACKER__.captureError(
+          error,
+          {
+            additionalData: {
+              componentStack: errorInfo.componentStack,
+              type: "react_error_boundary",
+            },
+          },
+          "high",
+        )
+      }
+    } catch {
+      // Silently fail to prevent recursive errors
     }
 
-    this.setState({
-      hasError: false,
-      error: null,
-      errorInfo: null,
-      errorId: null,
-    })
+    // Log error for debugging
+    console.error("Error Boundary caught an error:", error, errorInfo)
   }
 
-  handleReload = () => {
-    window.location.reload()
-  }
-
-  handleGoHome = () => {
-    window.location.href = "/"
-  }
-
-  handleReportBug = () => {
-    const { error, errorInfo, errorId } = this.state
-    const subject = encodeURIComponent(`Bug Report - ${errorId}`)
-    const body = encodeURIComponent(`
-Error ID: ${errorId}
-Error: ${error?.message}
-Stack: ${error?.stack}
-Component Stack: ${errorInfo?.componentStack}
-URL: ${window.location.href}
-User Agent: ${navigator.userAgent}
-Timestamp: ${new Date().toISOString()}
-
-Please describe what you were doing when this error occurred:
-
-    `)
-
-    window.open(`mailto:support@example.com?subject=${subject}&body=${body}`)
+  handleRetry = () => {
+    this.setState({ hasError: false, error: undefined, errorInfo: undefined })
   }
 
   render() {
     if (this.state.hasError) {
-      const { fallback: Fallback } = this.props
-
-      if (Fallback) {
-        return (
-          <Fallback
-            error={this.state.error!}
-            errorInfo={this.state.errorInfo!}
-            resetError={this.handleReset}
-            errorId={this.state.errorId}
-          />
-        )
+      if (this.props.fallback) {
+        const FallbackComponent = this.props.fallback
+        return <FallbackComponent error={this.state.error!} retry={this.handleRetry} />
       }
 
       return (
-        <ErrorFallback
-          error={this.state.error!}
-          errorInfo={this.state.errorInfo!}
-          errorId={this.state.errorId}
-          onReset={this.handleReset}
-          onReload={this.handleReload}
-          onGoHome={this.handleGoHome}
-          onReportBug={this.handleReportBug}
-          showDetails={this.props.showDetails}
-          level={this.props.level}
-        />
+        <div className="min-h-screen flex items-center justify-center p-4">
+          <Card className="w-full max-w-md">
+            <CardHeader className="text-center">
+              <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
+                <AlertTriangle className="h-6 w-6 text-red-600" />
+              </div>
+              <CardTitle className="text-xl">Something went wrong</CardTitle>
+              <CardDescription>We apologize for the inconvenience. An unexpected error has occurred.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {process.env.NODE_ENV === "development" && this.state.error && (
+                <div className="rounded-md bg-red-50 p-3">
+                  <h4 className="text-sm font-medium text-red-800 mb-2">Error Details:</h4>
+                  <p className="text-xs text-red-700 font-mono break-all">{this.state.error.message}</p>
+                  {this.state.error.stack && (
+                    <details className="mt-2">
+                      <summary className="text-xs text-red-700 cursor-pointer">Stack Trace</summary>
+                      <pre className="text-xs text-red-700 mt-1 whitespace-pre-wrap break-all">
+                        {this.state.error.stack}
+                      </pre>
+                    </details>
+                  )}
+                </div>
+              )}
+              <div className="flex flex-col gap-2">
+                <Button onClick={this.handleRetry} className="w-full">
+                  <RefreshCw className="mr-2 h-4 w-4" />
+                  Try Again
+                </Button>
+                <Button variant="outline" onClick={() => window.location.reload()} className="w-full">
+                  Reload Page
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       )
     }
 
@@ -150,177 +112,26 @@ Please describe what you were doing when this error occurred:
   }
 }
 
-interface ErrorFallbackProps {
-  error: Error
-  errorInfo: React.ErrorInfo
-  errorId: string | null
-  onReset: () => void
-  onReload: () => void
-  onGoHome: () => void
-  onReportBug: () => void
-  showDetails?: boolean
-  level?: "page" | "component" | "section"
-}
-
-function ErrorFallback({
-  error,
-  errorInfo,
-  errorId,
-  onReset,
-  onReload,
-  onGoHome,
-  onReportBug,
-  showDetails = false,
-  level = "page",
-}: ErrorFallbackProps) {
-  const [showFullError, setShowFullError] = React.useState(false)
-
-  const getErrorTitle = () => {
-    switch (level) {
-      case "component":
-        return "Component Error"
-      case "section":
-        return "Section Error"
-      default:
-        return "Something went wrong"
-    }
-  }
-
-  const getErrorDescription = () => {
-    switch (level) {
-      case "component":
-        return "A component on this page encountered an error. This will be automatically retried in a few seconds."
-      case "section":
-        return "A section of this page encountered an error. You can try refreshing or continue using other parts of the application."
-      default:
-        return "An unexpected error occurred. Our team has been notified and is working on a fix."
-    }
-  }
-
-  const getActions = () => {
-    const actions = []
-
-    if (level === "component" || level === "section") {
-      actions.push(
-        <Button key="reset" onClick={onReset} variant="default">
-          <RefreshCw className="w-4 h-4 mr-2" />
-          Try Again
-        </Button>,
-      )
+// Hook for functional components to handle errors
+export function useErrorHandler() {
+  return React.useCallback((error: Error, errorInfo?: { componentStack?: string }) => {
+    try {
+      if (typeof window !== "undefined" && (window as any).__ERROR_TRACKER__) {
+        ;(window as any).__ERROR_TRACKER__.captureError(
+          error,
+          {
+            additionalData: {
+              componentStack: errorInfo?.componentStack,
+              type: "react_hook_error",
+            },
+          },
+          "high",
+        )
+      }
+    } catch {
+      // Silently fail
     }
 
-    if (level === "page") {
-      actions.push(
-        <Button key="reload" onClick={onReload} variant="default">
-          <RefreshCw className="w-4 h-4 mr-2" />
-          Reload Page
-        </Button>,
-      )
-
-      actions.push(
-        <Button key="home" onClick={onGoHome} variant="outline">
-          <Home className="w-4 h-4 mr-2" />
-          Go Home
-        </Button>,
-      )
-    }
-
-    actions.push(
-      <Button key="report" onClick={onReportBug} variant="outline">
-        <Bug className="w-4 h-4 mr-2" />
-        Report Bug
-      </Button>,
-    )
-
-    return actions
-  }
-
-  return (
-    <div className={`flex items-center justify-center p-4 ${level === "page" ? "min-h-screen" : "min-h-[200px]"}`}>
-      <Card className="w-full max-w-lg">
-        <CardHeader className="text-center">
-          <div className="mx-auto mb-4 w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
-            <AlertTriangle className="w-6 h-6 text-red-600" />
-          </div>
-          <CardTitle className="text-xl font-semibold text-gray-900">{getErrorTitle()}</CardTitle>
-          <CardDescription className="text-gray-600">{getErrorDescription()}</CardDescription>
-          {errorId && (
-            <div className="mt-2 text-xs text-gray-500 font-mono bg-gray-100 px-2 py-1 rounded">
-              Error ID: {errorId}
-            </div>
-          )}
-        </CardHeader>
-
-        <CardContent className="space-y-4">
-          <div className="flex flex-wrap gap-2 justify-center">{getActions()}</div>
-
-          {showDetails && (
-            <div className="space-y-2">
-              <Button variant="ghost" size="sm" onClick={() => setShowFullError(!showFullError)} className="w-full">
-                {showFullError ? "Hide" : "Show"} Technical Details
-              </Button>
-
-              {showFullError && (
-                <div className="space-y-2 text-xs">
-                  <div className="bg-gray-100 p-3 rounded-md">
-                    <div className="font-semibold mb-1">Error Message:</div>
-                    <div className="text-red-600 font-mono">{error.message}</div>
-                  </div>
-
-                  {error.stack && (
-                    <div className="bg-gray-100 p-3 rounded-md">
-                      <div className="font-semibold mb-1">Stack Trace:</div>
-                      <pre className="text-red-600 font-mono whitespace-pre-wrap overflow-x-auto">{error.stack}</pre>
-                    </div>
-                  )}
-
-                  {errorInfo.componentStack && (
-                    <div className="bg-gray-100 p-3 rounded-md">
-                      <div className="font-semibold mb-1">Component Stack:</div>
-                      <pre className="text-red-600 font-mono whitespace-pre-wrap overflow-x-auto">
-                        {errorInfo.componentStack}
-                      </pre>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          )}
-        </CardContent>
-      </Card>
-    </div>
-  )
-}
-
-// Specialized error boundaries for different use cases
-export function PageErrorBoundary({ children }: { children: React.ReactNode }) {
-  return (
-    <ErrorBoundary level="page" showDetails={process.env.NODE_ENV === "development"}>
-      {children}
-    </ErrorBoundary>
-  )
-}
-
-export function ComponentErrorBoundary({ children }: { children: React.ReactNode }) {
-  return <ErrorBoundary level="component">{children}</ErrorBoundary>
-}
-
-export function SectionErrorBoundary({ children }: { children: React.ReactNode }) {
-  return <ErrorBoundary level="section">{children}</ErrorBoundary>
-}
-
-// HOC for wrapping components with error boundaries
-export function withErrorBoundary<P extends object>(
-  Component: React.ComponentType<P>,
-  errorBoundaryProps?: Partial<ErrorBoundaryProps>,
-) {
-  const WrappedComponent = (props: P) => (
-    <ErrorBoundary {...errorBoundaryProps}>
-      <Component {...props} />
-    </ErrorBoundary>
-  )
-
-  WrappedComponent.displayName = `withErrorBoundary(${Component.displayName || Component.name})`
-
-  return WrappedComponent
+    console.error("Error caught by useErrorHandler:", error, errorInfo)
+  }, [])
 }

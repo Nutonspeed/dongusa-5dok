@@ -1,6 +1,6 @@
 "use client"
 
-// Web Vitals monitoring implementation
+// Simplified Web Vitals monitoring to prevent browser lockup
 interface WebVitalMetric {
   name: "CLS" | "FID" | "FCP" | "LCP" | "TTFB" | "INP"
   value: number
@@ -20,190 +20,183 @@ interface PerformanceConfig {
 class WebVitalsMonitor {
   private config: PerformanceConfig
   private metrics: Map<string, WebVitalMetric> = new Map()
-  private observer: PerformanceObserver | null = null
+  private observers: PerformanceObserver[] = []
+  private isInitialized = false
+  private isDestroyed = false
 
   constructor(config: PerformanceConfig = {}) {
     this.config = {
       reportAllChanges: false,
-      enableLogging: true,
-      sampleRate: 1.0,
+      enableLogging: false, // Disabled by default to prevent spam
+      sampleRate: 0.1, // Reduced sample rate
       endpoint: "/api/metrics/web-vitals",
       ...config,
     }
 
-    this.initializeMonitoring()
+    // Defer initialization to prevent blocking
+    if (typeof window !== "undefined") {
+      setTimeout(() => this.safeInitialize(), 1000)
+    }
   }
 
-  private initializeMonitoring(): void {
-    // Only run in browser
-    if (typeof window === "undefined") return
+  private safeInitialize(): void {
+    if (this.isInitialized || this.isDestroyed) return
 
-    // Sample rate check
-    if (Math.random() > this.config.sampleRate!) return
+    try {
+      // Sample rate check
+      if (Math.random() > this.config.sampleRate!) return
 
-    this.measureCLS()
-    this.measureFID()
-    this.measureFCP()
-    this.measureLCP()
-    this.measureTTFB()
-    this.measureINP()
-
-    // Send metrics when page is about to unload
-    this.setupBeforeUnload()
+      this.measureBasicMetrics()
+      this.setupBeforeUnload()
+      this.isInitialized = true
+    } catch (error) {
+      console.error("Failed to initialize web vitals monitor:", error)
+    }
   }
 
-  private measureCLS(): void {
-    let clsValue = 0
-    const clsEntries: PerformanceEntry[] = []
+  private measureBasicMetrics(): void {
+    if (typeof window === "undefined" || this.isDestroyed) return
 
-    const observer = new PerformanceObserver((list) => {
-      for (const entry of list.getEntries()) {
-        if (!(entry as any).hadRecentInput) {
-          clsValue += (entry as any).value
-          clsEntries.push(entry)
-        }
-      }
-
-      const lastEntry = clsEntries[clsEntries.length - 1]
-      this.reportMetric({
-        name: "CLS",
-        value: clsValue,
-        rating: this.getCLSRating(clsValue),
-        delta: lastEntry ? (lastEntry as any).value : 0,
-        id: this.generateId(),
-        navigationType: this.getNavigationType(),
-      })
-    })
-
-    observer.observe({ entryTypes: ["layout-shift"] })
-  }
-
-  private measureFID(): void {
-    const observer = new PerformanceObserver((list) => {
-      for (const entry of list.getEntries()) {
-        const fidValue = entry.processingStart - entry.startTime
-
-        this.reportMetric({
-          name: "FID",
-          value: fidValue,
-          rating: this.getFIDRating(fidValue),
-          delta: fidValue,
-          id: this.generateId(),
-          navigationType: this.getNavigationType(),
-        })
-      }
-    })
-
-    observer.observe({ entryTypes: ["first-input"] })
-  }
-
-  private measureFCP(): void {
-    const observer = new PerformanceObserver((list) => {
-      for (const entry of list.getEntries()) {
-        if (entry.name === "first-contentful-paint") {
-          const fcpValue = entry.startTime
-
+    try {
+      // Measure TTFB from navigation timing
+      const navigation = performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming
+      if (navigation) {
+        const ttfbValue = navigation.responseStart - navigation.fetchStart
+        if (isFinite(ttfbValue) && ttfbValue > 0 && ttfbValue < 30000) {
           this.reportMetric({
-            name: "FCP",
-            value: fcpValue,
-            rating: this.getFCPRating(fcpValue),
-            delta: fcpValue,
+            name: "TTFB",
+            value: ttfbValue,
+            rating: this.getTTFBRating(ttfbValue),
+            delta: ttfbValue,
             id: this.generateId(),
             navigationType: this.getNavigationType(),
           })
         }
       }
-    })
 
-    observer.observe({ entryTypes: ["paint"] })
-  }
+      // Measure paint metrics
+      this.measurePaintMetrics()
 
-  private measureLCP(): void {
-    const observer = new PerformanceObserver((list) => {
-      const entries = list.getEntries()
-      const lastEntry = entries[entries.length - 1]
-      const lcpValue = lastEntry.startTime
-
-      this.reportMetric({
-        name: "LCP",
-        value: lcpValue,
-        rating: this.getLCPRating(lcpValue),
-        delta: lcpValue,
-        id: this.generateId(),
-        navigationType: this.getNavigationType(),
-      })
-    })
-
-    observer.observe({ entryTypes: ["largest-contentful-paint"] })
-  }
-
-  private measureTTFB(): void {
-    const navigation = performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming
-    if (navigation) {
-      const ttfbValue = navigation.responseStart - navigation.fetchStart
-
-      this.reportMetric({
-        name: "TTFB",
-        value: ttfbValue,
-        rating: this.getTTFBRating(ttfbValue),
-        delta: ttfbValue,
-        id: this.generateId(),
-        navigationType: this.getNavigationType(),
-      })
+      // Measure layout shift (simplified)
+      this.measureCLS()
+    } catch (error) {
+      // Silently fail
     }
   }
 
-  private measureINP(): void {
-    // Interaction to Next Paint (INP) - newer metric
-    const observer = new PerformanceObserver((list) => {
-      let longestInteraction = 0
+  private measurePaintMetrics(): void {
+    try {
+      const paintEntries = performance.getEntriesByType("paint")
 
-      for (const entry of list.getEntries()) {
-        const interactionTime = entry.processingStart - entry.startTime
-        if (interactionTime > longestInteraction) {
-          longestInteraction = interactionTime
+      paintEntries.forEach((entry) => {
+        if (entry.name === "first-contentful-paint") {
+          const fcpValue = entry.startTime
+          if (isFinite(fcpValue) && fcpValue > 0 && fcpValue < 30000) {
+            this.reportMetric({
+              name: "FCP",
+              value: fcpValue,
+              rating: this.getFCPRating(fcpValue),
+              delta: fcpValue,
+              id: this.generateId(),
+              navigationType: this.getNavigationType(),
+            })
+          }
         }
-      }
+      })
+    } catch (error) {
+      // Silently fail
+    }
+  }
 
-      if (longestInteraction > 0) {
-        this.reportMetric({
-          name: "INP",
-          value: longestInteraction,
-          rating: this.getINPRating(longestInteraction),
-          delta: longestInteraction,
-          id: this.generateId(),
-          navigationType: this.getNavigationType(),
-        })
-      }
-    })
+  private measureCLS(): void {
+    if (this.isDestroyed) return
 
-    observer.observe({ entryTypes: ["event"] })
+    try {
+      let clsValue = 0
+      let entryCount = 0
+      const maxEntries = 50 // Limit entries to prevent memory issues
+
+      const observer = new PerformanceObserver((list) => {
+        const entries = list.getEntries()
+        if (this.isDestroyed || entryCount >= maxEntries) {
+          observer.disconnect()
+          return
+        }
+
+        for (const entry of entries) {
+          if (entryCount >= maxEntries) break
+
+          if (!(entry as any).hadRecentInput) {
+            clsValue += (entry as any).value
+            entryCount++
+          }
+        }
+
+        if (clsValue > 0) {
+          this.reportMetric({
+            name: "CLS",
+            value: clsValue,
+            rating: this.getCLSRating(clsValue),
+            delta: clsValue,
+            id: this.generateId(),
+            navigationType: this.getNavigationType(),
+          })
+        }
+      })
+
+      observer.observe({ entryTypes: ["layout-shift"] })
+      this.observers.push(observer)
+
+      // Auto-disconnect after 30 seconds
+      setTimeout(() => {
+        observer.disconnect()
+      }, 30000)
+    } catch (error) {
+      // Silently fail
+    }
   }
 
   private reportMetric(metric: WebVitalMetric): void {
-    // Store metric
-    this.metrics.set(metric.name, metric)
+    if (this.isDestroyed) return
 
-    // Log if enabled
-    if (this.config.enableLogging) {
-      console.log(`Web Vital - ${metric.name}:`, {
-        value: `${metric.value.toFixed(2)}ms`,
-        rating: metric.rating,
-        id: metric.id,
-      })
+    try {
+      // Store metric
+      this.metrics.set(metric.name, metric)
+
+      // Log if enabled
+      if (this.config.enableLogging) {
+        console.log(`Web Vital - ${metric.name}:`, {
+          value: `${metric.value.toFixed(2)}ms`,
+          rating: metric.rating,
+          id: metric.id,
+        })
+      }
+
+      // Send to endpoint if configured (non-blocking)
+      if (this.config.endpoint) {
+        this.sendMetric(metric).catch(() => {
+          // Silently fail
+        })
+      }
+
+      // Trigger custom event
+      if (typeof window !== "undefined") {
+        try {
+          window.dispatchEvent(new CustomEvent("webvital", { detail: metric }))
+        } catch {
+          // Silently fail
+        }
+      }
+    } catch (error) {
+      // Silently fail
     }
-
-    // Send to endpoint if configured
-    if (this.config.endpoint) {
-      this.sendMetric(metric)
-    }
-
-    // Trigger custom event
-    window.dispatchEvent(new CustomEvent("webvital", { detail: metric }))
   }
 
   private async sendMetric(metric: WebVitalMetric): Promise<void> {
     try {
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 5000)
+
       await fetch(this.config.endpoint!, {
         method: "POST",
         headers: {
@@ -216,39 +209,51 @@ class WebVitalsMonitor {
           timestamp: new Date().toISOString(),
           connection: this.getConnectionInfo(),
         }),
+        signal: controller.signal,
       })
+
+      clearTimeout(timeoutId)
     } catch (error) {
-      console.error("Failed to send web vital metric:", error)
+      // Silently fail
     }
   }
 
   private setupBeforeUnload(): void {
-    window.addEventListener("beforeunload", () => {
-      // Send any remaining metrics
-      this.flushMetrics()
-    })
+    if (typeof window === "undefined") return
 
-    // Also send on visibility change (when user switches tabs)
-    document.addEventListener("visibilitychange", () => {
+    const handleUnload = () => {
+      this.flushMetrics()
+    }
+
+    const handleVisibilityChange = () => {
       if (document.visibilityState === "hidden") {
         this.flushMetrics()
       }
-    })
+    }
+
+    window.addEventListener("beforeunload", handleUnload, { passive: true })
+    document.addEventListener("visibilitychange", handleVisibilityChange, { passive: true })
   }
 
   private flushMetrics(): void {
-    const metricsToSend = Array.from(this.metrics.values())
+    if (this.isDestroyed) return
 
-    if (metricsToSend.length > 0 && this.config.endpoint) {
-      // Use sendBeacon for reliable delivery
-      navigator.sendBeacon(
-        this.config.endpoint,
-        JSON.stringify({
-          metrics: metricsToSend,
-          url: window.location.href,
-          timestamp: new Date().toISOString(),
-        }),
-      )
+    try {
+      const metricsToSend = Array.from(this.metrics.values())
+
+      if (metricsToSend.length > 0 && this.config.endpoint && navigator.sendBeacon) {
+        // Use sendBeacon for reliable delivery
+        navigator.sendBeacon(
+          this.config.endpoint,
+          JSON.stringify({
+            metrics: metricsToSend,
+            url: window.location.href,
+            timestamp: new Date().toISOString(),
+          }),
+        )
+      }
+    } catch (error) {
+      // Silently fail
     }
   }
 
@@ -257,42 +262,38 @@ class WebVitalsMonitor {
     return value <= 0.1 ? "good" : value <= 0.25 ? "needs-improvement" : "poor"
   }
 
-  private getFIDRating(value: number): "good" | "needs-improvement" | "poor" {
-    return value <= 100 ? "good" : value <= 300 ? "needs-improvement" : "poor"
-  }
-
   private getFCPRating(value: number): "good" | "needs-improvement" | "poor" {
     return value <= 1800 ? "good" : value <= 3000 ? "needs-improvement" : "poor"
-  }
-
-  private getLCPRating(value: number): "good" | "needs-improvement" | "poor" {
-    return value <= 2500 ? "good" : value <= 4000 ? "needs-improvement" : "poor"
   }
 
   private getTTFBRating(value: number): "good" | "needs-improvement" | "poor" {
     return value <= 800 ? "good" : value <= 1800 ? "needs-improvement" : "poor"
   }
 
-  private getINPRating(value: number): "good" | "needs-improvement" | "poor" {
-    return value <= 200 ? "good" : value <= 500 ? "needs-improvement" : "poor"
-  }
-
   private getNavigationType(): string {
-    const navigation = performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming
-    return navigation ? navigation.type : "unknown"
+    try {
+      const navigation = performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming
+      return navigation ? navigation.type : "unknown"
+    } catch {
+      return "unknown"
+    }
   }
 
   private getConnectionInfo(): any {
-    const connection =
-      (navigator as any).connection || (navigator as any).mozConnection || (navigator as any).webkitConnection
+    try {
+      const connection =
+        (navigator as any).connection || (navigator as any).mozConnection || (navigator as any).webkitConnection
 
-    if (connection) {
-      return {
-        effectiveType: connection.effectiveType,
-        downlink: connection.downlink,
-        rtt: connection.rtt,
-        saveData: connection.saveData,
+      if (connection) {
+        return {
+          effectiveType: connection.effectiveType,
+          downlink: connection.downlink,
+          rtt: connection.rtt,
+          saveData: connection.saveData,
+        }
       }
+    } catch {
+      // Silently fail
     }
 
     return null
@@ -312,9 +313,19 @@ class WebVitalsMonitor {
   }
 
   destroy(): void {
-    if (this.observer) {
-      this.observer.disconnect()
-    }
+    this.isDestroyed = true
+
+    // Disconnect all observers
+    this.observers.forEach((observer) => {
+      try {
+        observer.disconnect()
+      } catch {
+        // Silently fail
+      }
+    })
+
+    this.observers = []
+    this.metrics.clear()
   }
 }
 
@@ -343,10 +354,14 @@ export function useWebVitals(config?: PerformanceConfig) {
       })
     }
 
-    window.addEventListener("webvital", handleWebVital as EventListener)
+    if (typeof window !== "undefined") {
+      window.addEventListener("webvital", handleWebVital as EventListener)
+    }
 
     return () => {
-      window.removeEventListener("webvital", handleWebVital as EventListener)
+      if (typeof window !== "undefined") {
+        window.removeEventListener("webvital", handleWebVital as EventListener)
+      }
       monitorRef.current?.destroy()
     }
   }, [])
@@ -358,8 +373,8 @@ export function useWebVitals(config?: PerformanceConfig) {
   }
 }
 
-// Export singleton instance
-export const webVitalsMonitor = new WebVitalsMonitor()
+// Export singleton instance (disabled by default)
+export const webVitalsMonitor = new WebVitalsMonitor({ enableLogging: false, sampleRate: 0.05 })
 
 // Export types
 export type { WebVitalMetric, PerformanceConfig }
