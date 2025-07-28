@@ -18,9 +18,208 @@ import {
 import Image from "next/image"
 import Link from "next/link"
 
-// Same fabric collections data as above
+// Updated fabric collections data with proper structure
 const fabricCollections = [
-  // ... (same data as in the enhanced FabricCollections component)
+  {
+    id: 1,
+    name: "Modern Minimalist",
+    description: "Clean lines and neutral tones perfect for contemporary spaces",
+    tags: ["modern", "minimalist", "neutral"],
+    samples: [
+      {
+        id: 1,
+        name: "Arctic White",
+        texture: "Smooth Cotton",
+        price: "$49",
+        image: "/modern-minimalist-fabric-pattern-1.png",
+      },
+      {
+        id: 2,
+        name: "Stone Gray",
+        texture: "Linen Blend",
+        price: "$59",
+        image: "/modern-minimalist-fabric-pattern-2.png",
+      },
+      {
+        id: 3,
+        name: "Charcoal",
+        texture: "Performance Fabric",
+        price: "$69",
+        image: "/modern-minimalist-fabric-pattern-3.png",
+      },
+      {
+        id: 4,
+        name: "Cream",
+        texture: "Soft Cotton",
+        price: "$55",
+        image: "/placeholder.svg?height=200&width=200&text=Cream",
+      },
+      {
+        id: 5,
+        name: "Sage Green",
+        texture: "Organic Cotton",
+        price: "$65",
+        image: "/placeholder.svg?height=200&width=200&text=Sage",
+      },
+      {
+        id: 6,
+        name: "Dusty Blue",
+        texture: "Linen Blend",
+        price: "$62",
+        image: "/placeholder.svg?height=200&width=200&text=Blue",
+      },
+    ],
+  },
+  {
+    id: 2,
+    name: "Classic Elegance",
+    description: "Timeless patterns and rich textures for sophisticated interiors",
+    tags: ["classic", "elegant", "luxury"],
+    samples: [
+      {
+        id: 7,
+        name: "Royal Navy Damask",
+        texture: "Jacquard Weave",
+        price: "$89",
+        image: "/classic-elegant-fabric-pattern-1.png",
+      },
+      {
+        id: 8,
+        name: "Burgundy Paisley",
+        texture: "Velvet",
+        price: "$95",
+        image: "/classic-elegant-fabric-pattern-2.png",
+      },
+      {
+        id: 9,
+        name: "Gold Brocade",
+        texture: "Silk Blend",
+        price: "$120",
+        image: "/classic-elegant-fabric-pattern-3.png",
+      },
+      {
+        id: 10,
+        name: "Forest Plaid",
+        texture: "Wool Blend",
+        price: "$85",
+        image: "/classic-elegant-fabric-pattern-4.png",
+      },
+      {
+        id: 11,
+        name: "Ivory Toile",
+        texture: "Cotton Canvas",
+        price: "$75",
+        image: "/placeholder.svg?height=200&width=200&text=Toile",
+      },
+      {
+        id: 12,
+        name: "Mahogany Stripe",
+        texture: "Chenille",
+        price: "$92",
+        image: "/placeholder.svg?height=200&width=200&text=Stripe",
+      },
+    ],
+  },
+  {
+    id: 3,
+    name: "Bohemian Chic",
+    description: "Vibrant colors and artistic designs for eclectic spaces",
+    tags: ["bohemian", "colorful", "artistic"],
+    samples: [
+      {
+        id: 13,
+        name: "Sunset Mandala",
+        texture: "Cotton Canvas",
+        price: "$78",
+        image: "/bohemian-chic-fabric-pattern-1.png",
+      },
+      {
+        id: 14,
+        name: "Peacock Feather",
+        texture: "Velvet",
+        price: "$88",
+        image: "/placeholder.svg?height=200&width=200&text=Peacock",
+      },
+      {
+        id: 15,
+        name: "Desert Rose",
+        texture: "Linen Blend",
+        price: "$72",
+        image: "/placeholder.svg?height=200&width=200&text=Rose",
+      },
+      {
+        id: 16,
+        name: "Turquoise Ikat",
+        texture: "Cotton Blend",
+        price: "$68",
+        image: "/placeholder.svg?height=200&width=200&text=Ikat",
+      },
+      {
+        id: 17,
+        name: "Moroccan Tile",
+        texture: "Jacquard",
+        price: "$82",
+        image: "/placeholder.svg?height=200&width=200&text=Moroccan",
+      },
+      {
+        id: 18,
+        name: "Tribal Geometric",
+        texture: "Canvas",
+        price: "$75",
+        image: "/placeholder.svg?height=200&width=200&text=Tribal",
+      },
+    ],
+  },
+  {
+    id: 4,
+    name: "Scandinavian Style",
+    description: "Light, airy, and functional designs inspired by Nordic aesthetics",
+    tags: ["scandinavian", "nordic", "minimal"],
+    samples: [
+      {
+        id: 19,
+        name: "Nordic White",
+        texture: "Organic Cotton",
+        price: "$55",
+        image: "/placeholder.svg?height=200&width=200&text=Nordic",
+      },
+      {
+        id: 20,
+        name: "Birch Gray",
+        texture: "Linen",
+        price: "$58",
+        image: "/placeholder.svg?height=200&width=200&text=Birch",
+      },
+      {
+        id: 21,
+        name: "Pine Green",
+        texture: "Hemp Blend",
+        price: "$62",
+        image: "/placeholder.svg?height=200&width=200&text=Pine",
+      },
+      {
+        id: 22,
+        name: "Fjord Blue",
+        texture: "Wool Blend",
+        price: "$65",
+        image: "/placeholder.svg?height=200&width=200&text=Fjord",
+      },
+      {
+        id: 23,
+        name: "Aurora Pink",
+        texture: "Cotton",
+        price: "$60",
+        image: "/placeholder.svg?height=200&width=200&text=Aurora",
+      },
+      {
+        id: 24,
+        name: "Slate Blue",
+        texture: "Linen Blend",
+        price: "$63",
+        image: "/placeholder.svg?height=200&width=200&text=Slate",
+      },
+    ],
+  },
 ]
 
 export default function FabricGalleryPage() {
@@ -375,7 +574,7 @@ export default function FabricGalleryPage() {
         )}
       </div>
 
-      {/* Image Zoom Modal - Same as in FabricCollections component */}
+      {/* Image Zoom Modal */}
       {zoomedImage && (
         <div className="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center p-4">
           <div className="relative max-w-4xl max-h-full">

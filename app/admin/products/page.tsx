@@ -1,12 +1,25 @@
 "use client"
 
 import { useState } from "react"
-import { Plus, Search, Filter, Edit, Trash2, Eye, Package, AlertTriangle, CheckCircle, XCircle } from "lucide-react"
+import {
+  Plus,
+  Search,
+  Filter,
+  Edit,
+  Trash2,
+  Eye,
+  Package,
+  AlertTriangle,
+  CheckCircle,
+  XCircle,
+  ImageIcon,
+} from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import Image from "next/image"
 
-// Mock products data
+// Enhanced products data with fabric patterns
 const productsData = [
   {
     id: "1",
@@ -17,10 +30,11 @@ const productsData = [
     priceRange: { min: 1500, max: 4500 },
     stock: 25,
     status: "active",
-    image: "/placeholder.svg?height=100&width=100&text=Velvet",
+    image: "/modern-minimalist-fabric-pattern-1.png",
     rating: 4.8,
     reviews: 124,
     sold: 89,
+    fabricPattern: "Modern Minimalist - Arctic White",
     createdAt: "2024-01-15",
     updatedAt: "2024-01-20",
   },
@@ -33,10 +47,11 @@ const productsData = [
     priceRange: { min: 1200, max: 3800 },
     stock: 18,
     status: "active",
-    image: "/placeholder.svg?height=100&width=100&text=Waterproof",
+    image: "/classic-elegant-fabric-pattern-1.png",
     rating: 4.6,
     reviews: 89,
     sold: 67,
+    fabricPattern: "Classic Elegance - Royal Navy",
     createdAt: "2024-01-10",
     updatedAt: "2024-01-18",
   },
@@ -49,10 +64,11 @@ const productsData = [
     price: 350,
     stock: 5,
     status: "low_stock",
-    image: "/placeholder.svg?height=100&width=100&text=Pillows",
+    image: "/bohemian-chic-fabric-pattern-1.png",
     rating: 4.4,
     reviews: 156,
     sold: 234,
+    fabricPattern: "Bohemian Chic - Sunset Mandala",
     createdAt: "2024-01-05",
     updatedAt: "2024-01-19",
   },
@@ -69,6 +85,7 @@ const productsData = [
     rating: 4.2,
     reviews: 203,
     sold: 445,
+    fabricPattern: "N/A",
     createdAt: "2024-01-01",
     updatedAt: "2024-01-17",
   },
@@ -85,6 +102,7 @@ const productsData = [
     rating: 4.3,
     reviews: 78,
     sold: 156,
+    fabricPattern: "N/A",
     createdAt: "2023-12-20",
     updatedAt: "2024-01-16",
   },
@@ -97,12 +115,47 @@ const productsData = [
     priceRange: { min: 990, max: 2890 },
     stock: 33,
     status: "draft",
-    image: "/placeholder.svg?height=100&width=100&text=Stretch",
+    image: "/modern-minimalist-fabric-pattern-2.png",
     rating: 4.1,
     reviews: 234,
     sold: 123,
+    fabricPattern: "Modern Minimalist - Stone Gray",
     createdAt: "2024-01-22",
     updatedAt: "2024-01-22",
+  },
+  {
+    id: "7",
+    name: "ผ้าคลุมโซฟาคลาสสิค",
+    nameEn: "Classic Sofa Cover",
+    category: "covers",
+    type: "custom",
+    priceRange: { min: 1800, max: 5200 },
+    stock: 15,
+    status: "active",
+    image: "/classic-elegant-fabric-pattern-2.png",
+    rating: 4.7,
+    reviews: 98,
+    sold: 56,
+    fabricPattern: "Classic Elegance - Burgundy Paisley",
+    createdAt: "2024-01-12",
+    updatedAt: "2024-01-21",
+  },
+  {
+    id: "8",
+    name: "ผ้าคลุมโซฟาโบฮีเมียน",
+    nameEn: "Bohemian Sofa Cover",
+    category: "covers",
+    type: "custom",
+    priceRange: { min: 1400, max: 4200 },
+    stock: 8,
+    status: "low_stock",
+    image: "/classic-elegant-fabric-pattern-3.png",
+    rating: 4.5,
+    reviews: 67,
+    sold: 34,
+    fabricPattern: "Classic Elegance - Gold Brocade",
+    createdAt: "2024-01-08",
+    updatedAt: "2024-01-19",
   },
 ]
 
@@ -125,11 +178,13 @@ export default function ProductsManagement() {
   const [selectedCategory, setSelectedCategory] = useState("all")
   const [selectedStatus, setSelectedStatus] = useState("all")
   const [showFilters, setShowFilters] = useState(false)
+  const [viewMode, setViewMode] = useState<"table" | "grid">("table")
 
   const filteredProducts = productsData.filter((product) => {
     const matchesSearch =
       product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.nameEn.toLowerCase().includes(searchTerm.toLowerCase())
+      product.nameEn.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      product.fabricPattern.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesCategory = selectedCategory === "all" || product.category === selectedCategory
     const matchesStatus = selectedStatus === "all" || product.status === selectedStatus
 
@@ -183,12 +238,18 @@ export default function ProductsManagement() {
       <div className="flex flex-col md:flex-row md:items-center md:justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">จัดการสินค้า</h1>
-          <p className="text-gray-600 mt-1">จัดการสินค้าและอุปกรณ์เสริมทั้งหมด</p>
+          <p className="text-gray-600 mt-1">จัดการสินค้าและอุปกรณ์เสริมทั้งหมด รวมถึงลายผ้าใหม่</p>
         </div>
-        <Button className="mt-4 md:mt-0 bg-gradient-to-r from-pink-500 to-rose-600 hover:from-pink-600 hover:to-rose-700">
-          <Plus className="w-4 h-4 mr-2" />
-          เพิ่มสินค้าใหม่
-        </Button>
+        <div className="flex space-x-2 mt-4 md:mt-0">
+          <Button variant="outline" onClick={() => setViewMode(viewMode === "table" ? "grid" : "table")}>
+            {viewMode === "table" ? <ImageIcon className="w-4 h-4 mr-2" /> : <Package className="w-4 h-4 mr-2" />}
+            {viewMode === "table" ? "Grid View" : "Table View"}
+          </Button>
+          <Button className="bg-gradient-to-r from-pink-500 to-rose-600 hover:from-pink-600 hover:to-rose-700">
+            <Plus className="w-4 h-4 mr-2" />
+            เพิ่มสินค้าใหม่
+          </Button>
+        </div>
       </div>
 
       {/* Stats Cards */}
@@ -234,12 +295,12 @@ export default function ProductsManagement() {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">หมด</p>
-                <p className="text-2xl font-bold text-red-600">
-                  {productsData.filter((p) => p.status === "out_of_stock").length}
+                <p className="text-sm text-gray-600">ลายผ้าใหม่</p>
+                <p className="text-2xl font-bold text-purple-600">
+                  {productsData.filter((p) => p.fabricPattern !== "N/A").length}
                 </p>
               </div>
-              <XCircle className="w-8 h-8 text-red-600" />
+              <ImageIcon className="w-8 h-8 text-purple-600" />
             </div>
           </CardContent>
         </Card>
@@ -254,7 +315,7 @@ export default function ProductsManagement() {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
               <input
                 type="text"
-                placeholder="ค้นหาสินค้า..."
+                placeholder="ค้นหาสินค้าหรือลายผ้า..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
@@ -302,101 +363,168 @@ export default function ProductsManagement() {
         </CardContent>
       </Card>
 
-      {/* Products Table */}
+      {/* Products Display */}
       <Card>
         <CardHeader>
           <CardTitle>รายการสินค้า</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-gray-200">
-                  <th className="text-left py-3 px-4 font-semibold text-gray-700">สินค้า</th>
-                  <th className="text-left py-3 px-4 font-semibold text-gray-700">หมวดหมู่</th>
-                  <th className="text-left py-3 px-4 font-semibold text-gray-700">ราคา</th>
-                  <th className="text-left py-3 px-4 font-semibold text-gray-700">สต็อก</th>
-                  <th className="text-left py-3 px-4 font-semibold text-gray-700">สถานะ</th>
-                  <th className="text-left py-3 px-4 font-semibold text-gray-700">ยอดขาย</th>
-                  <th className="text-left py-3 px-4 font-semibold text-gray-700">คะแนน</th>
-                  <th className="text-left py-3 px-4 font-semibold text-gray-700">การดำเนินการ</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredProducts.map((product) => (
-                  <tr key={product.id} className="border-b border-gray-100 hover:bg-gray-50">
-                    <td className="py-4 px-4">
-                      <div className="flex items-center space-x-3">
-                        <img
-                          src={product.image || "/placeholder.svg"}
-                          alt={product.name}
-                          className="w-12 h-12 rounded-lg object-cover"
-                        />
-                        <div>
-                          <h4 className="font-semibold text-gray-900 text-sm">{product.name}</h4>
-                          <p className="text-xs text-gray-500">{product.nameEn}</p>
+          {viewMode === "table" ? (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-gray-200">
+                    <th className="text-left py-3 px-4 font-semibold text-gray-700">สินค้า</th>
+                    <th className="text-left py-3 px-4 font-semibold text-gray-700">ลายผ้า</th>
+                    <th className="text-left py-3 px-4 font-semibold text-gray-700">หมวดหมู่</th>
+                    <th className="text-left py-3 px-4 font-semibold text-gray-700">ราคา</th>
+                    <th className="text-left py-3 px-4 font-semibold text-gray-700">สต็อก</th>
+                    <th className="text-left py-3 px-4 font-semibold text-gray-700">สถานะ</th>
+                    <th className="text-left py-3 px-4 font-semibold text-gray-700">ยอดขาย</th>
+                    <th className="text-left py-3 px-4 font-semibold text-gray-700">คะแนน</th>
+                    <th className="text-left py-3 px-4 font-semibold text-gray-700">การดำเนินการ</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredProducts.map((product) => (
+                    <tr key={product.id} className="border-b border-gray-100 hover:bg-gray-50">
+                      <td className="py-4 px-4">
+                        <div className="flex items-center space-x-3">
+                          <div className="relative w-12 h-12 rounded-lg overflow-hidden">
+                            <Image
+                              src={product.image || "/placeholder.svg"}
+                              alt={product.name}
+                              width={48}
+                              height={48}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                          <div>
+                            <h4 className="font-semibold text-gray-900 text-sm">{product.name}</h4>
+                            <p className="text-xs text-gray-500">{product.nameEn}</p>
+                          </div>
                         </div>
-                      </div>
-                    </td>
-                    <td className="py-4 px-4">
-                      <Badge variant="outline">{product.category === "covers" ? "ผ้าคลุมโซฟา" : "อุปกรณ์เสริม"}</Badge>
-                    </td>
-                    <td className="py-4 px-4">
+                      </td>
+                      <td className="py-4 px-4">
+                        <div className="text-sm">
+                          <p className="font-medium text-gray-900">{product.fabricPattern}</p>
+                        </div>
+                      </td>
+                      <td className="py-4 px-4">
+                        <Badge variant="outline">{product.category === "covers" ? "ผ้าคลุมโซฟา" : "อุปกรณ์เสริม"}</Badge>
+                      </td>
+                      <td className="py-4 px-4">
+                        {product.type === "custom" ? (
+                          <div>
+                            <p className="font-semibold text-pink-600 text-sm">
+                              {formatPriceRange(product.priceRange.min, product.priceRange.max)}
+                            </p>
+                            <p className="text-xs text-gray-500">ราคาตามขนาด</p>
+                          </div>
+                        ) : (
+                          <p className="font-semibold text-pink-600">{formatPrice(product.price)}</p>
+                        )}
+                      </td>
+                      <td className="py-4 px-4">
+                        <div className="flex items-center space-x-2">
+                          {getStatusIcon(product.status)}
+                          <span
+                            className={`font-medium ${
+                              product.stock === 0
+                                ? "text-red-600"
+                                : product.stock <= 10
+                                  ? "text-yellow-600"
+                                  : "text-green-600"
+                            }`}
+                          >
+                            {product.stock}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="py-4 px-4">{getStatusBadge(product.status, product.stock)}</td>
+                      <td className="py-4 px-4">
+                        <span className="font-medium text-gray-900">{product.sold}</span>
+                      </td>
+                      <td className="py-4 px-4">
+                        <div className="flex items-center space-x-1">
+                          <span className="font-medium text-yellow-600">{product.rating}</span>
+                          <span className="text-xs text-gray-500">({product.reviews})</span>
+                        </div>
+                      </td>
+                      <td className="py-4 px-4">
+                        <div className="flex items-center space-x-2">
+                          <Button variant="ghost" size="sm">
+                            <Eye className="w-4 h-4" />
+                          </Button>
+                          <Button variant="ghost" size="sm">
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                          <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700">
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {filteredProducts.map((product) => (
+                <div
+                  key={product.id}
+                  className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-shadow"
+                >
+                  <div className="relative h-48">
+                    <Image
+                      src={product.image || "/placeholder.svg"}
+                      alt={product.name}
+                      width={300}
+                      height={200}
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute top-2 right-2">{getStatusBadge(product.status, product.stock)}</div>
+                  </div>
+                  <div className="p-4">
+                    <h3 className="font-semibold text-gray-900 mb-1">{product.name}</h3>
+                    <p className="text-sm text-gray-500 mb-2">{product.nameEn}</p>
+                    <p className="text-xs text-blue-600 mb-2">{product.fabricPattern}</p>
+                    <div className="flex items-center justify-between mb-3">
                       {product.type === "custom" ? (
-                        <div>
-                          <p className="font-semibold text-pink-600 text-sm">
-                            {formatPriceRange(product.priceRange.min, product.priceRange.max)}
-                          </p>
-                          <p className="text-xs text-gray-500">ราคาตามขนาด</p>
-                        </div>
-                      ) : (
-                        <p className="font-semibold text-pink-600">{formatPrice(product.price)}</p>
-                      )}
-                    </td>
-                    <td className="py-4 px-4">
-                      <div className="flex items-center space-x-2">
-                        {getStatusIcon(product.status)}
-                        <span
-                          className={`font-medium ${
-                            product.stock === 0
-                              ? "text-red-600"
-                              : product.stock <= 10
-                                ? "text-yellow-600"
-                                : "text-green-600"
-                          }`}
-                        >
-                          {product.stock}
+                        <span className="text-sm font-semibold text-pink-600">
+                          {formatPriceRange(product.priceRange.min, product.priceRange.max)}
                         </span>
-                      </div>
-                    </td>
-                    <td className="py-4 px-4">{getStatusBadge(product.status, product.stock)}</td>
-                    <td className="py-4 px-4">
-                      <span className="font-medium text-gray-900">{product.sold}</span>
-                    </td>
-                    <td className="py-4 px-4">
+                      ) : (
+                        <span className="text-sm font-semibold text-pink-600">{formatPrice(product.price)}</span>
+                      )}
                       <div className="flex items-center space-x-1">
-                        <span className="font-medium text-yellow-600">{product.rating}</span>
+                        <span className="text-sm font-medium text-yellow-600">{product.rating}</span>
                         <span className="text-xs text-gray-500">({product.reviews})</span>
                       </div>
-                    </td>
-                    <td className="py-4 px-4">
-                      <div className="flex items-center space-x-2">
-                        <Button variant="ghost" size="sm">
-                          <Eye className="w-4 h-4" />
-                        </Button>
-                        <Button variant="ghost" size="sm">
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                        <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700">
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                    </div>
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="text-sm text-gray-600">สต็อก: {product.stock}</span>
+                      <span className="text-sm text-gray-600">ขายแล้ว: {product.sold}</span>
+                    </div>
+                    <div className="flex space-x-2">
+                      <Button variant="outline" size="sm" className="flex-1 bg-transparent">
+                        <Eye className="w-4 h-4 mr-1" />
+                        ดู
+                      </Button>
+                      <Button variant="outline" size="sm" className="flex-1 bg-transparent">
+                        <Edit className="w-4 h-4 mr-1" />
+                        แก้ไข
+                      </Button>
+                      <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700 bg-transparent">
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
 
           {filteredProducts.length === 0 && (
             <div className="text-center py-12">
