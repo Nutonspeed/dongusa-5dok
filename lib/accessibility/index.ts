@@ -364,9 +364,9 @@ export function AccessibleModal({
   children: React.ReactNode
 }) {
   const modalRef = useRef<HTMLDivElement>(null)
-  const titleId = `modal-title-${useRef(Math.random().toString(36).substr(2, 9)).current}`
+  const titleId = useRef(`modal-title-${Math.random().toString(36).substr(2, 9)}`).current
   const descriptionId = description
-    ? `modal-description-${useRef(Math.random().toString(36).substr(2, 9)).current}`
+    ? useRef(`modal-description-${Math.random().toString(36).substr(2, 9)}`).current
     : undefined
 
   useFocusTrap(isOpen, modalRef)
