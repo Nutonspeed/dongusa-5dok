@@ -1,224 +1,206 @@
-import { developmentConfig } from "./development-config"
+// Critical Issue #5: Missing Performance Monitoring
+// Impact: No visibility into performance bottlenecks
+// Solution: Comprehensive performance monitoring
 
 interface PerformanceMetric {
   name: string
-  startTime: number
-  endTime?: number
-  duration?: number
+  value: number
+  timestamp: number
   metadata?: Record<string, any>
 }
 
-interface SystemHealth {
-  status: "healthy" | "warning" | "critical"
-  uptime: number
-  memoryUsage: number
-  responseTime: number
-  errorRate: number
-  lastChecked: string
+interface PerformanceThresholds {
+  warning: number
+  critical: number
 }
 
-class PerformanceMonitor {
-  private metrics: Map<string, PerformanceMetric> = new Map()
-  private completedMetrics: PerformanceMetric[] = []
-  private healthChecks: SystemHealth[] = []
-  private errorLog: Array<{ timestamp: string; error: string; context?: any }> = []
+export class PerformanceMonitor {
+  private metrics: PerformanceMetric[] = []
+  private thresholds: Map<string, PerformanceThresholds> = new Map()
+  private observers: Map<string, PerformanceObserver> = new Map()
 
-  // Start tracking a performance metric
-  startMetric(name: string, metadata?: Record<string, any>): void {
-    if (!developmentConfig.tools.showPerformanceMetrics) return
-
-    this.metrics.set(name, {
-      name,
-      startTime: performance.now(),
-      metadata,
-    })
-
-    console.log(`🚀 [PERF] Started tracking: ${name}`)
+  constructor() {
+    this.setupDefaultThresholds()
+    this.initializeObservers()
   }
 
-  // End tracking a performance metric
-  endMetric(name: string): number {
-    if (!developmentConfig.tools.showPerformanceMetrics) return 0
-
-    const metric = this.metrics.get(name)
-    if (!metric) {
-      console.warn(`⚠️ [PERF] Metric not found: ${name}`)
-      return 0
-    }
-
-    const endTime = performance.now()
-    const duration = endTime - metric.startTime
-
-    const completedMetric: PerformanceMetric = {
-      ...metric,
-      endTime,
-      duration,
-    }
-
-    this.completedMetrics.push(completedMetric)
-    this.metrics.delete(name)
-
-    // Keep only last 1000 metrics
-    if (this.completedMetrics.length > 1000) {
-      this.completedMetrics = this.completedMetrics.slice(-1000)
-    }
-
-    console.log(`✅ [PERF] ${name}: ${duration.toFixed(2)}ms`)
-    return duration
+  private setupDefaultThresholds() {
+    this.thresholds.set("api-response", { warning: 1000, critical: 3000 })
+    this.thresholds.set("page-load", { warning: 2000, critical: 5000 })
+    this.thresholds.set("component-render", { warning: 100, critical: 500 })
+    this.thresholds.set("database-query", { warning: 500, critical: 2000 })
   }
 
-  // Log an error
-  logError(error: string, context?: any): void {
-    const errorEntry = {
-      timestamp: new Date().toISOString(),
-      error,
-      context,
-    }
+  private initializeObservers() {
+    if (typeof window === "undefined") return
 
-    this.errorLog.push(errorEntry)
-
-    // Keep only last 500 errors
-    if (this.errorLog.length > 500) {
-      this.errorLog = this.errorLog.slice(-500)
-    }
-
-    console.error(`❌ [ERROR] ${error}`, context)
-  }
-
-  // Perform system health check
-  async performHealthCheck(): Promise<SystemHealth> {
-    const startTime = performance.now()
-
+    // Core Web Vitals monitoring
     try {
-      // Simulate health checks
-      await new Promise((resolve) => setTimeout(resolve, 10))
+      // Largest Contentful Paint
+      const lcpObserver = new PerformanceObserver((list) => {
+        const entries = list.getEntries()
+        const lastEntry = entries[entries.length - 1] as any
+        this.recordMetric("lcp", lastEntry.startTime, {
+          element: lastEntry.element?.tagName,
+          url: lastEntry.url,
+        })
+      })
+      lcpObserver.observe({ entryTypes: ["largest-contentful-paint"] })
+      this.observers.set("lcp", lcpObserver)
 
-      const responseTime = performance.now() - startTime
-      const errorRate = this.calculateErrorRate()
+      // First Input Delay
+      const fidObserver = new PerformanceObserver((list) => {
+        const entries = list.getEntries()
+        entries.forEach((entry: any) => {
+          this.recordMetric("fid", entry.processingStart - entry.startTime, {
+            eventType: entry.name,
+          })
+        })
+      })
+      fidObserver.observe({ entryTypes: ["first-input"] })
+      this.observers.set("fid", fidObserver)
 
-      const health: SystemHealth = {
-        status: this.determineHealthStatus(responseTime, errorRate),
-        uptime: performance.now(),
-        memoryUsage: this.getMemoryUsage(),
-        responseTime,
-        errorRate,
-        lastChecked: new Date().toISOString(),
-      }
-
-      this.healthChecks.push(health)
-
-      // Keep only last 100 health checks
-      if (this.healthChecks.length > 100) {
-        this.healthChecks = this.healthChecks.slice(-100)
-      }
-
-      return health
+      // Cumulative Layout Shift
+      const clsObserver = new PerformanceObserver((list) => {
+        let clsValue = 0
+        const entries = list.getEntries()
+        entries.forEach((entry: any) => {
+          if (!entry.hadRecentInput) {
+            clsValue += entry.value
+          }
+        })
+        this.recordMetric("cls", clsValue)
+      })
+      clsObserver.observe({ entryTypes: ["layout-shift"] })
+      this.observers.set("cls", clsObserver)
     } catch (error) {
-      this.logError("Health check failed", error)
-      return {
-        status: "critical",
-        uptime: 0,
-        memoryUsage: 0,
-        responseTime: 0,
-        errorRate: 1,
-        lastChecked: new Date().toISOString(),
-      }
+      console.warn("Performance observers not supported:", error)
     }
   }
 
-  // Get performance statistics
-  getPerformanceStats(): {
-    totalMetrics: number
-    averageResponseTime: number
-    slowestOperations: PerformanceMetric[]
-    fastestOperations: PerformanceMetric[]
-    errorRate: number
-    recentErrors: typeof this.errorLog
-  } {
-    const metricsWithDuration = this.completedMetrics.filter((m) => m.duration !== undefined)
-    const totalMetrics = metricsWithDuration.length
+  recordMetric(name: string, value: number, metadata?: Record<string, any>) {
+    const metric: PerformanceMetric = {
+      name,
+      value,
+      timestamp: Date.now(),
+      metadata,
+    }
 
-    const averageResponseTime =
-      totalMetrics > 0 ? metricsWithDuration.reduce((sum, m) => sum + (m.duration || 0), 0) / totalMetrics : 0
+    this.metrics.push(metric)
+    this.checkThresholds(metric)
+    this.cleanupOldMetrics()
 
-    const sortedByDuration = [...metricsWithDuration].sort((a, b) => (b.duration || 0) - (a.duration || 0))
-
-    return {
-      totalMetrics,
-      averageResponseTime,
-      slowestOperations: sortedByDuration.slice(0, 10),
-      fastestOperations: sortedByDuration.slice(-10).reverse(),
-      errorRate: this.calculateErrorRate(),
-      recentErrors: this.errorLog.slice(-10),
+    // Send to analytics service in production
+    if (process.env.NODE_ENV === "production") {
+      this.sendToAnalytics(metric)
     }
   }
 
-  // Get system health history
-  getHealthHistory(): SystemHealth[] {
-    return [...this.healthChecks]
+  private checkThresholds(metric: PerformanceMetric) {
+    const threshold = this.thresholds.get(metric.name)
+    if (!threshold) return
+
+    if (metric.value > threshold.critical) {
+      console.error(`Critical performance issue: ${metric.name} took ${metric.value}ms`)
+      this.alertCriticalPerformance(metric)
+    } else if (metric.value > threshold.warning) {
+      console.warn(`Performance warning: ${metric.name} took ${metric.value}ms`)
+    }
   }
 
-  // Clear all metrics and logs
-  clear(): void {
-    this.metrics.clear()
-    this.completedMetrics = []
-    this.healthChecks = []
-    this.errorLog = []
-    console.log("🧹 [PERF] Cleared all performance data")
+  private alertCriticalPerformance(metric: PerformanceMetric) {
+    // In production, send alerts to monitoring service
+    if (typeof window !== "undefined") {
+      fetch("/api/performance-alerts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(metric),
+      }).catch(() => {
+        // Silently fail if alerting fails
+      })
+    }
   }
 
-  // Private helper methods
-  private calculateErrorRate(): number {
-    const recentErrors = this.errorLog.filter(
-      (error) => Date.now() - new Date(error.timestamp).getTime() < 60000, // Last minute
-    )
-    const recentMetrics = this.completedMetrics.filter((metric) => Date.now() - (metric.endTime || 0) < 60000)
-
-    return recentMetrics.length > 0 ? recentErrors.length / recentMetrics.length : 0
+  private sendToAnalytics(metric: PerformanceMetric) {
+    // Send to analytics service (Google Analytics, DataDog, etc.)
+    if (typeof window !== "undefined" && (window as any).gtag) {
+      ;(window as any).gtag("event", "performance_metric", {
+        metric_name: metric.name,
+        metric_value: metric.value,
+        custom_map: metric.metadata,
+      })
+    }
   }
 
-  private determineHealthStatus(responseTime: number, errorRate: number): SystemHealth["status"] {
-    if (errorRate > 0.1 || responseTime > 1000) return "critical"
-    if (errorRate > 0.05 || responseTime > 500) return "warning"
-    return "healthy"
+  private cleanupOldMetrics() {
+    const cutoff = Date.now() - 3600000 // Keep metrics for 1 hour
+    this.metrics = this.metrics.filter((metric) => metric.timestamp > cutoff)
   }
 
-  private getMemoryUsage(): number {
-    // In a real browser environment, this would use performance.memory
-    // For now, return a simulated value
-    return Math.random() * 100
+  // Utility methods for measuring performance
+  startTimer(name: string): () => void {
+    const startTime = performance.now()
+    return () => {
+      const duration = performance.now() - startTime
+      this.recordMetric(name, duration)
+    }
   }
 
-  // Automatic monitoring
-  startAutoMonitoring(): void {
-    if (!developmentConfig.tools.showPerformanceMetrics) return
+  async measureAsync<T>(name: string, operation: () => Promise<T>): Promise<T> {
+    const startTime = performance.now()
+    try {
+      const result = await operation()
+      const duration = performance.now() - startTime
+      this.recordMetric(name, duration, { success: true })
+      return result
+    } catch (error) {
+      const duration = performance.now() - startTime
+      this.recordMetric(name, duration, { success: false, error: error.message })
+      throw error
+    }
+  }
 
-    // Perform health check every 30 seconds
-    setInterval(async () => {
-      await this.performHealthCheck()
-    }, 30000)
+  getMetrics(name?: string, timeRange?: { start: number; end: number }): PerformanceMetric[] {
+    let filtered = this.metrics
 
-    console.log("🔄 [PERF] Auto monitoring started")
+    if (name) {
+      filtered = filtered.filter((metric) => metric.name === name)
+    }
+
+    if (timeRange) {
+      filtered = filtered.filter((metric) => metric.timestamp >= timeRange.start && metric.timestamp <= timeRange.end)
+    }
+
+    return filtered
+  }
+
+  getAverageMetric(name: string, timeRange?: { start: number; end: number }): number {
+    const metrics = this.getMetrics(name, timeRange)
+    if (metrics.length === 0) return 0
+
+    const sum = metrics.reduce((acc, metric) => acc + metric.value, 0)
+    return sum / metrics.length
+  }
+
+  destroy() {
+    this.observers.forEach((observer) => observer.disconnect())
+    this.observers.clear()
+    this.metrics = []
   }
 }
 
-// Export singleton instance
+// Global performance monitor instance
 export const performanceMonitor = new PerformanceMonitor()
 
-// Utility functions for easy use
-export const startPerformanceTracking = (name: string, metadata?: Record<string, any>) => {
-  performanceMonitor.startMetric(name, metadata)
-}
+// React hook for component performance monitoring
+export function usePerformanceMonitor(componentName: string) {
+  const recordRender = (renderTime: number) => {
+    performanceMonitor.recordMetric(`component-render-${componentName}`, renderTime)
+  }
 
-export const endPerformanceTracking = (name: string): number => {
-  return performanceMonitor.endMetric(name)
-}
+  const measureOperation = (operationName: string) => {
+    return performanceMonitor.startTimer(`${componentName}-${operationName}`)
+  }
 
-export const logPerformanceError = (error: string, context?: any) => {
-  performanceMonitor.logError(error, context)
-}
-
-// Auto-start monitoring in development
-if (typeof window !== "undefined" && developmentConfig.tools.showPerformanceMetrics) {
-  performanceMonitor.startAutoMonitoring()
+  return { recordRender, measureOperation }
 }
