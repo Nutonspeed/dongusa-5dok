@@ -1,3 +1,12 @@
+"use client"
+
+import { useState } from "react"
+import Link from "next/link"
+import { Menu, X, ShoppingCart, User, Search, Globe } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import { useLanguage } from "../contexts/LanguageContext"
+import { useCart } from "../contexts/CartContext"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -6,53 +15,104 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Shield, Heart, LogOut, User, ShoppingCart } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import Link from "next/link"
+import { Shield, Heart, LogOut } from "lucide-react"
 
 export default function Header() {
-  const language = "en" // just for testing
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const { language, setLanguage } = useLanguage()
+  const { items } = useCart()
+
+  const navigation = [
+    {
+      name: { en: "Home", th: "หน้าแรก" },
+      href: "/",
+    },
+    {
+      name: { en: "Products", th: "สินค้า" },
+      href: "/products",
+    },
+    {
+      name: { en: "Custom Covers", th: "ผ้าคลุมตามสั่ง" },
+      href: "/custom-covers",
+    },
+    {
+      name: { en: "Fabric Gallery", th: "แกลเลอรี่ผ้า" },
+      href: "/fabric-gallery",
+    },
+    {
+      name: { en: "Collections", th: "คอลเลกชัน" },
+      href: "/fabric-collections",
+    },
+    {
+      name: { en: "About", th: "เกี่ยวกับเรา" },
+      href: "/about",
+    },
+    {
+      name: { en: "Contact", th: "ติดต่อ" },
+      href: "/contact",
+    },
+  ]
+
+  const toggleLanguage = () => {
+    setLanguage(language === "en" ? "th" : "en")
+  }
+
+  const cartItemCount = items.reduce((total, item) => total + item.quantity, 0)
 
   return (
-    <header className="bg-white shadow">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="flex h-16 justify-between">
-          <div className="flex">
-            <div className="flex shrink-0 items-center">
-              {/* Logo */}
-              <Link href="/" className="font-bold text-xl">
-                E-Commerce
-              </Link>
-            </div>
-            <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
-              {/* Navigation Links */}
-              <Link
-                href="/"
-                className="inline-flex items-center border-b-2 border-indigo-500 px-1 pt-1 text-sm font-medium text-gray-900"
-              >
-                หน้าแรก
-              </Link>
-              <Link
-                href="/products"
-                className="inline-flex items-center border-b-2 border-transparent px-1 pt-1 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700"
-              >
-                สินค้า
-              </Link>
-              <Link
-                href="/about"
-                className="inline-flex items-center border-b-2 border-transparent px-1 pt-1 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700"
-              >
-                เกี่ยวกับเรา
-              </Link>
-              <Link
-                href="/contact"
-                className="inline-flex items-center border-b-2 border-transparent px-1 pt-1 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700"
-              >
-                ติดต่อเรา
-              </Link>
-            </div>
+    <header className="bg-white shadow-sm border-b sticky top-0 z-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-center h-16">
+          {/* Logo */}
+          <div className="flex-shrink-0">
+            <Link href="/" className="flex items-center space-x-2">
+              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+                <span className="text-white font-bold text-sm">SC</span>
+              </div>
+              <span className="text-xl font-bold text-gray-900">
+                {language === "en" ? "SofaCover Pro" : "โซฟาคัฟเวอร์ โปร"}
+              </span>
+            </Link>
           </div>
-          <div className="hidden sm:ml-6 sm:flex items-center">
+
+          {/* Desktop Navigation */}
+          <nav className="hidden md:flex space-x-8">
+            {navigation.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium transition-colors"
+              >
+                {item.name[language]}
+              </Link>
+            ))}
+          </nav>
+
+          {/* Right side actions */}
+          <div className="flex items-center space-x-4">
+            {/* Search */}
+            <Button variant="ghost" size="sm" className="hidden sm:flex">
+              <Search className="w-4 h-4" />
+            </Button>
+
+            {/* Language Toggle */}
+            <Button variant="ghost" size="sm" onClick={toggleLanguage} className="flex items-center space-x-1">
+              <Globe className="w-4 h-4" />
+              <span className="text-sm font-medium">{language.toUpperCase()}</span>
+            </Button>
+
+            {/* Cart */}
+            <Link href="/cart">
+              <Button variant="ghost" size="sm" className="relative">
+                <ShoppingCart className="w-4 h-4" />
+                {cartItemCount > 0 && (
+                  <Badge className="absolute -top-2 -right-2 w-5 h-5 flex items-center justify-center p-0 text-xs bg-blue-600">
+                    {cartItemCount}
+                  </Badge>
+                )}
+              </Button>
+            </Link>
+
             {/* User Account */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -89,74 +149,43 @@ export default function Header() {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-          </div>
-          <div className="-mr-2 flex items-center sm:hidden">
-            {/* Mobile Menu Button */}
-            <button
-              type="button"
-              className="inline-flex items-center justify-center rounded-md bg-white p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-              aria-controls="mobile-menu"
-              aria-expanded="false"
-            >
-              <span className="sr-only">Open main menu</span>
-              {/* Heroicon name: outline/bars-3 */}
-              <svg
-                className="block h-6 w-6"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth="1.5"
-                stroke="currentColor"
-                aria-hidden="true"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
-              </svg>
-              {/* Heroicon name: outline/x-mark */}
-              <svg
-                className="hidden h-6 w-6"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth="1.5"
-                stroke="currentColor"
-                aria-hidden="true"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-        </div>
-      </div>
 
-      {/* Mobile Menu, show/hide based on menu state. */}
-      <div className="sm:hidden" id="mobile-menu">
-        <div className="space-y-1 px-2 pt-2 pb-3">
-          {/* Mobile Menu Links */}
-          <Link
-            href="/"
-            className="block border-l-4 border-indigo-500 bg-indigo-50 py-2 pl-3 pr-4 text-base font-medium text-indigo-700"
-          >
-            หน้าแรก
-          </Link>
-          <Link
-            href="/products"
-            className="block border-l-4 border-transparent py-2 pl-3 pr-4 text-base font-medium text-gray-500 hover:border-gray-300 hover:bg-gray-50 hover:text-gray-700"
-          >
-            สินค้า
-          </Link>
-          <Link
-            href="/about"
-            className="block border-l-4 border-transparent py-2 pl-3 pr-4 text-base font-medium text-gray-500 hover:border-gray-300 hover:bg-gray-50 hover:text-gray-700"
-          >
-            เกี่ยวกับเรา
-          </Link>
-          <Link
-            href="/contact"
-            className="block border-l-4 border-transparent py-2 pl-3 pr-4 text-base font-medium text-gray-500 hover:border-gray-300 hover:bg-gray-50 hover:text-gray-700"
-          >
-            ติดต่อเรา
-          </Link>
+            {/* Mobile menu button */}
+            <Button variant="ghost" size="sm" className="md:hidden" onClick={() => setIsMenuOpen(!isMenuOpen)}>
+              {isMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </Button>
+          </div>
         </div>
+
+        {/* Mobile Navigation */}
+        {isMenuOpen && (
+          <div className="md:hidden border-t border-gray-200 py-4">
+            <div className="space-y-2">
+              {navigation.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className="block px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md transition-colors"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  {item.name[language]}
+                </Link>
+              ))}
+            </div>
+
+            {/* Mobile Search */}
+            <div className="mt-4 px-3">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder={language === "en" ? "Search products..." : "ค้นหาสินค้า..."}
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </header>
   )
