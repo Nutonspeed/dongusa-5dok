@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
 import { Ruler, Palette, MessageCircle, CheckCircle, ArrowRight, Calculator } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -65,7 +64,7 @@ const measurementSteps: MeasurementStep[] = [
   },
 ]
 
-export function CustomCoverSection() {
+export default function CustomCoverSection() {
   const { language } = useLanguage()
   const [activeStep, setActiveStep] = useState(0)
   const [measurements, setMeasurements] = useState({
@@ -493,3 +492,6 @@ I'd like to consult further and see fabric samples.`
     </section>
   )
 }
+
+// Also export as named export for backward compatibility
+export { CustomCoverSection }

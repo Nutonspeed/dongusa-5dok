@@ -3,77 +3,60 @@
 import type React from "react"
 import { createContext, useContext, useState, useEffect } from "react"
 
-type Language = "th" | "en"
+type Language = "en" | "th"
 
 interface LanguageContextType {
   language: Language
   setLanguage: (lang: Language) => void
-  toggleLanguage: () => void
   t: (key: string) => string
 }
 
 const translations = {
+  en: {
+    "nav.home": "Home",
+    "nav.products": "Products",
+    "nav.custom": "Custom Covers",
+    "nav.about": "About",
+    "nav.contact": "Contact",
+    "nav.cart": "Cart",
+    "nav.admin": "Admin",
+    "admin.login.title": "Admin Login",
+    "admin.login.subtitle": "Please login to manage your store",
+    "admin.login.email": "Email",
+    "admin.login.password": "Password",
+    "admin.login.button": "Login",
+    "admin.login.loading": "Logging in...",
+    "admin.login.error.invalid": "Invalid email or password",
+    "admin.login.demo.title": "Demo Credentials:",
+    "admin.login.demo.email": "Email: admin@sofacover.com",
+    "admin.login.demo.password": "Password: admin123",
+    "hero.title": "Transform Your Sofa with Premium Covers",
+    "hero.subtitle": "Discover our collection of high-quality, custom-fit sofa covers",
+    "hero.cta.shop": "Shop Now",
+    "hero.cta.custom": "Custom Order",
+  },
   th: {
-    // Navigation
-    "nav.home": "หน้าแรก",
+    "nav.home": "หน้าหลัก",
     "nav.products": "สินค้า",
-    "nav.fabricCollections": "คอลเลกชันผ้า",
-    "nav.customCovers": "ผ้าคลุมตามสั่ง",
+    "nav.custom": "ผ้าคลุมตามสั่ง",
     "nav.about": "เกี่ยวกับเรา",
     "nav.contact": "ติดต่อ",
-
-    // Common
-    account: "บัญชี",
-    myAccount: "บัญชีของฉัน",
-    profile: "โปรไฟล์",
-    settings: "ตั้งค่า",
-    adminLogin: "เข้าสู่ระบบผู้ดูแล",
-    logout: "ออกจากระบบ",
-    cart: "ตะกร้า",
-    tagline: "ผ้าคลุมโซฟาคุณภาพสูง",
-
-    // Admin Login
+    "nav.cart": "ตะกร้า",
+    "nav.admin": "ผู้ดูแล",
     "admin.login.title": "เข้าสู่ระบบผู้ดูแล",
     "admin.login.subtitle": "กรุณาเข้าสู่ระบบเพื่อจัดการร้านค้า",
     "admin.login.email": "อีเมล",
     "admin.login.password": "รหัสผ่าน",
     "admin.login.button": "เข้าสู่ระบบ",
     "admin.login.loading": "กำลังเข้าสู่ระบบ...",
+    "admin.login.error.invalid": "อีเมลหรือรหัสผ่านไม่ถูกต้อง",
     "admin.login.demo.title": "ข้อมูลสำหรับทดสอบ:",
     "admin.login.demo.email": "อีเมล: admin@sofacover.com",
     "admin.login.demo.password": "รหัสผ่าน: admin123",
-    "admin.login.error.invalid": "อีเมลหรือรหัสผ่านไม่ถูกต้อง",
-  },
-  en: {
-    // Navigation
-    "nav.home": "Home",
-    "nav.products": "Products",
-    "nav.fabricCollections": "Fabric Collections",
-    "nav.customCovers": "Custom Covers",
-    "nav.about": "About",
-    "nav.contact": "Contact",
-
-    // Common
-    account: "Account",
-    myAccount: "My Account",
-    profile: "Profile",
-    settings: "Settings",
-    adminLogin: "Admin Login",
-    logout: "Logout",
-    cart: "Cart",
-    tagline: "Premium Sofa Covers",
-
-    // Admin Login
-    "admin.login.title": "Admin Login",
-    "admin.login.subtitle": "Please login to manage the store",
-    "admin.login.email": "Email",
-    "admin.login.password": "Password",
-    "admin.login.button": "Login",
-    "admin.login.loading": "Logging in...",
-    "admin.login.demo.title": "Demo Credentials:",
-    "admin.login.demo.email": "Email: admin@sofacover.com",
-    "admin.login.demo.password": "Password: admin123",
-    "admin.login.error.invalid": "Invalid email or password",
+    "hero.title": "เปลี่ยนโซฟาของคุณด้วยผ้าคลุมพรีเมียม",
+    "hero.subtitle": "ค้นพบคอลเลกชันผ้าคลุมโซฟาคุณภาพสูงที่พอดีกับโซฟาของคุณ",
+    "hero.cta.shop": "ช้อปเลย",
+    "hero.cta.custom": "สั่งทำพิเศษ",
   },
 }
 
@@ -84,7 +67,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const savedLanguage = localStorage.getItem("language") as Language
-    if (savedLanguage && (savedLanguage === "th" || savedLanguage === "en")) {
+    if (savedLanguage && (savedLanguage === "en" || savedLanguage === "th")) {
       setLanguage(savedLanguage)
     }
   }, [])
@@ -94,24 +77,12 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem("language", lang)
   }
 
-  const toggleLanguage = () => {
-    const newLang = language === "th" ? "en" : "th"
-    handleSetLanguage(newLang)
-  }
-
   const t = (key: string): string => {
-    return translations[language][key] || key
+    return translations[language][key as keyof (typeof translations)[typeof language]] || key
   }
 
   return (
-    <LanguageContext.Provider
-      value={{
-        language,
-        setLanguage: handleSetLanguage,
-        toggleLanguage,
-        t,
-      }}
-    >
+    <LanguageContext.Provider value={{ language, setLanguage: handleSetLanguage, t }}>
       {children}
     </LanguageContext.Provider>
   )

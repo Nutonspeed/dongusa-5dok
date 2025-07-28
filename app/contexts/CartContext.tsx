@@ -9,11 +9,8 @@ export interface CartItem {
   price: number
   quantity: number
   image: string
-  specifications?: {
-    size?: string
-    color?: string
-    material?: string
-  }
+  size?: string
+  color?: string
 }
 
 interface CartContextType {
@@ -22,8 +19,8 @@ interface CartContextType {
   removeItem: (id: string) => void
   updateQuantity: (id: string, quantity: number) => void
   clearCart: () => void
-  getTotalPrice: () => number
   getTotalItems: () => number
+  getTotalPrice: () => number
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined)
@@ -56,9 +53,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         return prevItems.map((item) =>
           item.id === newItem.id ? { ...item, quantity: item.quantity + (newItem.quantity || 1) } : item,
         )
-      } else {
-        return [...prevItems, { ...newItem, quantity: newItem.quantity || 1 }]
       }
+
+      return [...prevItems, { ...newItem, quantity: newItem.quantity || 1 }]
     })
   }
 
@@ -79,12 +76,12 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     setItems([])
   }
 
-  const getTotalPrice = () => {
-    return items.reduce((total, item) => total + item.price * item.quantity, 0)
-  }
-
   const getTotalItems = () => {
     return items.reduce((total, item) => total + item.quantity, 0)
+  }
+
+  const getTotalPrice = () => {
+    return items.reduce((total, item) => total + item.price * item.quantity, 0)
   }
 
   return (
@@ -95,8 +92,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         removeItem,
         updateQuantity,
         clearCart,
-        getTotalPrice,
         getTotalItems,
+        getTotalPrice,
       }}
     >
       {children}

@@ -1,93 +1,43 @@
 "use client"
 
 import type React from "react"
-import { useState, useEffect, Suspense } from "react"
-import { useRouter } from "next/navigation"
-import Link from "next/link"
-import {
-  LayoutDashboard,
-  Package,
-  ShoppingCart,
-  Users,
-  BarChart3,
-  Settings,
-  LogOut,
-  Menu,
-  X,
-  Bell,
-  Search,
-} from "lucide-react"
+
+import { Suspense, useEffect, useState } from "react"
+import { useRouter, usePathname } from "next/navigation"
+import { LayoutDashboard, Package, Users, ShoppingCart, BarChart3, Settings, LogOut, Menu, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
+import Link from "next/link"
 
-interface AdminLayoutProps {
-  children: React.ReactNode
-}
+const adminNavItems = [
+  { href: "/admin", icon: LayoutDashboard, label: "Dashboard", labelTh: "แดชบอร์ด" },
+  { href: "/admin/products", icon: Package, label: "Products", labelTh: "สินค้า" },
+  { href: "/admin/inventory", icon: Package, label: "Inventory", labelTh: "คลังสินค้า" },
+  { href: "/admin/orders", icon: ShoppingCart, label: "Orders", labelTh: "คำสั่งซื้อ" },
+  { href: "/admin/customers", icon: Users, label: "Customers", labelTh: "ลูกค้า" },
+  { href: "/admin/analytics", icon: BarChart3, label: "Analytics", labelTh: "การวิเคราะห์" },
+  { href: "/admin/settings", icon: Settings, label: "Settings", labelTh: "การตั้งค่า" },
+]
 
-export default function AdminLayout({ children }: AdminLayoutProps) {
+export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter()
+  const pathname = usePathname()
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
-  const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [notifications] = useState([
-    { id: 1, message: "คำสั่งซื้อใหม่ #1234", time: "5 นาทีที่แล้ว", unread: true },
-    { id: 2, message: "สินค้าใกล้หมด: หมอนอิง", time: "1 ชั่วโมงที่แล้ว", unread: true },
-    { id: 3, message: "รีวิวใหม่ 5 ดาว", time: "2 ชั่วโมงที่แล้ว", unread: false },
-  ])
-
-  const menuItems = [
-    {
-      href: "/admin",
-      icon: LayoutDashboard,
-      label: "แดชบอร์ด",
-      badge: null,
-    },
-    {
-      href: "/admin/products",
-      icon: Package,
-      label: "จัดการสินค้า",
-      badge: null,
-    },
-    {
-      href: "/admin/orders",
-      icon: ShoppingCart,
-      label: "คำสั่งซื้อ",
-      badge: "12",
-    },
-    {
-      href: "/admin/customers",
-      icon: Users,
-      label: "ลูกค้า",
-      badge: null,
-    },
-    {
-      href: "/admin/analytics",
-      icon: BarChart3,
-      label: "รายงานและสถิติ",
-      badge: null,
-    },
-    {
-      href: "/admin/settings",
-      icon: Settings,
-      label: "ตั้งค่า",
-      badge: null,
-    },
-  ]
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
   useEffect(() => {
-    // Check authentication
     const checkAuth = () => {
-      const adminToken = localStorage.getItem("admin_token")
-      if (adminToken) {
-        setIsAuthenticated(true)
-      } else {
+      const token = localStorage.getItem("admin_token")
+      if (!token && pathname !== "/admin/login") {
         router.push("/admin/login")
+        return
       }
+      setIsAuthenticated(!!token)
       setIsLoading(false)
     }
 
     checkAuth()
-  }, [router])
+  }, [pathname, router])
 
   const handleLogout = () => {
     localStorage.removeItem("admin_token")
@@ -96,119 +46,104 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-600"></div>
       </div>
     )
   }
 
-  if (!isAuthenticated) {
+  if (!isAuthenticated && pathname !== "/admin/login") {
     return null
   }
 
-  return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <div className="min-h-screen bg-gray-100">
-        {/* Mobile sidebar overlay */}
-        {sidebarOpen && (
-          <div className="fixed inset-0 z-40 bg-black bg-opacity-50 lg:hidden" onClick={() => setSidebarOpen(false)} />
-        )}
+  if (pathname === "/admin/login") {
+    return <>{children}</>
+  }
 
-        {/* Sidebar */}
-        <div
-          className={`fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out lg:translate-x-0 ${
-            sidebarOpen ? "translate-x-0" : "-translate-x-full"
-          } lg:static lg:inset-0`}
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* Mobile menu button */}
+      <div className="lg:hidden fixed top-4 left-4 z-50">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          className="bg-white shadow-md"
         >
-          <div className="flex items-center justify-between h-16 px-6 border-b">
+          {isMobileMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
+        </Button>
+      </div>
+
+      {/* Sidebar */}
+      <div
+        className={`fixed inset-y-0 left-0 z-40 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out ${
+          isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
+        } lg:translate-x-0`}
+      >
+        <div className="flex flex-col h-full">
+          {/* Logo */}
+          <div className="flex items-center justify-center h-16 px-4 border-b">
             <h1 className="text-xl font-bold text-gray-900">Admin Panel</h1>
-            <Button variant="ghost" size="sm" onClick={() => setSidebarOpen(false)} className="lg:hidden">
-              <X className="w-5 h-5" />
-            </Button>
           </div>
 
-          <nav className="mt-6">
-            <div className="px-3">
-              {menuItems.map((item) => (
+          {/* Navigation */}
+          <nav className="flex-1 px-4 py-6 space-y-2">
+            {adminNavItems.map((item) => {
+              const isActive = pathname === item.href
+              return (
                 <Link
                   key={item.href}
                   href={item.href}
-                  className="flex items-center justify-between px-3 py-2 mt-1 text-gray-700 rounded-lg hover:bg-gray-100 group"
-                  onClick={() => setSidebarOpen(false)}
+                  className={`flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors ${
+                    isActive
+                      ? "bg-pink-100 text-pink-700 border border-pink-200"
+                      : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                  }`}
+                  onClick={() => setIsMobileMenuOpen(false)}
                 >
-                  <div className="flex items-center">
-                    <item.icon className="w-5 h-5 mr-3" />
-                    <span className="text-sm font-medium">{item.label}</span>
-                  </div>
-                  {item.badge && <Badge className="bg-pink-600 text-white text-xs">{item.badge}</Badge>}
+                  <item.icon className="w-5 h-5" />
+                  <span className="font-medium">{item.labelTh}</span>
                 </Link>
-              ))}
-            </div>
-
-            <div className="mt-8 pt-6 border-t border-gray-200">
-              <div className="px-3">
-                <Button
-                  onClick={handleLogout}
-                  variant="ghost"
-                  className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
-                >
-                  <LogOut className="w-5 h-5 mr-3" />
-                  ออกจากระบบ
-                </Button>
-              </div>
-            </div>
+              )
+            })}
           </nav>
-        </div>
 
-        {/* Main content */}
-        <div className="lg:ml-64">
-          {/* Top bar */}
-          <header className="bg-white shadow-sm border-b">
-            <div className="flex items-center justify-between h-16 px-6">
-              <div className="flex items-center">
-                <Button variant="ghost" size="sm" onClick={() => setSidebarOpen(true)} className="lg:hidden mr-2">
-                  <Menu className="w-5 h-5" />
-                </Button>
-
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                  <input
-                    type="text"
-                    placeholder="ค้นหา..."
-                    className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent w-64"
-                  />
-                </div>
-              </div>
-
-              <div className="flex items-center space-x-4">
-                {/* Notifications */}
-                <div className="relative">
-                  <Button variant="ghost" size="sm" className="relative">
-                    <Bell className="w-5 h-5" />
-                    {notifications.filter((n) => n.unread).length > 0 && (
-                      <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
-                    )}
-                  </Button>
-                </div>
-
-                {/* Admin profile */}
-                <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 bg-pink-600 rounded-full flex items-center justify-center">
-                    <span className="text-white text-sm font-medium">A</span>
-                  </div>
-                  <div className="hidden md:block">
-                    <p className="text-sm font-medium text-gray-900">Admin</p>
-                    <p className="text-xs text-gray-500">ผู้ดูแลระบบ</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </header>
-
-          {/* Page content */}
-          <main className="p-6">{children}</main>
+          {/* Logout */}
+          <div className="p-4 border-t">
+            <Button
+              variant="ghost"
+              onClick={handleLogout}
+              className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
+            >
+              <LogOut className="w-5 h-5 mr-3" />
+              ออกจากระบบ
+            </Button>
+          </div>
         </div>
       </div>
-    </Suspense>
+
+      {/* Mobile overlay */}
+      {isMobileMenuOpen && (
+        <div
+          className="fixed inset-0 z-30 bg-black bg-opacity-50 lg:hidden"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+      )}
+
+      {/* Main content */}
+      <div className="lg:ml-64">
+        <main className="min-h-screen">
+          <Suspense
+            fallback={
+              <div className="flex items-center justify-center min-h-screen">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-600"></div>
+              </div>
+            }
+          >
+            {children}
+          </Suspense>
+        </main>
+      </div>
+    </div>
   )
 }
