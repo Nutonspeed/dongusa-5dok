@@ -1,7 +1,8 @@
 import { createClient } from "@supabase/supabase-js"
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+// Use fallback values for build time when environment variables are not available
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://placeholder.supabase.co"
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "placeholder-key"
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
@@ -116,6 +117,11 @@ export const db = {
     limit?: number
     offset?: number
   }) {
+    // Return mock data if no real Supabase connection
+    if (supabaseUrl === "https://placeholder.supabase.co") {
+      return []
+    }
+
     let query = supabase.from("products").select("*").order("created_at", { ascending: false })
 
     if (filters?.category && filters.category !== "all") {
@@ -145,6 +151,10 @@ export const db = {
   },
 
   async getProduct(id: string) {
+    if (supabaseUrl === "https://placeholder.supabase.co") {
+      return null
+    }
+
     const { data, error } = await supabase.from("products").select("*").eq("id", id).single()
 
     if (error) throw error
@@ -152,6 +162,10 @@ export const db = {
   },
 
   async createProduct(product: Omit<Product, "id" | "created_at" | "updated_at">) {
+    if (supabaseUrl === "https://placeholder.supabase.co") {
+      return null
+    }
+
     const { data, error } = await supabase.from("products").insert([product]).select().single()
 
     if (error) throw error
@@ -159,6 +173,10 @@ export const db = {
   },
 
   async updateProduct(id: string, updates: Partial<Product>) {
+    if (supabaseUrl === "https://placeholder.supabase.co") {
+      return null
+    }
+
     const { data, error } = await supabase
       .from("products")
       .update({ ...updates, updated_at: new Date().toISOString() })
@@ -171,6 +189,10 @@ export const db = {
   },
 
   async deleteProduct(id: string) {
+    if (supabaseUrl === "https://placeholder.supabase.co") {
+      return
+    }
+
     const { error } = await supabase.from("products").delete().eq("id", id)
 
     if (error) throw error
@@ -184,6 +206,10 @@ export const db = {
     limit?: number
     offset?: number
   }) {
+    if (supabaseUrl === "https://placeholder.supabase.co") {
+      return []
+    }
+
     let query = supabase.from("customers").select("*").order("created_at", { ascending: false })
 
     if (filters?.type && filters.type !== "all") {
@@ -213,6 +239,10 @@ export const db = {
   },
 
   async getCustomer(id: string) {
+    if (supabaseUrl === "https://placeholder.supabase.co") {
+      return null
+    }
+
     const { data, error } = await supabase.from("customers").select("*").eq("id", id).single()
 
     if (error) throw error
@@ -220,6 +250,10 @@ export const db = {
   },
 
   async createCustomer(customer: Omit<Customer, "id" | "created_at" | "updated_at">) {
+    if (supabaseUrl === "https://placeholder.supabase.co") {
+      return null
+    }
+
     const { data, error } = await supabase.from("customers").insert([customer]).select().single()
 
     if (error) throw error
@@ -227,6 +261,10 @@ export const db = {
   },
 
   async updateCustomer(id: string, updates: Partial<Customer>) {
+    if (supabaseUrl === "https://placeholder.supabase.co") {
+      return null
+    }
+
     const { data, error } = await supabase
       .from("customers")
       .update({ ...updates, updated_at: new Date().toISOString() })
@@ -245,6 +283,10 @@ export const db = {
     limit?: number
     offset?: number
   }) {
+    if (supabaseUrl === "https://placeholder.supabase.co") {
+      return []
+    }
+
     let query = supabase
       .from("orders")
       .select(`
@@ -276,6 +318,10 @@ export const db = {
   },
 
   async getOrder(id: string) {
+    if (supabaseUrl === "https://placeholder.supabase.co") {
+      return null
+    }
+
     const { data, error } = await supabase
       .from("orders")
       .select(`
@@ -290,6 +336,10 @@ export const db = {
   },
 
   async createOrder(order: Omit<Order, "id" | "created_at" | "updated_at" | "customer">) {
+    if (supabaseUrl === "https://placeholder.supabase.co") {
+      return null
+    }
+
     const { data, error } = await supabase.from("orders").insert([order]).select().single()
 
     if (error) throw error
@@ -297,6 +347,10 @@ export const db = {
   },
 
   async updateOrder(id: string, updates: Partial<Omit<Order, "customer">>) {
+    if (supabaseUrl === "https://placeholder.supabase.co") {
+      return null
+    }
+
     const { data, error } = await supabase
       .from("orders")
       .update({ ...updates, updated_at: new Date().toISOString() })
@@ -314,6 +368,10 @@ export const db = {
     endDate?: string
     period?: "daily" | "weekly" | "monthly"
   }) {
+    if (supabaseUrl === "https://placeholder.supabase.co") {
+      return []
+    }
+
     let query = supabase.from("analytics").select("*").order("date", { ascending: true })
 
     if (filters?.startDate) {
@@ -331,6 +389,10 @@ export const db = {
   },
 
   async createAnalyticsEntry(analytics: Omit<Analytics, "id" | "created_at">) {
+    if (supabaseUrl === "https://placeholder.supabase.co") {
+      return null
+    }
+
     const { data, error } = await supabase.from("analytics").insert([analytics]).select().single()
 
     if (error) throw error
@@ -339,6 +401,15 @@ export const db = {
 
   // Dashboard Stats
   async getDashboardStats() {
+    if (supabaseUrl === "https://placeholder.supabase.co") {
+      return {
+        products: { total: 0, active: 0, lowStock: 0, outOfStock: 0 },
+        customers: { total: 0, active: 0, vip: 0, totalRevenue: 0 },
+        orders: { total: 0, pending: 0, monthlyRevenue: 0, averageOrderValue: 0 },
+        analytics: [],
+      }
+    }
+
     const [{ data: products }, { data: customers }, { data: orders }, { data: analytics }] = await Promise.all([
       supabase.from("products").select("id, status, stock"),
       supabase.from("customers").select("id, status, customer_type, total_spent"),

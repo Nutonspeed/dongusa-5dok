@@ -1,6 +1,11 @@
 // Development Configuration for Mock Services
+import { mockDatabaseService } from "./mock-database"
+import { mockEmailService } from "./mock-email"
+import { mockUploadService } from "./mock-upload"
+
 export const isDevelopment = process.env.NODE_ENV === "development"
 export const isDemoMode = process.env.NEXT_PUBLIC_DEMO_MODE === "true"
+export const isProduction = process.env.NODE_ENV === "production"
 
 export const developmentConfig = {
   // Demo mode settings
@@ -177,79 +182,30 @@ export const devUtils = {
   },
 
   // Reset demo data
-  async resetDemoData(): Promise<void> {
-    console.log("🔄 [DEV UTILS] รีเซ็ตข้อมูลสาธิต...")
+  async resetDemoData() {
+    // Reset all mock services
+    await mockDatabaseService.clearAllData()
+    await mockEmailService.clearEmailHistory()
+    await mockUploadService.clearAllFiles()
 
-    try {
-      // Reset database
-      const { mockDatabaseService } = await import("./mock-database")
-      await mockDatabaseService.clearAllData()
-      await mockDatabaseService.seedSampleData()
+    // Reseed with fresh data
+    await this.generateMockData()
 
-      // Reset email history
-      const { mockEmailService } = await import("./mock-email")
-      await mockEmailService.clearEmailHistory()
-
-      // Reset upload files
-      const { mockUploadService } = await import("./mock-upload")
-      await mockUploadService.clearAllFiles()
-      await mockUploadService.seedSampleFiles()
-
-      console.log("✅ [DEV UTILS] รีเซ็ตข้อมูลสาธิตเสร็จสิ้น")
-    } catch (error) {
-      console.error("❌ [DEV UTILS] รีเซ็ตข้อมูลล้มเหลว:", error)
-      throw error
-    }
+    console.log("Demo data reset successfully")
   },
 
   // Generate mock data
-  async generateMockData(): Promise<void> {
-    console.log("🎲 [DEV UTILS] สร้างข้อมูลจำลอง...")
+  async generateMockData() {
+    if (!isDevelopment) return
 
-    try {
-      // Generate additional products
-      const { mockDatabaseService } = await import("./mock-database")
+    // Generate additional mock data for development
+    await mockDatabaseService.seedSampleData()
 
-      for (let i = 0; i < 10; i++) {
-        await mockDatabaseService.createProduct({
-          name: `สินค้าทดสอบ ${i + 1}`,
-          name_en: `Test Product ${i + 1}`,
-          description: `รายละเอียดสินค้าทดสอบ ${i + 1}`,
-          description_en: `Test product description ${i + 1}`,
-          price: Math.floor(Math.random() * 2000) + 500,
-          images: [`/placeholder.svg?height=400&width=600&text=Test+Product+${i + 1}`],
-          category: Math.random() > 0.5 ? "covers" : "accessories",
-          specifications: {
-            material: "ผ้าทดสอบ",
-            dimensions: "ขนาดทดสอบ",
-            colors: ["สีทดสอบ"],
-            care_instructions: "วิธีดูแลทดสอบ",
-          },
-          stock: Math.floor(Math.random() * 50) + 5,
-          status: "active",
-          sold_count: Math.floor(Math.random() * 100),
-          rating: Math.random() * 2 + 3, // 3-5 stars
-          reviews_count: Math.floor(Math.random() * 50),
-        })
-      }
+    // Send some test emails
+    await mockEmailService.sendEmail("test@example.com", "Test Email", "This is a test email")
+    await mockEmailService.sendEmail("admin@example.com", "Admin Notification", "Admin test email")
 
-      // Generate test emails
-      const { mockEmailService } = await import("./mock-email")
-
-      for (let i = 0; i < 5; i++) {
-        await mockEmailService.sendCustomerMessageNotification({
-          name: this.generateRandomData.randomThaiName(),
-          email: this.generateRandomData.randomEmail(),
-          phone: this.generateRandomData.randomPhone(),
-          message: `ข้อความทดสอบ ${i + 1}: สอบถามเกี่ยวกับสินค้า`,
-        })
-      }
-
-      console.log("✅ [DEV UTILS] สร้างข้อมูลจำลองเสร็จสิ้น")
-    } catch (error) {
-      console.error("❌ [DEV UTILS] สร้างข้อมูลจำลองล้มเหลว:", error)
-      throw error
-    }
+    console.log("Mock data generated successfully")
   },
 
   // Log system info
@@ -285,6 +241,34 @@ export const devUtils = {
 
       return duration
     },
+  },
+
+  // Get system status
+  async getSystemStatus() {
+    const [products, customers, orders, analytics] = await Promise.all([
+      mockDatabaseService.getProducts(),
+      mockDatabaseService.getCustomers(),
+      mockDatabaseService.getOrders(),
+      mockDatabaseService.getAnalytics(),
+    ])
+
+    const [emailStats, uploadStats] = await Promise.all([
+      mockEmailService.getEmailStatistics(),
+      mockUploadService.getUploadStatistics(),
+    ])
+
+    return {
+      database: {
+        products: products.length,
+        customers: customers.length,
+        orders: orders.length,
+        revenue: analytics.totalRevenue,
+      },
+      email: emailStats,
+      upload: uploadStats,
+      environment: process.env.NODE_ENV,
+      timestamp: new Date().toISOString(),
+    }
   },
 }
 
@@ -322,4 +306,9 @@ export const performanceMonitoring = {
   logQueries: true,
   logUploads: true,
   logEmails: true,
+}
+
+// Initialize mock data in development
+if (isDevelopment && typeof window === "undefined") {
+  devUtils.generateMockData().catch(console.error)
 }

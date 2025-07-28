@@ -9,41 +9,25 @@ export interface EmailTemplate {
   variables: string[]
 }
 
-export interface EmailHistory {
+export interface EmailHistoryItem {
   id: string
   to: string
   subject: string
-  template_id?: string
-  variables?: Record<string, any>
-  status: "sent" | "failed" | "pending"
-  error_message?: string
-  sent_at: string
+  status: "sent" | "failed"
+  sentAt: string
 }
 
-export interface EmailStatistics {
+export interface EmailStats {
   totalSent: number
   totalFailed: number
   successRate: number
-  byTemplate: Record<string, number>
-  byStatus: Record<string, number>
-  recentEmails: EmailHistory[]
 }
 
 // In-memory storage
-let emailHistory: EmailHistory[] = []
 let emailTemplates: EmailTemplate[] = []
 
 // Utility functions
 const generateId = () => Math.random().toString(36).substring(2, 15)
-
-const simulateLatency = async () => {
-  const delay = Math.random() * 1000 + 500 // 0.5-1.5 seconds
-  await new Promise((resolve) => setTimeout(resolve, delay))
-}
-
-const simulateEmailSending = (): boolean => {
-  return Math.random() < developmentConfig.services.email.successRate
-}
 
 const processTemplate = (template: string, variables: Record<string, any>): string => {
   let processed = template
@@ -146,203 +130,164 @@ const defaultTemplates: Omit<EmailTemplate, "id">[] = [
 ]
 
 // Mock Email Service
-export const mockEmailService = {
-  // Initialize templates
-  async initializeTemplates(): Promise<void> {
-    if (emailTemplates.length === 0) {
-      emailTemplates = defaultTemplates.map((template) => ({
-        ...template,
-        id: generateId(),
-      }))
-      console.log("📧 [MOCK EMAIL] Templates initialized")
-    }
-  },
+class MockEmailService {
+  private emailHistory: EmailHistoryItem[] = []
+  private stats: EmailStats = {
+    totalSent: 0,
+    totalFailed: 0,
+    successRate: 100,
+  }
 
-  // Get templates
-  async getTemplates(): Promise<EmailTemplate[]> {
-    await this.initializeTemplates()
-    return [...emailTemplates]
-  },
+  async sendEmail(to: string, subject: string, content: string): Promise<boolean> {
+    // Simulate email sending
+    const success = Math.random() > 0.1 // 90% success rate
 
-  // Get template by name
-  async getTemplate(name: string): Promise<EmailTemplate | null> {
-    await this.initializeTemplates()
-    return emailTemplates.find((t) => t.name === name) || null
-  },
-
-  // Send email using template
-  async sendTemplateEmail(to: string, templateName: string, variables: Record<string, any>): Promise<EmailHistory> {
-    await simulateLatency()
-
-    const template = await this.getTemplate(templateName)
-    if (!template) {
-      throw new Error(`Template '${templateName}' not found`)
-    }
-
-    const success = simulateEmailSending()
-    const emailRecord: EmailHistory = {
-      id: generateId(),
-      to,
-      subject: processTemplate(template.subject, variables),
-      template_id: template.id,
-      variables,
-      status: success ? "sent" : "failed",
-      error_message: success ? undefined : "Simulated email sending failure",
-      sent_at: new Date().toISOString(),
-    }
-
-    emailHistory.push(emailRecord)
-
-    if (developmentConfig.services.email.logToConsole) {
-      console.log(`📧 [MOCK EMAIL] ${success ? "✅ Sent" : "❌ Failed"}:`, {
-        to,
-        subject: emailRecord.subject,
-        template: templateName,
-        variables,
-      })
-    }
-
-    return emailRecord
-  },
-
-  // Send plain email
-  async sendEmail(to: string, subject: string, html: string): Promise<EmailHistory> {
-    await simulateLatency()
-
-    const success = simulateEmailSending()
-    const emailRecord: EmailHistory = {
-      id: generateId(),
+    const emailItem: EmailHistoryItem = {
+      id: Date.now().toString(),
       to,
       subject,
       status: success ? "sent" : "failed",
-      error_message: success ? undefined : "Simulated email sending failure",
-      sent_at: new Date().toISOString(),
+      sentAt: new Date().toISOString(),
     }
 
-    emailHistory.push(emailRecord)
+    this.emailHistory.push(emailItem)
 
-    if (developmentConfig.services.email.logToConsole) {
-      console.log(`📧 [MOCK EMAIL] ${success ? "✅ Sent" : "❌ Failed"}:`, {
-        to,
-        subject,
-      })
+    if (success) {
+      this.stats.totalSent++
+    } else {
+      this.stats.totalFailed++
     }
 
-    return emailRecord
-  },
+    this.stats.successRate = (this.stats.totalSent / (this.stats.totalSent + this.stats.totalFailed)) * 100
 
-  // Convenience methods for common emails
-  async sendOrderConfirmation(orderData: {
-    customer_name: string
-    customer_email: string
-    order_id: string
-    total: number
-    status: string
-  }): Promise<EmailHistory> {
-    return this.sendTemplateEmail(orderData.customer_email, "order_confirmation", orderData)
-  },
+    return success
+  }
 
-  async sendShippingNotification(shippingData: {
-    customer_name: string
-    customer_email: string
-    order_id: string
-    tracking_number: string
-    shipping_company: string
-  }): Promise<EmailHistory> {
-    return this.sendTemplateEmail(shippingData.customer_email, "shipping_notification", shippingData)
-  },
+  async getEmailStatistics(): Promise<EmailStats> {
+    return this.stats
+  }
 
-  async sendWelcomeEmail(customerData: {
-    customer_name: string
-    customer_email: string
-  }): Promise<EmailHistory> {
-    return this.sendTemplateEmail(customerData.customer_email, "welcome_email", customerData)
-  },
+  async getEmailHistory(limit = 10): Promise<EmailHistoryItem[]> {
+    return this.emailHistory.slice(-limit).reverse()
+  }
 
-  async sendCustomerMessageNotification(messageData: {
-    name: string
-    email: string
-    phone: string
-    message: string
-  }): Promise<EmailHistory> {
-    return this.sendTemplateEmail(
-      "admin@sofacover.com", // Send to admin
-      "customer_message_notification",
-      {
-        customer_name: messageData.name,
-        customer_email: messageData.email,
-        customer_phone: messageData.phone,
-        message: messageData.message,
-      },
-    )
-  },
-
-  // Email history and statistics
-  async getEmailHistory(limit = 50): Promise<EmailHistory[]> {
-    return emailHistory.sort((a, b) => new Date(b.sent_at).getTime() - new Date(a.sent_at).getTime()).slice(0, limit)
-  },
-
-  async getEmailStatistics(): Promise<EmailStatistics> {
-    const totalSent = emailHistory.filter((e) => e.status === "sent").length
-    const totalFailed = emailHistory.filter((e) => e.status === "failed").length
-    const successRate = emailHistory.length > 0 ? (totalSent / emailHistory.length) * 100 : 0
-
-    // Group by template
-    const byTemplate: Record<string, number> = {}
-    const byStatus: Record<string, number> = {}
-
-    emailHistory.forEach((email) => {
-      // By template
-      if (email.template_id) {
-        const template = emailTemplates.find((t) => t.id === email.template_id)
-        const templateName = template?.name || "unknown"
-        byTemplate[templateName] = (byTemplate[templateName] || 0) + 1
-      }
-
-      // By status
-      byStatus[email.status] = (byStatus[email.status] || 0) + 1
-    })
-
-    const recentEmails = await this.getEmailHistory(10)
-
-    return {
-      totalSent,
-      totalFailed,
-      successRate,
-      byTemplate,
-      byStatus,
-      recentEmails,
-    }
-  },
-
-  // Clear email history
   async clearEmailHistory(): Promise<void> {
-    emailHistory = []
-    console.log("🗑️ [MOCK EMAIL] Email history cleared")
-  },
-
-  // Get email stats for demo panel
-  async getEmailStats() {
-    const stats = await this.getEmailStatistics()
-    return {
-      total: emailHistory.length,
-      sent: stats.totalSent,
-      failed: stats.totalFailed,
-      successRate: Math.round(stats.successRate),
-      byType: stats.byTemplate,
-      byStatus: stats.byStatus,
-      recent: stats.recentEmails.slice(0, 5).map((email) => ({
-        id: email.id,
-        subject: email.subject,
-        to: email.to,
-        type: emailTemplates.find((t) => t.id === email.template_id)?.name || "custom",
-        sent_at: email.sent_at,
-      })),
+    this.emailHistory = []
+    this.stats = {
+      totalSent: 0,
+      totalFailed: 0,
+      successRate: 100,
     }
-  },
+  }
 }
 
-// Auto-initialize
+export const mockEmailService = new MockEmailService()
+
+// Auto-initialize templates
 if (developmentConfig.services.email.useMock) {
   mockEmailService.initializeTemplates().catch(console.error)
+}
+
+// Method to initialize templates
+MockEmailService.prototype.initializeTemplates = async (): Promise<void> => {
+  if (emailTemplates.length === 0) {
+    emailTemplates = defaultTemplates.map((template) => ({
+      ...template,
+      id: generateId(),
+    }))
+    console.log("📧 [MOCK EMAIL] Templates initialized")
+  }
+}
+
+// Method to get templates
+MockEmailService.prototype.getTemplates = async function (): Promise<EmailTemplate[]> {
+  await this.initializeTemplates()
+  return [...emailTemplates]
+}
+
+// Method to get template by name
+MockEmailService.prototype.getTemplate = async function (name: string): Promise<EmailTemplate | null> {
+  await this.initializeTemplates()
+  return emailTemplates.find((t) => t.name === name) || null
+}
+
+// Method to send email using template
+MockEmailService.prototype.sendTemplateEmail = async function (
+  to: string,
+  templateName: string,
+  variables: Record<string, any>,
+): Promise<EmailHistoryItem> {
+  const template = await this.getTemplate(templateName)
+  if (!template) {
+    throw new Error(`Template '${templateName}' not found`)
+  }
+
+  const subject = processTemplate(template.subject, variables)
+  const html = processTemplate(template.html, variables)
+
+  const success = await this.sendEmail(to, subject, html)
+  const emailRecord: EmailHistoryItem = {
+    id: Date.now().toString(),
+    to,
+    subject,
+    status: success ? "sent" : "failed",
+    sentAt: new Date().toISOString(),
+  }
+
+  if (developmentConfig.services.email.logToConsole) {
+    console.log(`📧 [MOCK EMAIL] ${success ? "✅ Sent" : "❌ Failed"}:`, {
+      to,
+      subject,
+      template: templateName,
+      variables,
+    })
+  }
+
+  return emailRecord
+}
+
+// Convenience methods for common emails
+MockEmailService.prototype.sendOrderConfirmation = async function (orderData: {
+  customer_name: string
+  customer_email: string
+  order_id: string
+  total: number
+  status: string
+}): Promise<EmailHistoryItem> {
+  return this.sendTemplateEmail(orderData.customer_email, "order_confirmation", orderData)
+}
+
+MockEmailService.prototype.sendShippingNotification = async function (shippingData: {
+  customer_name: string
+  customer_email: string
+  order_id: string
+  tracking_number: string
+  shipping_company: string
+}): Promise<EmailHistoryItem> {
+  return this.sendTemplateEmail(shippingData.customer_email, "shipping_notification", shippingData)
+}
+
+MockEmailService.prototype.sendWelcomeEmail = async function (customerData: {
+  customer_name: string
+  customer_email: string
+}): Promise<EmailHistoryItem> {
+  return this.sendTemplateEmail(customerData.customer_email, "welcome_email", customerData)
+}
+
+MockEmailService.prototype.sendCustomerMessageNotification = async function (messageData: {
+  name: string
+  email: string
+  phone: string
+  message: string
+}): Promise<EmailHistoryItem> {
+  return this.sendTemplateEmail(
+    "admin@sofacover.com", // Send to admin
+    "customer_message_notification",
+    {
+      customer_name: messageData.name,
+      customer_email: messageData.email,
+      customer_phone: messageData.phone,
+      message: messageData.message,
+    },
+  )
 }
