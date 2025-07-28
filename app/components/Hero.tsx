@@ -1,103 +1,68 @@
 "use client"
-
-import { useState, useEffect } from "react"
 import Link from "next/link"
-import { ArrowRight, Star, Shield, Truck, Award } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { useLanguage } from "../contexts/LanguageContext"
-
-const heroImages = [
-  "/modern-living-room-sofa-covers.png",
-  "/modern-minimalist-fabric-pattern-1.png",
-  "/classic-elegant-fabric-pattern-1.png",
-]
-
-const features = [
-  {
-    icon: Shield,
-    title: { en: "Premium Quality", th: "คุณภาพพรีเมียม" },
-    description: { en: "Durable materials", th: "วัสดุทนทาน" },
-  },
-  {
-    icon: Truck,
-    title: { en: "Fast Delivery", th: "จัดส่งรวดเร็ว" },
-    description: { en: "2-3 days shipping", th: "จัดส่ง 2-3 วัน" },
-  },
-  {
-    icon: Award,
-    title: { en: "Custom Fit", th: "ตัดตามขนาด" },
-    description: { en: "Perfect measurements", th: "วัดขนาดแม่นยำ" },
-  },
-]
+import { Star, Shield, Truck, Clock } from "lucide-react"
 
 export default function Hero() {
-  const { language } = useLanguage()
-  const [currentImageIndex, setCurrentImageIndex] = useState(0)
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentImageIndex((prev) => (prev + 1) % heroImages.length)
-    }, 5000)
-
-    return () => clearInterval(interval)
-  }, [])
-
   return (
-    <section className="relative bg-gradient-to-br from-blue-50 via-white to-indigo-50 overflow-hidden">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-20">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+    <section className="relative bg-gradient-to-br from-blue-50 via-white to-pink-50 py-20 overflow-hidden">
+      {/* Background Pattern */}
+      <div className="absolute inset-0 opacity-5">
+        <div className="absolute inset-0 bg-[url('/placeholder.svg?height=400&width=400')] bg-repeat opacity-10"></div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+        <div className="grid lg:grid-cols-2 gap-12 items-center">
           {/* Left Content */}
           <div className="space-y-8">
-            {/* Badge */}
+            {/* Trust Badge */}
             <div className="flex items-center space-x-2">
-              <Badge className="bg-blue-100 text-blue-800 border-blue-200">
-                {language === "en" ? "🎉 New Collection" : "🎉 คอลเลกชันใหม่"}
+              <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 border-yellow-200">
+                <Star className="w-3 h-3 mr-1 fill-current" />
+                ผู้เชี่ยวชาญอันดับ 1
               </Badge>
-              <div className="flex items-center space-x-1">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                ))}
-                <span className="text-sm text-gray-600 ml-2">
-                  {language === "en" ? "4.9/5 from 2,500+ reviews" : "4.9/5 จาก 2,500+ รีวิว"}
-                </span>
+              <div className="flex items-center space-x-1 text-sm text-gray-600">
+                <span>4.9/5 จาก 2,500+ รีวิว</span>
               </div>
             </div>
 
             {/* Main Heading */}
             <div className="space-y-4">
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 leading-tight">
-                {language === "en" ? (
-                  <>
-                    Transform Your
-                    <span className="text-blue-600 block">Living Space</span>
-                  </>
-                ) : (
-                  <>
-                    เปลี่ยนโฉม
-                    <span className="text-blue-600 block">พื้นที่นั่งเล่น</span>
-                  </>
-                )}
+              <h1 className="text-4xl lg:text-6xl font-bold text-gray-900 leading-tight">
+                เปลี่ยนโฉม
+                <span className="block text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-pink-600">
+                  พื้นที่นั่งเล่น
+                </span>
               </h1>
-
-              <p className="text-xl text-gray-600 leading-relaxed max-w-lg">
-                {language === "en"
-                  ? "Premium sofa covers that protect and beautify your furniture. Custom-made with precision, delivered with care."
-                  : "ผ้าคลุมโซฟาพรีเมียมที่ปกป้องและเพิ่มความสวยงามให้เฟอร์นิเจอร์ของคุณ ทำตามสั่งด้วยความแม่นยำ จัดส่งด้วยความใส่ใจ"}
+              <p className="text-lg lg:text-xl text-gray-600 leading-relaxed max-w-lg">
+                ผ้าคลุมโซฟาพรีเมียมที่ปกป้องและเพิ่มความสวยงามให้เฟอร์นิเจอร์ของคุณ หาคุณสีสันด้วยความแม่นยำ จัดส่งรวดเร็ว ใสใจ
               </p>
             </div>
 
-            {/* Features */}
-            <div className="grid grid-cols-3 gap-4">
-              {features.map((feature, index) => (
-                <div key={index} className="text-center">
-                  <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                    <feature.icon className="w-6 h-6 text-blue-600" />
-                  </div>
-                  <h3 className="font-semibold text-gray-900 text-sm">{feature.title[language]}</h3>
-                  <p className="text-xs text-gray-600">{feature.description[language]}</p>
+            {/* Feature Points */}
+            <div className="grid grid-cols-3 gap-6">
+              <div className="text-center">
+                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                  <Shield className="w-6 h-6 text-blue-600" />
                 </div>
-              ))}
+                <h3 className="font-semibold text-gray-900 text-sm">คุณภาพพรีเมียม</h3>
+                <p className="text-xs text-gray-600 mt-1">วัสดุคุณภาพ</p>
+              </div>
+              <div className="text-center">
+                <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                  <Truck className="w-6 h-6 text-green-600" />
+                </div>
+                <h3 className="font-semibold text-gray-900 text-sm">จัดส่งรวดเร็ว</h3>
+                <p className="text-xs text-gray-600 mt-1">จัดส่ง 2-3 วัน</p>
+              </div>
+              <div className="text-center">
+                <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                  <Clock className="w-6 h-6 text-purple-600" />
+                </div>
+                <h3 className="font-semibold text-gray-900 text-sm">ดีลเลอร์มาตรฐาน</h3>
+                <p className="text-xs text-gray-600 mt-1">ให้บริการ 24/7</p>
+              </div>
             </div>
 
             {/* CTA Buttons */}
@@ -105,89 +70,56 @@ export default function Hero() {
               <Link href="/products">
                 <Button
                   size="lg"
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 text-lg w-full sm:w-auto"
+                  className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
                 >
-                  {language === "en" ? "Shop Now" : "ช้อปเลย"}
-                  <ArrowRight className="ml-2 w-5 h-5" />
+                  ช้อปเลย
                 </Button>
               </Link>
-
               <Link href="/custom-covers">
                 <Button
-                  size="lg"
                   variant="outline"
-                  className="border-blue-600 text-blue-600 hover:bg-blue-50 px-8 py-4 text-lg w-full sm:w-auto bg-transparent"
+                  size="lg"
+                  className="w-full sm:w-auto border-gray-300 hover:bg-gray-50 bg-transparent"
                 >
-                  {language === "en" ? "Custom Order" : "สั่งทำพิเศษ"}
+                  สั่งทำพิเศษ
                 </Button>
               </Link>
             </div>
 
-            {/* Trust Indicators */}
-            <div className="flex items-center space-x-6 text-sm text-gray-600">
-              <div className="flex items-center space-x-2">
-                <Shield className="w-4 h-4 text-green-600" />
-                <span>{language === "en" ? "2-Year Warranty" : "รับประกัน 2 ปี"}</span>
+            {/* Stats */}
+            <div className="grid grid-cols-3 gap-8 pt-8 border-t border-gray-200">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-gray-900">10K+</div>
+                <div className="text-sm text-gray-600">ลูกค้าพอใจ</div>
               </div>
-              <div className="flex items-center space-x-2">
-                <Truck className="w-4 h-4 text-blue-600" />
-                <span>{language === "en" ? "Free Shipping" : "ส่งฟรี"}</span>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-gray-900">500+</div>
+                <div className="text-sm text-gray-600">ลายผ้า</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-gray-900">24/7</div>
+                <div className="text-sm text-gray-600">บริการ</div>
               </div>
             </div>
           </div>
 
-          {/* Right Content - Image Carousel */}
+          {/* Right Content - Hero Image */}
           <div className="relative">
-            <div className="relative w-full h-96 lg:h-[500px] rounded-2xl overflow-hidden shadow-2xl">
+            <div className="relative z-10">
               <img
-                src={heroImages[currentImageIndex] || "/placeholder.svg"}
-                alt="Sofa Cover Showcase"
-                className="w-full h-full object-cover transition-opacity duration-1000"
+                src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/1753730407887.jpg-zNiqK3ORdtjj4ROXOsK8K5lfzYLF0Z.jpeg"
+                alt="ผ้าคลุมโซฟาสวยงาม"
+                className="w-full h-auto rounded-2xl shadow-2xl"
+                loading="eager"
               />
-
-              {/* Overlay with stats */}
-              <div className="absolute bottom-6 left-6 right-6">
-                <div className="bg-white/90 backdrop-blur-sm rounded-xl p-4">
-                  <div className="grid grid-cols-3 gap-4 text-center">
-                    <div>
-                      <div className="text-2xl font-bold text-gray-900">10K+</div>
-                      <div className="text-sm text-gray-600">{language === "en" ? "Happy Customers" : "ลูกค้าพอใจ"}</div>
-                    </div>
-                    <div>
-                      <div className="text-2xl font-bold text-gray-900">500+</div>
-                      <div className="text-sm text-gray-600">{language === "en" ? "Fabric Options" : "ตัวเลือกผ้า"}</div>
-                    </div>
-                    <div>
-                      <div className="text-2xl font-bold text-gray-900">24/7</div>
-                      <div className="text-sm text-gray-600">{language === "en" ? "Support" : "ช่วยเหลือ"}</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
             </div>
 
-            {/* Image Indicators */}
-            <div className="flex justify-center space-x-2 mt-4">
-              {heroImages.map((_, index) => (
-                <button
-                  key={index}
-                  onClick={() => setCurrentImageIndex(index)}
-                  className={`w-3 h-3 rounded-full transition-colors ${
-                    index === currentImageIndex ? "bg-blue-600" : "bg-gray-300"
-                  }`}
-                />
-              ))}
-            </div>
-
-            {/* Floating Elements */}
-            <div className="absolute -top-4 -right-4 w-20 h-20 bg-yellow-400 rounded-full opacity-20 animate-pulse"></div>
-            <div className="absolute -bottom-8 -left-8 w-32 h-32 bg-blue-400 rounded-full opacity-10 animate-pulse delay-1000"></div>
+            {/* Decorative Elements */}
+            <div className="absolute -top-4 -right-4 w-24 h-24 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full opacity-80 blur-xl"></div>
+            <div className="absolute -bottom-8 -left-8 w-32 h-32 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full opacity-60 blur-2xl"></div>
           </div>
         </div>
       </div>
-
-      {/* Background Pattern */}
-      <div className="absolute inset-0 bg-grid-pattern opacity-5 pointer-events-none"></div>
     </section>
   )
 }

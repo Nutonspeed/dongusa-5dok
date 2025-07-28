@@ -2,21 +2,20 @@ import type React from "react"
 import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import "./globals.css"
+import { ThemeProvider } from "@/components/theme-provider"
+import { Toaster } from "@/components/ui/sonner"
+import { AuthProvider } from "./contexts/AuthContext"
 import { LanguageProvider } from "./contexts/LanguageContext"
 import { CartProvider } from "./contexts/CartContext"
-import { AuthProvider } from "./contexts/AuthContext"
-import Header from "./components/Header"
-import Footer from "./components/Footer"
-import { DemoBanner } from "@/components/DemoBanner"
-import { MockServiceIndicator } from "@/components/MockServiceIndicator"
+import DemoBanner from "@/components/DemoBanner"
+import MockServiceIndicator from "@/components/MockServiceIndicator"
 
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "SofaCover Pro - Premium Sofa Covers & Custom Fabric Solutions",
-  description:
-    "Transform your living space with our premium sofa covers. Custom-made, high-quality fabrics, and professional installation services.",
-  keywords: "sofa covers, custom fabric, furniture protection, home decor, upholstery",
+  title: "ระบบจัดการผ้าคลุมโซฟา - Sofa Cover Management System",
+  description: "ระบบจัดการธุรกิจผ้าคลุมโซฟาแบบครบวงจร พร้อมระบบ AI ช่วยเหลือ",
+  keywords: "ผ้าคลุมโซฟา, sofa cover, e-commerce, AI assistant, invoice management",
     generator: 'v0.dev'
 }
 
@@ -26,21 +25,20 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
+    <html lang="th" suppressHydrationWarning>
       <body className={inter.className}>
-        <LanguageProvider>
+        <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
           <AuthProvider>
-            <CartProvider>
-              <div className="min-h-screen flex flex-col">
+            <LanguageProvider>
+              <CartProvider>
                 <DemoBanner />
-                <Header />
-                <main className="flex-grow">{children}</main>
-                <Footer />
                 <MockServiceIndicator />
-              </div>
-            </CartProvider>
+                {children}
+                <Toaster />
+              </CartProvider>
+            </LanguageProvider>
           </AuthProvider>
-        </LanguageProvider>
+        </ThemeProvider>
       </body>
     </html>
   )

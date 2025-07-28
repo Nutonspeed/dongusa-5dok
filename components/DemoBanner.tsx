@@ -1,50 +1,96 @@
 "use client"
 
-import { useState } from "react"
+import React, { useState, useCallback, useMemo } from "react"
 import { X, Info, Settings } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import Link from "next/link"
 
-export function DemoBanner() {
+const DemoBanner = React.memo(() => {
   const [isVisible, setIsVisible] = useState(true)
+  const [showControls, setShowControls] = useState(false)
 
-  if (!isVisible) return null
+  const handleClose = useCallback(() => {
+    setIsVisible(false)
+  }, [])
 
-  return (
-    <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 px-4 relative">
-      <div className="max-w-7xl mx-auto flex items-center justify-between">
-        <div className="flex items-center space-x-3">
-          <Info className="w-5 h-5 flex-shrink-0" />
-          <div className="flex items-center space-x-2 text-sm">
-            <Badge variant="secondary" className="bg-white/20 text-white border-white/30">
-              DEMO
-            </Badge>
-            <span className="hidden sm:inline">
-              This is a demonstration website. All services are simulated for showcase purposes.
-            </span>
-            <span className="sm:hidden">Demo website - simulated services</span>
+  const toggleControls = useCallback(() => {
+    setShowControls((prev) => !prev)
+  }, [])
+
+  const resetDemo = useCallback(() => {
+    if (typeof window !== "undefined") {
+      localStorage.clear()
+      window.location.reload()
+    }
+  }, [])
+
+  // Memoize the banner content
+  const bannerContent = useMemo(
+    () => (
+      <div className="bg-blue-600 text-white py-2 px-4 relative">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-2">
+              <Info className="w-4 h-4" />
+              <Badge variant="secondary" className="bg-blue-500 text-white border-blue-400">
+                DEMO
+              </Badge>
+            </div>
+            <span className="text-sm font-medium">นี่คือเว็บไซต์สาธิต บริการทั้งหมดจำลองขึ้นเพื่อการแสดง</span>
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={toggleControls}
+              className="text-white hover:bg-blue-500 p-1"
+              aria-label="ควบคุมการสาธิต"
+            >
+              <Settings className="w-4 h-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleClose}
+              className="text-white hover:bg-blue-500 p-1"
+              aria-label="ปิด"
+            >
+              <X className="w-4 h-4" />
+            </Button>
           </div>
         </div>
 
-        <div className="flex items-center space-x-2">
-          <Link href="/admin/demo">
-            <Button variant="ghost" size="sm" className="text-white hover:bg-white/20 text-xs px-3 py-1">
-              <Settings className="w-4 h-4 mr-1" />
-              <span className="hidden sm:inline">Demo Controls</span>
-              <span className="sm:hidden">Controls</span>
-            </Button>
-          </Link>
-
-          <button
-            onClick={() => setIsVisible(false)}
-            className="text-white hover:bg-white/20 rounded-full p-1 transition-colors"
-            aria-label="Close banner"
-          >
-            <X className="w-4 h-4" />
-          </button>
-        </div>
+        {/* Demo Controls */}
+        {showControls && (
+          <div className="border-t border-blue-500 mt-2 pt-2">
+            <div className="max-w-7xl mx-auto flex items-center justify-between">
+              <div className="text-sm text-blue-100">ควบคุมการสาธิต:</div>
+              <div className="flex items-center space-x-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={resetDemo}
+                  className="text-white hover:bg-blue-500 text-xs px-3 py-1"
+                >
+                  รีเซ็ตข้อมูล
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
-    </div>
+    ),
+    [showControls, toggleControls, handleClose, resetDemo],
   )
-}
+
+  if (!isVisible) {
+    return null
+  }
+
+  return bannerContent
+})
+
+DemoBanner.displayName = "DemoBanner"
+
+export default DemoBanner

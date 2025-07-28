@@ -2,273 +2,180 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { ArrowRight, Palette, Sparkles, Heart } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { useLanguage } from "../contexts/LanguageContext"
+import { Search, ArrowRight, Palette } from "lucide-react"
 
-interface Collection {
-  id: string
-  name: {
-    en: string
-    th: string
-  }
-  description: {
-    en: string
-    th: string
-  }
-  image: string
-  fabricCount: number
-  priceRange: {
-    min: number
-    max: number
-  }
-  style: string
-  isPopular?: boolean
-  isNew?: boolean
-}
-
-const collections: Collection[] = [
+const fabricCollections = [
   {
     id: "modern-minimalist",
-    name: {
-      en: "Modern Minimalist",
-      th: "โมเดิร์นมินิมอล",
-    },
-    description: {
-      en: "Clean, simple designs with neutral colors perfect for contemporary homes",
-      th: "การออกแบบที่เรียบง่าย สะอาดตา พร้อมสีโทนนิวทรัลที่เหมาะกับบ้านสมัยใหม่",
-    },
+    name: "โมเดิร์นมินิมอล",
+    description: "ลายเรียบง่าย เหมาะกับบ้านสไตล์โมเดิร์น",
     image: "/modern-minimalist-fabric-pattern-1.png",
-    fabricCount: 45,
-    priceRange: { min: 1990, max: 3490 },
-    style: "Modern",
-    isPopular: true,
+    patterns: 24,
+    colors: ["#F5F5F5", "#E8E8E8", "#D3D3D3", "#C0C0C0"],
+    popular: true,
   },
   {
     id: "classic-elegant",
-    name: {
-      en: "Classic Elegant",
-      th: "คลาสสิกหรูหรา",
-    },
-    description: {
-      en: "Timeless patterns and rich textures that bring sophistication to any room",
-      th: "ลายคลาสสิกและเนื้อผ้าที่หรูหรา นำความประณีตมาสู่ห้องใดก็ได้",
-    },
+    name: "คลาสสิกหรูหรา",
+    description: "ลายดั้งเดิมที่เหนือกาลเวลา",
     image: "/classic-elegant-fabric-pattern-1.png",
-    fabricCount: 38,
-    priceRange: { min: 2490, max: 4990 },
-    style: "Classic",
-    isNew: true,
+    patterns: 18,
+    colors: ["#8B0000", "#000080", "#006400", "#4B0082"],
+    popular: false,
   },
   {
     id: "bohemian-chic",
-    name: {
-      en: "Bohemian Chic",
-      th: "โบฮีเมียนชิค",
-    },
-    description: {
-      en: "Vibrant colors and eclectic patterns for free-spirited living spaces",
-      th: "สีสันสดใสและลายผสมผสานสำหรับพื้นที่นั่งเล่นที่เป็นอิสระ",
-    },
+    name: "โบฮีเมียนชิค",
+    description: "ลายเก๋ไก๋ สีสันสดใส",
     image: "/bohemian-chic-fabric-pattern-1.png",
-    fabricCount: 52,
-    priceRange: { min: 2190, max: 3990 },
-    style: "Bohemian",
-    isPopular: true,
-  },
-  {
-    id: "luxury-premium",
-    name: {
-      en: "Luxury Premium",
-      th: "ลักชูรี่พรีเมียม",
-    },
-    description: {
-      en: "High-end materials and exclusive designs for the most discerning customers",
-      th: "วัสดุชั้นสูงและการออกแบบพิเศษสำหรับลูกค้าที่เลือกสรร",
-    },
-    image: "/modern-minimalist-fabric-pattern-2.png",
-    fabricCount: 28,
-    priceRange: { min: 3990, max: 7990 },
-    style: "Luxury",
-    isNew: true,
+    patterns: 15,
+    colors: ["#CD853F", "#DEB887", "#F4A460", "#D2691E"],
+    popular: false,
   },
 ]
 
 export default function FabricCollections() {
-  const { language } = useLanguage()
-  const [hoveredCollection, setHoveredCollection] = useState<string | null>(null)
+  const [searchQuery, setSearchQuery] = useState("")
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat("th-TH", {
-      style: "currency",
-      currency: "THB",
-      minimumFractionDigits: 0,
-    }).format(price)
-  }
-
-  const handleExploreCollection = (collection: Collection) => {
-    const message =
-      language === "th"
-        ? `สวัสดีครับ/ค่ะ! สนใจดูคอลเลกชัน "${collection.name.th}" 
-
-รายละเอียด: ${collection.description.th}
-จำนวนผ้า: ${collection.fabricCount} แบบ
-ช่วงราคา: ${formatPrice(collection.priceRange.min)} - ${formatPrice(collection.priceRange.max)}
-
-ต้องการดูตัวอย่างผ้าและรายละเอียดเพิ่มเติมครับ/ค่ะ`
-        : `Hi! I'm interested in the "${collection.name.en}" collection.
-
-Details: ${collection.description.en}
-Fabric options: ${collection.fabricCount} designs
-Price range: ${formatPrice(collection.priceRange.min)} - ${formatPrice(collection.priceRange.max)}
-
-I'd like to see fabric samples and more details.`
-
-    const facebookUrl = `https://m.me/your-facebook-page?text=${encodeURIComponent(message)}`
-    window.open(facebookUrl, "_blank")
-  }
+  const filteredCollections = fabricCollections.filter(
+    (collection) =>
+      collection.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      collection.description.toLowerCase().includes(searchQuery.toLowerCase()),
+  )
 
   return (
-    <section className="py-16 bg-gradient-to-br from-gray-50 to-blue-50">
+    <section className="py-16 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
+        {/* Section Header */}
         <div className="text-center mb-12">
           <div className="flex items-center justify-center space-x-2 mb-4">
             <Palette className="w-8 h-8 text-blue-600" />
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900">
-              {language === "en" ? "Fabric Collections" : "คอลเลกชันผ้า"}
-            </h2>
+            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900">คอลเลกชันผ้า</h2>
           </div>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            {language === "en"
-              ? "Explore our curated collections of premium fabrics, each designed to match different styles and preferences."
-              : "สำรวจคอลเลกชันผ้าพรีเมียมที่คัดสรรมาแล้ว แต่ละคอลเลกชันออกแบบมาเพื่อตอบสนองสไตล์และความชอบที่แตกต่างกัน"}
+          <p className="text-lg text-gray-600 max-w-2xl mx-auto mb-8">
+            สำรวจคอลเลกชันผ้าพรีเมียมที่คัดสรรมาแล้ว เพื่อให้เข้ากับสไตล์การตกแต่งของคุณ
           </p>
+
+          {/* Search Bar */}
+          <div className="max-w-md mx-auto relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <Input
+              type="text"
+              placeholder="ค้นหาคอลเลกชัน..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 pr-4 py-3 w-full rounded-full border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+            />
+          </div>
         </div>
 
         {/* Collections Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
-          {collections.map((collection) => (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
+          {filteredCollections.map((collection) => (
             <Card
               key={collection.id}
-              className="group overflow-hidden hover:shadow-2xl transition-all duration-500 cursor-pointer"
-              onMouseEnter={() => setHoveredCollection(collection.id)}
-              onMouseLeave={() => setHoveredCollection(null)}
+              className="group hover:shadow-2xl transition-all duration-300 border-0 shadow-lg overflow-hidden"
             >
-              <div className="relative h-80 overflow-hidden">
-                <img
-                  src={collection.image || "/placeholder.svg"}
-                  alt={collection.name[language]}
-                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                />
+              <CardContent className="p-0">
+                {/* Collection Image */}
+                <div className="relative overflow-hidden">
+                  <img
+                    src={collection.image || "/placeholder.svg"}
+                    alt={collection.name}
+                    className="w-full h-64 object-cover group-hover:scale-110 transition-transform duration-500"
+                  />
 
-                {/* Overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-
-                {/* Badges */}
-                <div className="absolute top-4 left-4 flex flex-col gap-2">
-                  {collection.isNew && (
-                    <Badge className="bg-green-500 text-white">
-                      <Sparkles className="w-3 h-3 mr-1" />
-                      {language === "en" ? "New" : "ใหม่"}
+                  {/* Popular Badge */}
+                  {collection.popular && (
+                    <Badge className="absolute top-4 left-4 bg-gradient-to-r from-pink-500 to-rose-500 text-white">
+                      ยอดนิยม
                     </Badge>
                   )}
-                  {collection.isPopular && (
-                    <Badge className="bg-red-500 text-white">
-                      <Heart className="w-3 h-3 mr-1" />
-                      {language === "en" ? "Popular" : "ยอดนิยม"}
-                    </Badge>
-                  )}
-                </div>
 
-                {/* Content Overlay */}
-                <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full">
-                      {collection.style}
-                    </span>
-                    <span className="text-sm bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full">
-                      {collection.fabricCount} {language === "en" ? "fabrics" : "ผ้า"}
-                    </span>
-                  </div>
+                  {/* Overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
-                  <h3 className="text-2xl font-bold mb-2">{collection.name[language]}</h3>
-                  <p className="text-white/90 text-sm mb-4 line-clamp-2">{collection.description[language]}</p>
-
-                  <div className="flex items-center justify-between">
-                    <div className="text-lg font-semibold">
-                      {formatPrice(collection.priceRange.min)} - {formatPrice(collection.priceRange.max)}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Hover Action */}
-                <div
-                  className={`absolute inset-0 bg-blue-600/90 flex items-center justify-center transition-opacity duration-300 ${
-                    hoveredCollection === collection.id ? "opacity-100" : "opacity-0"
-                  }`}
-                >
-                  <div className="text-center text-white">
-                    <Palette className="w-12 h-12 mx-auto mb-4" />
-                    <h4 className="text-xl font-bold mb-2">
-                      {language === "en" ? "Explore Collection" : "สำรวจคอลเลกชัน"}
-                    </h4>
-                    <p className="text-white/90 mb-4">
-                      {language === "en" ? "View all fabric options" : "ดูตัวเลือกผ้าทั้งหมด"}
-                    </p>
-                    <Button
-                      onClick={() => handleExploreCollection(collection)}
-                      className="bg-white text-blue-600 hover:bg-gray-100"
-                    >
-                      {language === "en" ? "View Details" : "ดูรายละเอียด"}
-                      <ArrowRight className="ml-2 w-4 h-4" />
+                  {/* Quick View Button */}
+                  <div className="absolute bottom-4 left-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <Button className="w-full bg-white text-gray-900 hover:bg-gray-100">
+                      ดูลายทั้งหมด
+                      <ArrowRight className="w-4 h-4 ml-2" />
                     </Button>
                   </div>
                 </div>
-              </div>
+
+                {/* Collection Info */}
+                <div className="p-6">
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-xl font-bold text-gray-900">{collection.name}</h3>
+                    <Badge variant="outline" className="text-blue-600 border-blue-200">
+                      {collection.patterns} ลาย
+                    </Badge>
+                  </div>
+
+                  <p className="text-gray-600 mb-4 leading-relaxed">{collection.description}</p>
+
+                  {/* Color Palette */}
+                  <div className="flex items-center space-x-3 mb-6">
+                    <span className="text-sm font-medium text-gray-700">สีที่มี:</span>
+                    <div className="flex space-x-2">
+                      {collection.colors.map((color, index) => (
+                        <div
+                          key={index}
+                          className="w-6 h-6 rounded-full border-2 border-white shadow-md"
+                          style={{ backgroundColor: color }}
+                          title={`สี ${index + 1}`}
+                        />
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="flex space-x-3">
+                    <Link href={`/fabric-collections/${collection.id}`} className="flex-1">
+                      <Button variant="outline" className="w-full bg-transparent">
+                        ดูลายทั้งหมด
+                      </Button>
+                    </Link>
+                    <Button className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800">
+                      รับใบเสนอราคา
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
             </Card>
           ))}
         </div>
 
-        {/* Bottom CTA */}
-        <div className="text-center bg-white rounded-2xl p-8 shadow-lg">
-          <h3 className="text-2xl font-bold text-gray-900 mb-4">
-            {language === "en" ? "Can't Find What You're Looking For?" : "หาสิ่งที่คุณต้องการไม่เจอ?"}
-          </h3>
-          <p className="text-gray-600 mb-6 max-w-2xl mx-auto">
-            {language === "en"
-              ? "We have over 1,000 fabric options available. Contact us for a personalized consultation and fabric samples."
-              : "เรามีตัวเลือกผ้ามากกว่า 1,000 แบบ ติดต่อเราเพื่อรับคำปรึกษาส่วนตัวและตัวอย่างผ้า"}
-          </p>
-
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/fabric-gallery">
-              <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4">
-                {language === "en" ? "Browse All Fabrics" : "ดูผ้าทั้งหมด"}
-                <Palette className="ml-2 w-5 h-5" />
-              </Button>
-            </Link>
-
-            <Button
-              size="lg"
-              variant="outline"
-              className="px-8 py-4 bg-transparent"
-              onClick={() => {
-                const message =
-                  language === "th"
-                    ? "สวัสดีครับ/ค่ะ! ต้องการปรึกษาเรื่องการเลือกผ้าและขอดูตัวอย่างผ้าครับ/ค่ะ"
-                    : "Hi! I'd like to consult about fabric selection and request fabric samples."
-
-                const facebookUrl = `https://m.me/your-facebook-page?text=${encodeURIComponent(message)}`
-                window.open(facebookUrl, "_blank")
-              }}
-            >
-              {language === "en" ? "Request Samples" : "ขอตัวอย่างผ้า"}
+        {/* No Results */}
+        {filteredCollections.length === 0 && (
+          <div className="text-center py-12">
+            <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Search className="w-12 h-12 text-gray-400" />
+            </div>
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">ไม่พบคอลเลกชันที่ค้นหา</h3>
+            <p className="text-gray-600 mb-4">ลองค้นหาด้วยคำอื่น หรือดูคอลเลกชันทั้งหมด</p>
+            <Button onClick={() => setSearchQuery("")} variant="outline">
+              ดูทั้งหมด
             </Button>
           </div>
-        </div>
+        )}
+
+        {/* View All Collections */}
+        {filteredCollections.length > 0 && (
+          <div className="text-center">
+            <Link href="/fabric-collections">
+              <Button size="lg" variant="outline" className="px-8 bg-transparent">
+                ดูคอลเลกชันทั้งหมด
+                <ArrowRight className="w-5 h-5 ml-2" />
+              </Button>
+            </Link>
+          </div>
+        )}
       </div>
     </section>
   )

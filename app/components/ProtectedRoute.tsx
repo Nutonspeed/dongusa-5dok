@@ -8,36 +8,53 @@ import { useAuth } from "../contexts/AuthContext"
 
 interface ProtectedRouteProps {
   children: React.ReactNode
-  redirectTo?: string
-  requireRole?: "user" | "admin"
+  requiredPermissions?: string[]
+  requireBackendAccess?: boolean
+  fallbackPath?: string
 }
 
-export default function ProtectedRoute({ children, redirectTo = "/login", requireRole }: ProtectedRouteProps) {
-  const { user, isAuthenticated, isLoading } = useAuth()
+export default function ProtectedRoute({
+  children,
+  requiredPermissions = [],
+  requireBackendAccess = false,
+  fallbackPath = "/login",
+}: ProtectedRouteProps) {
+  const { user, isAuthenticated, isLoading, hasAnyPermission, isBackendUser } = useAuth()
   const router = useRouter()
 
   useEffect(() => {
     if (!isLoading) {
       if (!isAuthenticated) {
-        const currentPath = window.location.pathname
-        router.push(`${redirectTo}?redirect=${encodeURIComponent(currentPath)}`)
+        router.push(`${fallbackPath}?redirect=${encodeURIComponent(window.location.pathname)}`)
         return
       }
 
-      if (requireRole && user?.role !== requireRole) {
+      if (requireBackendAccess && !isBackendUser()) {
+        router.push("/unauthorized")
+        return
+      }
+
+      if (requiredPermissions.length > 0 && !hasAnyPermission(requiredPermissions)) {
         router.push("/unauthorized")
         return
       }
     }
-  }, [isAuthenticated, isLoading, user, router, redirectTo, requireRole])
+  }, [
+    isAuthenticated,
+    isLoading,
+    user,
+    router,
+    requiredPermissions,
+    requireBackendAccess,
+    hasAnyPermission,
+    isBackendUser,
+    fallbackPath,
+  ])
 
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
-        </div>
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-pink-600"></div>
       </div>
     )
   }
@@ -46,7 +63,11 @@ export default function ProtectedRoute({ children, redirectTo = "/login", requir
     return null
   }
 
-  if (requireRole && user?.role !== requireRole) {
+  if (requireBackendAccess && !isBackendUser()) {
+    return null
+  }
+
+  if (requiredPermissions.length > 0 && !hasAnyPermission(requiredPermissions)) {
     return null
   }
 
