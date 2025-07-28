@@ -5,23 +5,17 @@ import WhyChooseUs from "./components/WhyChooseUs"
 import FabricCollections from "./components/FabricCollections"
 import CustomCoverSection from "./components/CustomCoverSection"
 import Footer from "./components/Footer"
-import { DemoBanner } from "@/components/DemoBanner"
-import { MockServiceIndicator } from "@/components/MockServiceIndicator"
 
-export default function HomePage() {
+export default function Home() {
   return (
-    <div className="min-h-screen bg-white">
-      <DemoBanner />
-      <MockServiceIndicator />
+    <main className="min-h-screen">
       <Header />
-      <main>
-        <Hero />
-        <FeaturedProducts />
-        <WhyChooseUs />
-        <FabricCollections />
-        <CustomCoverSection />
-      </main>
+      <Hero />
+      <FeaturedProducts />
+      <WhyChooseUs />
+      <FabricCollections />
+      <CustomCoverSection />
       <Footer />
-    </div>
+    </main>
   )
 }
