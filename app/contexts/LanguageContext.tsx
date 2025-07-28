@@ -7,7 +7,7 @@ type Language = "en" | "th"
 
 interface LanguageContextType {
   language: Language
-  setLanguage: (lang: Language) => void
+  toggleLanguage: () => void
   t: (key: string) => string
 }
 
@@ -19,6 +19,9 @@ const translations = {
     about: "About",
     contact: "Contact",
     cart: "Cart",
+    search: "Search",
+    login: "Login",
+    register: "Register",
 
     // Hero Section
     heroTitle: "Transform Your Living Space",
@@ -56,7 +59,6 @@ const translations = {
     save: "Save",
     edit: "Edit",
     delete: "Delete",
-    search: "Search",
     filter: "Filter",
     sort: "Sort",
     price: "Price",
@@ -96,6 +98,9 @@ const translations = {
     about: "เกี่ยวกับเรา",
     contact: "ติดต่อ",
     cart: "ตะกร้า",
+    search: "ค้นหา",
+    login: "เข้าสู่ระบบ",
+    register: "สมัครสมาชิก",
 
     // Hero Section
     heroTitle: "เปลี่ยนโฉมพื้นที่นั่งเล่น",
@@ -133,7 +138,6 @@ const translations = {
     save: "บันทึก",
     edit: "แก้ไข",
     delete: "ลบ",
-    search: "ค้นหา",
     filter: "กรอง",
     sort: "เรียง",
     price: "ราคา",
@@ -180,20 +184,15 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     }
   }, [])
 
-  const handleSetLanguage = (lang: Language) => {
-    setLanguage(lang)
-    localStorage.setItem("language", lang)
+  const toggleLanguage = () => {
+    setLanguage((prev) => (prev === "th" ? "en" : "th"))
   }
 
   const t = (key: string): string => {
-    return translations[language][key as keyof (typeof translations)[typeof language]] || key
+    return translations[language][key as keyof typeof translations.th] || key
   }
 
-  return (
-    <LanguageContext.Provider value={{ language, setLanguage: handleSetLanguage, t }}>
-      {children}
-    </LanguageContext.Provider>
-  )
+  return <LanguageContext.Provider value={{ language, toggleLanguage, t }}>{children}</LanguageContext.Provider>
 }
 
 export function useLanguage() {
