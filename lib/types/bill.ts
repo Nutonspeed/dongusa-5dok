@@ -34,6 +34,14 @@ export interface PurchaseOrderReference {
   amount: number
   currency: string
   attachments: string[]
+  supplierInfo?: {
+    name: string
+    contact: string
+    address: string
+  }
+  orderDate: Date
+  expectedDelivery?: Date
+  notes?: string
 }
 
 export interface SupplierReceipt {
@@ -45,6 +53,8 @@ export interface SupplierReceipt {
   currency: string
   date: Date
   attachments: string[]
+  category: string
+  notes?: string
 }
 
 export interface BillProgress {
@@ -52,6 +62,19 @@ export interface BillProgress {
   timestamp: Date
   notes?: string
   updatedBy: string
+  estimatedCompletion?: Date
+  actualCompletion?: Date
+}
+
+export interface PaymentRecord {
+  id: string
+  amount: number
+  currency: string
+  method: "bank_transfer" | "credit_card" | "cash" | "qr_code"
+  transactionId?: string
+  date: Date
+  status: "pending" | "confirmed" | "failed"
+  notes?: string
 }
 
 export interface Bill {
@@ -64,8 +87,10 @@ export interface Bill {
   tax: number
   discount: number
   total: number
+  paidAmount: number
+  remainingBalance: number
   currency: string
-  status: "draft" | "sent" | "paid" | "overdue" | "cancelled"
+  status: "draft" | "sent" | "paid" | "overdue" | "cancelled" | "partially_paid"
   dueDate: Date
   createdAt: Date
   updatedAt: Date
@@ -73,9 +98,11 @@ export interface Bill {
   tags: string[]
   purchaseOrders: PurchaseOrderReference[]
   supplierReceipts: SupplierReceipt[]
+  paymentRecords: PaymentRecord[]
   paymentQrCode?: string
   notes?: string
   createdBy: string
+  priority: "low" | "medium" | "high" | "urgent"
 }
 
 export interface BillFilter {
@@ -85,6 +112,9 @@ export interface BillFilter {
   tags?: string[]
   customerId?: string
   search?: string
+  priority?: string[]
+  minAmount?: number
+  maxAmount?: number
 }
 
 export interface DashboardKPI {
@@ -93,6 +123,7 @@ export interface DashboardKPI {
   pendingBills: number
   overdueBills: number
   completedBills: number
+  partiallyPaidBills: number
   averageOrderValue: number
   monthlyGrowth: number
   topCustomers: Array<{
@@ -101,4 +132,28 @@ export interface DashboardKPI {
     totalSpent: number
     billCount: number
   }>
+  topSellingItems: Array<{
+    itemName: string
+    quantitySold: number
+    revenue: number
+  }>
+  revenueByMonth: Array<{
+    month: string
+    revenue: number
+    billCount: number
+  }>
+  statusDistribution: Array<{
+    status: string
+    count: number
+    percentage: number
+  }>
+}
+
+export interface CustomerNameMapping {
+  id: string
+  customerId: string
+  nickname: string
+  fullName: string
+  createdAt: Date
+  updatedAt: Date
 }
