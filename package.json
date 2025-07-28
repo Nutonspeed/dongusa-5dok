@@ -67,6 +67,7 @@
     "fs": "latest",
     "immer": "latest",
     "input-otp": "latest",
+    "isomorphic-dompurify": "latest",
     "jsonwebtoken": "latest",
     "lucide-react": "^0.454.0",
     "next": "14.2.16",
