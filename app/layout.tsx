@@ -4,70 +4,19 @@ import { Inter } from "next/font/google"
 import "./globals.css"
 import { LanguageProvider } from "./contexts/LanguageContext"
 import { CartProvider } from "./contexts/CartContext"
+import { AuthProvider } from "./contexts/AuthContext"
+import Header from "./components/Header"
+import Footer from "./components/Footer"
+import { DemoBanner } from "@/components/DemoBanner"
+import { MockServiceIndicator } from "@/components/MockServiceIndicator"
 
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "SofaCover Pro - Premium Custom Sofa Covers | ผ้าคลุมโซฟาพรีเมียม",
+  title: "SofaCover Pro - Premium Sofa Covers & Custom Fabric Solutions",
   description:
-    "Transform your living space with premium custom sofa covers. Perfect fit guaranteed, premium materials, fast delivery. เปลี่ยนโฉมพื้นที่นั่งเล่นด้วยผ้าคลุมโซฟาตามสั่งพรีเมียม",
-  keywords: "sofa covers, custom sofa covers, furniture protection, home decor, ผ้าคลุมโซฟา, ผ้าคลุมโซฟาตามสั่ง",
-  authors: [{ name: "SofaCover Pro Team" }],
-  creator: "SofaCover Pro",
-  publisher: "SofaCover Pro",
-  formatDetection: {
-    email: false,
-    address: false,
-    telephone: false,
-  },
-  metadataBase: new URL("https://sofacoverpro.com"),
-  alternates: {
-    canonical: "/",
-    languages: {
-      "en-US": "/en",
-      "th-TH": "/th",
-    },
-  },
-  openGraph: {
-    title: "SofaCover Pro - Premium Custom Sofa Covers",
-    description:
-      "Transform your living space with premium custom sofa covers. Perfect fit guaranteed, premium materials, fast delivery.",
-    url: "https://sofacoverpro.com",
-    siteName: "SofaCover Pro",
-    images: [
-      {
-        url: "/modern-living-room-sofa-covers.png",
-        width: 1200,
-        height: 630,
-        alt: "Premium Sofa Covers by SofaCover Pro",
-      },
-    ],
-    locale: "en_US",
-    type: "website",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "SofaCover Pro - Premium Custom Sofa Covers",
-    description:
-      "Transform your living space with premium custom sofa covers. Perfect fit guaranteed, premium materials, fast delivery.",
-    images: ["/modern-living-room-sofa-covers.png"],
-    creator: "@sofacoverpro",
-  },
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: {
-      index: true,
-      follow: true,
-      "max-video-preview": -1,
-      "max-image-preview": "large",
-      "max-snippet": -1,
-    },
-  },
-  verification: {
-    google: "your-google-verification-code",
-    yandex: "your-yandex-verification-code",
-  },
+    "Transform your living space with our premium sofa covers. Custom-made, high-quality fabrics, and professional installation services.",
+  keywords: "sofa covers, custom fabric, furniture protection, home decor, upholstery",
     generator: 'v0.dev'
 }
 
@@ -77,20 +26,20 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="th" suppressHydrationWarning>
-      <head>
-        <link rel="icon" href="/favicon.ico" sizes="any" />
-        <link rel="icon" href="/icon.svg" type="image/svg+xml" />
-        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-        <link rel="manifest" href="/manifest.json" />
-        <meta name="theme-color" content="#2563eb" />
-        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
-      </head>
-      <body className={`${inter.className} antialiased`} suppressHydrationWarning>
+    <html lang="en">
+      <body className={inter.className}>
         <LanguageProvider>
-          <CartProvider>
-            <div id="root">{children}</div>
-          </CartProvider>
+          <AuthProvider>
+            <CartProvider>
+              <div className="min-h-screen flex flex-col">
+                <DemoBanner />
+                <Header />
+                <main className="flex-grow">{children}</main>
+                <Footer />
+                <MockServiceIndicator />
+              </div>
+            </CartProvider>
+          </AuthProvider>
         </LanguageProvider>
       </body>
     </html>

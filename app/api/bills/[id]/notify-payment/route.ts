@@ -71,106 +71,36 @@ function sendMockEmail(to: string, subject: string, content: string): { success:
 
 export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
   try {
-    // Parse request body
-    const body: PaymentRequest = await request.json()
-    const { paymentAmount, paymentMethod } = body
+    const { id } = params
+    const formData = await request.formData()
 
-    // Validate required fields
-    if (!paymentAmount || !paymentMethod) {
-      return NextResponse.json(
-        {
-          error: "Missing required fields",
-          message: "Payment amount and method are required",
-        },
-        { status: 400 },
-      )
-    }
+    const proof = formData.get("proof") as File | null
+    const note = formData.get("note") as string
+    const billId = formData.get("billId") as string
 
-    // Validate payment amount
-    if (typeof paymentAmount !== "number" || paymentAmount <= 0) {
-      return NextResponse.json(
-        {
-          error: "Invalid payment amount",
-          message: "Payment amount must be a positive number",
-        },
-        { status: 400 },
-      )
-    }
+    // Mock payment notification processing
+    console.log("Payment notification received:", {
+      billId: id,
+      hasProof: !!proof,
+      note,
+      timestamp: new Date().toISOString(),
+    })
 
-    // Get bill ID from params
-    const billId = params.id
-    if (!billId) {
-      return NextResponse.json(
-        {
-          error: "Missing bill ID",
-          message: "Bill ID is required in the URL path",
-        },
-        { status: 400 },
-      )
-    }
+    // In real implementation, you would:
+    // 1. Save the payment proof file
+    // 2. Update bill status to "paid"
+    // 3. Send notification to admin
+    // 4. Log the payment notification
 
-    // Get mock bill data
-    const originalBill = getMockBill(billId)
-
-    // Create updated bill with payment information
-    const updatedBill: Bill = {
-      ...originalBill,
-      status: "paid",
-      paidAmount: paymentAmount,
-      paymentMethod,
-      paidAt: new Date().toISOString(),
-    }
-
-    // Generate email content
-    const emailContent = `
-      Payment Confirmation - Bill #${originalBill.billNumber}
-      
-      Dear ${originalBill.customerName},
-      
-      We have successfully received your payment of $${paymentAmount.toFixed(2)} for Bill #${originalBill.billNumber}.
-      
-      Payment Details:
-      - Amount: $${paymentAmount.toFixed(2)}
-      - Method: ${paymentMethod}
-      - Date: ${new Date().toLocaleDateString()}
-      - Bill Total: $${originalBill.total.toFixed(2)}
-      
-      Your order is now being processed and you will receive tracking information soon.
-      
-      Thank you for choosing our custom sofa cover service!
-    `
-
-    // Send mock email
-    const emailResult = sendMockEmail(
-      originalBill.customerEmail,
-      `Payment Confirmation - Bill #${originalBill.billNumber}`,
-      emailContent,
-    )
-
-    // Return success response
+    // Mock response
     return NextResponse.json({
       success: true,
-      message: "Payment notification sent successfully",
-      data: {
-        bill: updatedBill,
-        emailSent: emailResult.success,
-        emailMessageId: emailResult.messageId,
-      },
-      timestamp: new Date().toISOString(),
+      message: "แจ้งการชำระเงินเรียบร้อยแล้ว ทางร้านจะตรวจสอบและอัปเดตสถานะให้ครับ",
+      notificationId: Math.random().toString(36).substring(2, 8),
     })
   } catch (error) {
     console.error("Error processing payment notification:", error)
-
-    // Return error response with safe error message
-    return NextResponse.json(
-      {
-        success: false,
-        error: "Internal server error",
-        message: "Failed to process payment notification. Please try again later.",
-        timestamp: new Date().toISOString(),
-      },
-      { status: 500 },
-    )
+    return NextResponse.json({ error: "เกิดข้อผิดพลาดในการแจ้งชำระเงิน" }, { status: 500 })
   }
 }
 

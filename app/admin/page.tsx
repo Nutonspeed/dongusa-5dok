@@ -1,5 +1,7 @@
 "use client"
 
+import type React from "react"
+
 import { useState, useEffect } from "react"
 import {
   TrendingUp,
@@ -12,157 +14,83 @@ import {
   MessageCircle,
   Star,
   Clock,
+  AlertTriangle,
+  CheckCircle,
+  XCircle,
+  Activity,
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 
-// Mock data for dashboard
-const dashboardStats = [
-  {
-    title: "ยอดขายวันนี้",
-    value: "฿45,230",
-    change: "+12.5%",
-    changeType: "increase" as const,
-    icon: DollarSign,
-    color: "text-green-600",
-    bgColor: "bg-green-100",
-  },
-  {
-    title: "คำสั่งซื้อใหม่",
-    value: "23",
-    change: "+8.2%",
-    changeType: "increase" as const,
-    icon: ShoppingCart,
-    color: "text-blue-600",
-    bgColor: "bg-blue-100",
-  },
-  {
-    title: "ลูกค้าใหม่",
-    value: "12",
-    change: "-2.1%",
-    changeType: "decrease" as const,
-    icon: Users,
-    color: "text-purple-600",
-    bgColor: "bg-purple-100",
-  },
-  {
-    title: "สินค้าในสต็อก",
-    value: "156",
-    change: "+5.3%",
-    changeType: "increase" as const,
-    icon: Package,
-    color: "text-orange-600",
-    bgColor: "bg-orange-100",
-  },
-]
+// Dashboard statistics interface
+interface DashboardStats {
+  title: string
+  value: string
+  change: string
+  changeType: "increase" | "decrease"
+  icon: React.ComponentType<any>
+  color: string
+  bgColor: string
+}
 
-const recentOrders = [
-  {
-    id: "ORD-001",
-    customer: "คุณสมชาย ใจดี",
-    product: "ผ้าคลุมโซฟากำมะหยี่พรีเมียม",
-    amount: "฿2,890",
-    status: "รอดำเนินการ",
-    statusColor: "bg-yellow-100 text-yellow-800",
-    time: "10 นาทีที่แล้ว",
-  },
-  {
-    id: "ORD-002",
-    customer: "คุณสมหญิง รักสวย",
-    product: "ผ้าคลุมโซฟากันน้ำ + หมอนอิง",
-    amount: "฿1,950",
-    status: "กำลังผลิต",
-    statusColor: "bg-blue-100 text-blue-800",
-    time: "25 นาทีที่แล้ว",
-  },
-  {
-    id: "ORD-003",
-    customer: "คุณสมศักดิ์ มีเงิน",
-    product: "ผ้าคลุมโซฟาเซ็กชั่นแนล",
-    amount: "฿4,200",
-    status: "จัดส่งแล้ว",
-    statusColor: "bg-green-100 text-green-800",
-    time: "1 ชั่วโมงที่แล้ว",
-  },
-  {
-    id: "ORD-004",
-    customer: "คุณสมปอง ชอบช้อป",
-    product: "น้ำยาทำความสะอาดผ้า",
-    amount: "฿280",
-    status: "เสร็จสิ้น",
-    statusColor: "bg-gray-100 text-gray-800",
-    time: "2 ชั่วโมงที่แล้ว",
-  },
-]
-
-const topProducts = [
-  {
-    name: "ผ้าคลุมโซฟากำมะหยี่พรีเมียม",
-    sales: 45,
-    revenue: "฿130,050",
-    trend: "up",
-  },
-  {
-    name: "ผ้าคลุมโซฟากันน้ำ",
-    sales: 38,
-    revenue: "฿74,100",
-    trend: "up",
-  },
-  {
-    name: "หมอนอิงลายเดียวกัน",
-    sales: 67,
-    revenue: "฿23,450",
-    trend: "down",
-  },
-  {
-    name: "ผ้าคลุมโซฟาเซ็กชั่นแนล",
-    sales: 12,
-    revenue: "฿50,400",
-    trend: "up",
-  },
-]
-
-const recentActivities = [
-  {
-    type: "order",
-    message: "คำสั่งซื้อใหม่ #ORD-001 จากคุณสมชาย",
-    time: "5 นาทีที่แล้ว",
-    icon: ShoppingCart,
-    color: "text-blue-600",
-  },
-  {
-    type: "review",
-    message: "รีวิว 5 ดาวจากคุณสมหญิง",
-    time: "15 นาทีที่แล้ว",
-    icon: Star,
-    color: "text-yellow-600",
-  },
-  {
-    type: "inquiry",
-    message: "คำถามใหม่เกี่ยวกับผ้าคลุมโซฟาลินิน",
-    time: "30 นาทีที่แล้ว",
-    icon: MessageCircle,
-    color: "text-green-600",
-  },
-  {
-    type: "stock",
-    message: "สินค้า 'คลิปยึดผ้า' ใกล้หมด (เหลือ 5 ชิ้น)",
-    time: "1 ชั่วโมงที่แล้ว",
-    icon: Package,
-    color: "text-red-600",
-  },
-]
+// System status interface
+interface SystemStatus {
+  database: "online" | "offline" | "warning"
+  api: "online" | "offline" | "warning"
+  email: "online" | "offline" | "warning"
+  storage: "online" | "offline" | "warning"
+}
 
 export default function AdminDashboard() {
   const [currentTime, setCurrentTime] = useState(new Date())
+  const [systemStatus, setSystemStatus] = useState<SystemStatus>({
+    database: "online",
+    api: "online",
+    email: "online",
+    storage: "online",
+  })
+  const [isLoading, setIsLoading] = useState(true)
+  const [dashboardData, setDashboardData] = useState<any>(null)
 
+  // Update time every second
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentTime(new Date())
     }, 1000)
 
     return () => clearInterval(timer)
+  }, [])
+
+  // Load dashboard data
+  useEffect(() => {
+    const loadDashboardData = async () => {
+      try {
+        console.log("📊 Loading dashboard data...")
+
+        // Check system status
+        const statusResponse = await fetch("/api/system/status")
+        if (statusResponse.ok) {
+          const statusData = await statusResponse.json()
+          setSystemStatus(statusData.services || systemStatus)
+        }
+
+        // Load dashboard stats
+        const statsResponse = await fetch("/api/dashboard/stats")
+        if (statsResponse.ok) {
+          const statsData = await statsResponse.json()
+          setDashboardData(statsData)
+        }
+
+        console.log("✅ Dashboard data loaded successfully")
+      } catch (error) {
+        console.error("❌ Error loading dashboard data:", error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    loadDashboardData()
   }, [])
 
   const formatTime = (date: Date) => {
@@ -177,12 +105,190 @@ export default function AdminDashboard() {
     })
   }
 
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case "online":
+        return <CheckCircle className="w-4 h-4 text-green-600" />
+      case "warning":
+        return <AlertTriangle className="w-4 h-4 text-yellow-600" />
+      case "offline":
+        return <XCircle className="w-4 h-4 text-red-600" />
+      default:
+        return <Activity className="w-4 h-4 text-gray-600" />
+    }
+  }
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "online":
+        return "bg-green-100 text-green-800"
+      case "warning":
+        return "bg-yellow-100 text-yellow-800"
+      case "offline":
+        return "bg-red-100 text-red-800"
+      default:
+        return "bg-gray-100 text-gray-800"
+    }
+  }
+
+  // Mock data for dashboard stats
+  const dashboardStats: DashboardStats[] = [
+    {
+      title: "ยอดขายวันนี้",
+      value: "฿45,230",
+      change: "+12.5%",
+      changeType: "increase",
+      icon: DollarSign,
+      color: "text-green-600",
+      bgColor: "bg-green-100",
+    },
+    {
+      title: "คำสั่งซื้อใหม่",
+      value: "23",
+      change: "+8.2%",
+      changeType: "increase",
+      icon: ShoppingCart,
+      color: "text-blue-600",
+      bgColor: "bg-blue-100",
+    },
+    {
+      title: "ลูกค้าใหม่",
+      value: "12",
+      change: "-2.1%",
+      changeType: "decrease",
+      icon: Users,
+      color: "text-purple-600",
+      bgColor: "bg-purple-100",
+    },
+    {
+      title: "สินค้าในสต็อก",
+      value: "156",
+      change: "+5.3%",
+      changeType: "increase",
+      icon: Package,
+      color: "text-orange-600",
+      bgColor: "bg-orange-100",
+    },
+  ]
+
+  const recentOrders = [
+    {
+      id: "ORD-001",
+      customer: "คุณสมชาย ใจดี",
+      product: "ผ้าคลุมโซฟากำมะหยี่พรีเมียม",
+      amount: "฿2,890",
+      status: "รอดำเนินการ",
+      statusColor: "bg-yellow-100 text-yellow-800",
+      time: "10 นาทีที่แล้ว",
+    },
+    {
+      id: "ORD-002",
+      customer: "คุณสมหญิง รักสวย",
+      product: "ผ้าคลุมโซฟากันน้ำ + หมอนอิง",
+      amount: "฿1,950",
+      status: "กำลังผลิต",
+      statusColor: "bg-blue-100 text-blue-800",
+      time: "25 นาทีที่แล้ว",
+    },
+    {
+      id: "ORD-003",
+      customer: "คุณสมศักดิ์ มีเงิน",
+      product: "ผ้าคลุมโซฟาเซ็กชั่นแนล",
+      amount: "฿4,200",
+      status: "จัดส่งแล้ว",
+      statusColor: "bg-green-100 text-green-800",
+      time: "1 ชั่วโมงที่แล้ว",
+    },
+    {
+      id: "ORD-004",
+      customer: "คุณสมปอง ชอบช้อป",
+      product: "น้ำยาทำความสะอาดผ้า",
+      amount: "฿280",
+      status: "เสร็จสิ้น",
+      statusColor: "bg-gray-100 text-gray-800",
+      time: "2 ชั่วโมงที่แล้ว",
+    },
+  ]
+
+  const topProducts = [
+    {
+      name: "ผ้าคลุมโซฟากำมะหยี่พรีเมียม",
+      sales: 45,
+      revenue: "฿130,050",
+      trend: "up",
+    },
+    {
+      name: "ผ้าคลุมโซฟากันน้ำ",
+      sales: 38,
+      revenue: "฿74,100",
+      trend: "up",
+    },
+    {
+      name: "หมอนอิงลายเดียวกัน",
+      sales: 67,
+      revenue: "฿23,450",
+      trend: "down",
+    },
+    {
+      name: "ผ้าคลุมโซฟาเซ็กชั่นแนล",
+      sales: 12,
+      revenue: "฿50,400",
+      trend: "up",
+    },
+  ]
+
+  const recentActivities = [
+    {
+      type: "order",
+      message: "คำสั่งซื้อใหม่ #ORD-001 จากคุณสมชาย",
+      time: "5 นาทีที่แล้ว",
+      icon: ShoppingCart,
+      color: "text-blue-600",
+    },
+    {
+      type: "review",
+      message: "รีวิว 5 ดาวจากคุณสมหญิง",
+      time: "15 นาทีที่แล้ว",
+      icon: Star,
+      color: "text-yellow-600",
+    },
+    {
+      type: "inquiry",
+      message: "คำถามใหม่เกี่ยวกับผ้าคลุมโซฟาลินิน",
+      time: "30 นาทีที่แล้ว",
+      icon: MessageCircle,
+      color: "text-green-600",
+    },
+    {
+      type: "stock",
+      message: "สินค้า 'คลิปยึดผ้า' ใกล้หมด (เหลือ 5 ชิ้น)",
+      time: "1 ชั่วโมงที่แล้ว",
+      icon: Package,
+      color: "text-red-600",
+    },
+  ]
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="animate-pulse">
+          <div className="h-8 bg-gray-200 rounded w-1/4 mb-4"></div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="h-32 bg-gray-200 rounded"></div>
+            ))}
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">แดshboard</h1>
+          <h1 className="text-3xl font-bold text-gray-900">แดชบอร์ด</h1>
           <p className="text-gray-600 mt-1">ภาพรวมธุรกิจและข้อมูลสำคัญ</p>
         </div>
         <div className="mt-4 md:mt-0">
@@ -192,6 +298,48 @@ export default function AdminDashboard() {
           </div>
         </div>
       </div>
+
+      {/* System Status */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center">
+            <Activity className="w-5 h-5 mr-2" />
+            สถานะระบบ
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="flex items-center justify-between p-3 border rounded-lg">
+              <div>
+                <p className="text-sm font-medium">ฐานข้อมูล</p>
+                <Badge className={getStatusColor(systemStatus.database)}>{systemStatus.database}</Badge>
+              </div>
+              {getStatusIcon(systemStatus.database)}
+            </div>
+            <div className="flex items-center justify-between p-3 border rounded-lg">
+              <div>
+                <p className="text-sm font-medium">API</p>
+                <Badge className={getStatusColor(systemStatus.api)}>{systemStatus.api}</Badge>
+              </div>
+              {getStatusIcon(systemStatus.api)}
+            </div>
+            <div className="flex items-center justify-between p-3 border rounded-lg">
+              <div>
+                <p className="text-sm font-medium">อีเมล</p>
+                <Badge className={getStatusColor(systemStatus.email)}>{systemStatus.email}</Badge>
+              </div>
+              {getStatusIcon(systemStatus.email)}
+            </div>
+            <div className="flex items-center justify-between p-3 border rounded-lg">
+              <div>
+                <p className="text-sm font-medium">จัดเก็บข้อมูล</p>
+                <Badge className={getStatusColor(systemStatus.storage)}>{systemStatus.storage}</Badge>
+              </div>
+              {getStatusIcon(systemStatus.storage)}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
