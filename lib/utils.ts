@@ -258,3 +258,67 @@ export function measurePerformance<T>(name: string, fn: () => T | Promise<T>): T
     return result
   }
 }
+
+// Time ago formatting
+export function formatTimeAgo(date: Date | string): string {
+  const dateObj = typeof date === "string" ? new Date(date) : date
+  const now = new Date()
+  const diffInSeconds = Math.floor((now.getTime() - dateObj.getTime()) / 1000)
+
+  if (diffInSeconds < 60) {
+    return `${diffInSeconds} seconds ago`
+  } else if (diffInSeconds < 3600) {
+    const minutes = Math.floor(diffInSeconds / 60)
+    return `${minutes} minute${minutes > 1 ? "s" : ""} ago`
+  } else if (diffInSeconds < 86400) {
+    const hours = Math.floor(diffInSeconds / 3600)
+    return `${hours} hour${hours > 1 ? "s" : ""} ago`
+  } else if (diffInSeconds < 2592000) {
+    const days = Math.floor(diffInSeconds / 86400)
+    return `${days} day${days > 1 ? "s" : ""} ago`
+  } else {
+    const months = Math.floor(diffInSeconds / 2592000)
+    return `${months} month${months > 1 ? "s" : ""} ago`
+  }
+}
+
+// Calculate days until due date
+export function calculateDaysUntilDue(dueDate: Date | string): number {
+  const now = new Date()
+  const due = typeof dueDate === "string" ? new Date(dueDate) : dueDate
+  const diffTime = due.getTime() - now.getTime()
+  return Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+}
+
+// Generate QR Code (mock implementation)
+export function generateQRCode(billId: string, amount: number): string {
+  // In a real application, this would generate an actual QR code
+  // For demo purposes, we'll return a placeholder SVG
+  return `data:image/svg+xml;base64,${btoa(`
+    <svg width="200" height="200" xmlns="http://www.w3.org/2000/svg">
+      <rect width="200" height="200" fill="white" stroke="black" stroke-width="2"/>
+      <rect x="20" y="20" width="160" height="160" fill="black"/>
+      <rect x="40" y="40" width="120" height="120" fill="white"/>
+      <text x="100" y="105" text-anchor="middle" font-size="12" fill="black">
+        Bill: ${billId}
+      </text>
+      <text x="100" y="125" text-anchor="middle" font-size="10" fill="black">
+        Amount: ${formatCurrency(amount)}
+      </text>
+    </svg>
+  `)}`
+}
+
+// Generate unique ID
+export function generateId(): string {
+  return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
+}
+
+// Calculate progress percentage for order tracking
+export function getProgressPercentage(progress: any[]): number {
+  if (!progress || progress.length === 0) return 0
+
+  const totalSteps = 7 // pending, confirmed, tailoring, packing, shipped, delivered, completed
+  const currentStep = progress.length
+  return Math.min((currentStep / totalSteps) * 100, 100)
+}
