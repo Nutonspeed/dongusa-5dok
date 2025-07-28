@@ -1,31 +1,27 @@
-"use client"
-
-import { DemoBanner } from "@/components/DemoBanner"
-import { MockServiceIndicator } from "@/components/MockServiceIndicator"
 import Header from "./components/Header"
-import Footer from "./components/Footer"
 import Hero from "./components/Hero"
 import FeaturedProducts from "./components/FeaturedProducts"
-import { CustomCoverSection } from "./components/CustomCoverSection"
-import FabricCollections from "./components/FabricCollections"
 import WhyChooseUs from "./components/WhyChooseUs"
+import FabricCollections from "./components/FabricCollections"
+import CustomCoverSection from "./components/CustomCoverSection"
+import Footer from "./components/Footer"
+import { DemoBanner } from "@/components/DemoBanner"
+import { MockServiceIndicator } from "@/components/MockServiceIndicator"
 
 export default function HomePage() {
   return (
     <div className="min-h-screen bg-white">
       <DemoBanner />
+      <MockServiceIndicator />
       <Header />
-
       <main>
         <Hero />
         <FeaturedProducts />
-        <CustomCoverSection />
-        <FabricCollections />
         <WhyChooseUs />
+        <FabricCollections />
+        <CustomCoverSection />
       </main>
-
       <Footer />
-      <MockServiceIndicator />
     </div>
   )
 }

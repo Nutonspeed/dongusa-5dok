@@ -1,11 +1,10 @@
 "use client"
 
 import type React from "react"
-
-import { useState, useEffect } from "react"
+import { useState, useEffect, Suspense } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { useSearchParams, Suspense } from "next/navigation"
+import { useSearchParams } from "next/navigation"
 import {
   LayoutDashboard,
   Package,
