@@ -48,7 +48,7 @@ export default function ReceiptsPage() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [isAttachDialogOpen, setIsAttachDialogOpen] = useState(false)
-  
+
   // Create receipt form
   const [newReceipt, setNewReceipt] = useState({
     supplierId: "",
@@ -61,7 +61,7 @@ export default function ReceiptsPage() {
     notes: "",
     attachments: [] as string[],
   })
-  
+
   // Edit receipt form
   const [editingReceipt, setEditingReceipt] = useState<SupplierReceipt | null>(null)
   const [editReceipt, setEditReceipt] = useState({
@@ -75,20 +75,12 @@ export default function ReceiptsPage() {
     notes: "",
     attachments: [] as string[],
   })
-  
+
   // Attach receipt to bill
   const [selectedReceipt, setSelectedReceipt] = useState<SupplierReceipt | null>(null)
   const [selectedBillId, setSelectedBillId] = useState("")
 
-  const categories = [
-    "Raw Materials",
-    "Shipping",
-    "Equipment",
-    "Services",
-    "Utilities",
-    "Office Supplies",
-    "Other",
-  ]
+  const categories = ["Raw Materials", "Shipping", "Equipment", "Services", "Utilities", "Office Supplies", "Other"]
 
   useEffect(() => {
     loadData()
@@ -98,10 +90,10 @@ export default function ReceiptsPage() {
     try {
       const billsData = await billDatabase.getBills()
       setBills(billsData)
-      
+
       // Extract all receipts from bills
       const allReceipts: SupplierReceipt[] = []
-      billsData.forEach(bill => {
+      billsData.forEach((bill) => {
         allReceipts.push(...bill.supplierReceipts)
       })
       setReceipts(allReceipts)
@@ -141,7 +133,7 @@ export default function ReceiptsPage() {
 
       await billDatabase.createSupplierReceipt(receiptData)
       await loadData()
-      
+
       // Reset form
       setNewReceipt({
         supplierId: "",
@@ -155,7 +147,7 @@ export default function ReceiptsPage() {
         attachments: [],
       })
       setIsCreateDialogOpen(false)
-      
+
       toast({
         title: "Success",
         description: "Supplier receipt created successfully",
@@ -194,10 +186,10 @@ export default function ReceiptsPage() {
 
       await billDatabase.updateSupplierReceipt(editingReceipt.id, updates)
       await loadData()
-      
+
       setEditingReceipt(null)
       setIsEditDialogOpen(false)
-      
+
       toast({
         title: "Success",
         description: "Supplier receipt updated successfully",
@@ -224,11 +216,11 @@ export default function ReceiptsPage() {
     try {
       await billDatabase.attachReceiptToBill(selectedBillId, selectedReceipt.id)
       await loadData()
-      
+
       setSelectedReceipt(null)
       setSelectedBillId("")
       setIsAttachDialogOpen(false)
-      
+
       toast({
         title: "Success",
         description: "Receipt attached to bill successfully",
@@ -297,33 +289,34 @@ export default function ReceiptsPage() {
   }
 
   const getAttachedBills = (receiptId: string) => {
-    return bills.filter(bill => bill.supplierReceipts.some(receipt => receipt.id === receiptId))
+    return bills.filter((bill) => bill.supplierReceipts.some((receipt) => receipt.id === receiptId))
   }
 
-  const filteredReceipts = receipts.filter(receipt =>
-    receipt.receiptNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    receipt.supplierName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    receipt.category.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredReceipts = receipts.filter(
+    (receipt) =>
+      receipt.receiptNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      receipt.supplierName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      receipt.category.toLowerCase().includes(searchTerm.toLowerCase()),
   )
 
   // Mock file upload handler
   const handleFileUpload = (files: FileList | null, isEdit = false) => {
     if (!files) return
-    
-    const fileNames = Array.from(files).map(file => file.name)
-    
+
+    const fileNames = Array.from(files).map((file) => file.name)
+
     if (isEdit) {
-      setEditReceipt(prev => ({
+      setEditReceipt((prev) => ({
         ...prev,
-        attachments: [...prev.attachments, ...fileNames]
+        attachments: [...prev.attachments, ...fileNames],
       }))
     } else {
-      setNewReceipt(prev => ({
+      setNewReceipt((prev) => ({
         ...prev,
-        attachments: [...prev.attachments, ...fileNames]
+        attachments: [...prev.attachments, ...fileNames],
       }))
     }
-    
+
     toast({
       title: "Files uploaded",
       description: `${fileNames.length} file(s) uploaded successfully`,
@@ -332,14 +325,14 @@ export default function ReceiptsPage() {
 
   const removeAttachment = (index: number, isEdit = false) => {
     if (isEdit) {
-      setEditReceipt(prev => ({
+      setEditReceipt((prev) => ({
         ...prev,
-        attachments: prev.attachments.filter((_, i) => i !== index)
+        attachments: prev.attachments.filter((_, i) => i !== index),
       }))
     } else {
-      setNewReceipt(prev => ({
+      setNewReceipt((prev) => ({
         ...prev,
-        attachments: prev.attachments.filter((_, i) => i !== index)
+        attachments: prev.attachments.filter((_, i) => i !== index),
       }))
     }
   }
@@ -361,9 +354,7 @@ export default function ReceiptsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Supplier Receipts</h1>
-          <p className="text-gray-600 mt-1">
-            Manage supplier receipts and attach them to bills for expense tracking
-          </p>
+          <p className="text-gray-600 mt-1">Manage supplier receipts and attach them to bills for expense tracking</p>
         </div>
         <div className="flex items-center space-x-3">
           <Dialog open={isAttachDialogOpen} onOpenChange={setIsAttachDialogOpen}>
@@ -383,7 +374,7 @@ export default function ReceiptsPage() {
                   <Select
                     value={selectedReceipt?.id || ""}
                     onValueChange={(value) => {
-                      const receipt = receipts.find(r => r.id === value)
+                      const receipt = receipts.find((r) => r.id === value)
                       setSelectedReceipt(receipt || null)
                     }}
                   >
@@ -395,9 +386,7 @@ export default function ReceiptsPage() {
                         <SelectItem key={receipt.id} value={receipt.id}>
                           <div className="flex items-center space-x-2">
                             <span>{receipt.receiptNumber}</span>
-                            <Badge className={getCategoryColor(receipt.category)}>
-                              {receipt.category}
-                            </Badge>
+                            <Badge className={getCategoryColor(receipt.category)}>{receipt.category}</Badge>
                             <span className="text-gray-500">- {formatCurrency(receipt.amount)}</span>
                           </div>
                         </SelectItem>
@@ -530,7 +519,10 @@ export default function ReceiptsPage() {
                     <Label>Receipt Date *</Label>
                     <Popover>
                       <PopoverTrigger asChild>
-                        <Button variant="outline" className="w-full justify-start text-left font-normal mt-1 bg-transparent">
+                        <Button
+                          variant="outline"
+                          className="w-full justify-start text-left font-normal mt-1 bg-transparent"
+                        >
                           <CalendarIcon className="mr-2 h-4 w-4" />
                           {formatDate(newReceipt.date)}
                         </Button>
@@ -662,7 +654,7 @@ export default function ReceiptsPage() {
               <div>
                 <p className="text-sm font-medium text-gray-600">Attached to Bills</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {receipts.filter(receipt => getAttachedBills(receipt.id).length > 0).length}
+                  {receipts.filter((receipt) => getAttachedBills(receipt.id).length > 0).length}
                 </p>
               </div>
               <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
@@ -677,9 +669,7 @@ export default function ReceiptsPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Unique Suppliers</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {new Set(receipts.map(r => r.supplierName)).size}
-                </p>
+                <p className="text-2xl font-bold text-gray-900">{new Set(receipts.map((r) => r.supplierName)).size}</p>
               </div>
               <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
                 <Building className="w-6 h-6 text-yellow-600" />
@@ -731,7 +721,7 @@ export default function ReceiptsPage() {
             <TableBody>
               {filteredReceipts.map((receipt) => {
                 const attachedBills = getAttachedBills(receipt.id)
-                
+
                 return (
                   <TableRow key={receipt.id} className="hover:bg-gray-50">
                     <TableCell>
@@ -744,9 +734,7 @@ export default function ReceiptsPage() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge className={getCategoryColor(receipt.category)}>
-                        {receipt.category}
-                      </Badge>
+                      <Badge className={getCategoryColor(receipt.category)}>{receipt.category}</Badge>
                     </TableCell>
                     <TableCell>
                       <span className="font-medium text-gray-900">
@@ -815,10 +803,7 @@ export default function ReceiptsPage() {
                             Attach to Bill
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
-                          <DropdownMenuItem
-                            className="text-red-600"
-                            onClick={() => handleDeleteReceipt(receipt)}
-                          >
+                          <DropdownMenuItem className="text-red-600" onClick={() => handleDeleteReceipt(receipt)}>
                             <Trash2 className="mr-2 h-4 w-4" />
                             Delete Receipt
                           </DropdownMenuItem>
@@ -938,7 +923,10 @@ export default function ReceiptsPage() {
                 <Label>Receipt Date *</Label>
                 <Popover>
                   <PopoverTrigger asChild>
-                    <Button variant="outline" className="w-full justify-start text-left font-normal mt-1 bg-transparent">
+                    <Button
+                      variant="outline"
+                      className="w-full justify-start text-left font-normal mt-1 bg-transparent"
+                    >
                       <CalendarIcon className="mr-2 h-4 w-4" />
                       {formatDate(editReceipt.date)}
                     </Button>
@@ -970,4 +958,55 @@ export default function ReceiptsPage() {
             <div>
               <Label>Attachments</Label>
               <div className="mt-1 space-y-2">
-                <div className="flex items-center space\
+                <div className="flex items-center space-x-2">
+                  <Input
+                    type="file"
+                    multiple
+                    accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                    onChange={(e) => handleFileUpload(e.target.files, true)}
+                    className="flex-1"
+                  />
+                  <Button type="button" variant="outline" size="sm">
+                    <Upload className="w-4 h-4 mr-2" />
+                    Upload
+                  </Button>
+                </div>
+                {editReceipt.attachments.length > 0 && (
+                  <div className="space-y-1">
+                    {editReceipt.attachments.map((file, index) => (
+                      <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                        <span className="text-sm text-gray-700">{file}</span>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeAttachment(index, true)}
+                          className="h-6 w-6 p-0 text-red-600 hover:text-red-700"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="flex justify-end space-x-2">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setIsEditDialogOpen(false)
+                  setEditingReceipt(null)
+                }}
+              >
+                Cancel
+              </Button>
+              <Button onClick={handleEditReceipt}>Update Receipt</Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
+  )
+}

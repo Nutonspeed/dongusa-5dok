@@ -3,43 +3,38 @@ import type {
   Customer,
   BillFilter,
   DashboardKPI,
-  BillProgress,
+  CustomerNameMapping,
   PurchaseOrderReference,
   SupplierReceipt,
-  PaymentRecord,
-  CustomerNameMapping,
 } from "./types/bill"
 
+// Mock database implementation with enhanced features
 class EnhancedBillDatabase {
-  private bills: Map<string, Bill> = new Map()
-  private customers: Map<string, Customer> = new Map()
-  private customerNameMapping: Map<string, CustomerNameMapping> = new Map()
-  private customTags: Set<string> = new Set()
-  private purchaseOrders: Map<string, PurchaseOrderReference> = new Map()
-  private supplierReceipts: Map<string, SupplierReceipt> = new Map()
+  private bills: Bill[] = []
+  private customers: Customer[] = []
+  private customTags: string[] = ["Urgent", "Cut", "Rush Order", "VIP", "Wholesale", "Retail", "Custom", "Standard"]
+  private customerNameMappings: CustomerNameMapping[] = []
+  private purchaseOrders: PurchaseOrderReference[] = []
+  private supplierReceipts: SupplierReceipt[] = []
 
   constructor() {
-    this.initializeSampleData()
+    this.initializeMockData()
   }
 
-  private generateId(): string {
-    return Math.random().toString(36).substr(2, 9)
-  }
-
-  private initializeSampleData() {
-    // Sample customers
-    const customers: Customer[] = [
+  private initializeMockData() {
+    // Initialize customers
+    this.customers = [
       {
         id: "cust-001",
         name: "Siriporn Tanaka",
         nickname: "Cat",
         email: "siriporn@example.com",
-        phone: "+66-89-123-4567",
+        phone: "+66 81 234 5678",
         address: {
           street: "123 Sukhumvit Road",
           city: "Bangkok",
-          province: "Bangkok",
-          postalCode: "10110",
+          state: "Bangkok",
+          zipCode: "10110",
           country: "Thailand",
         },
         createdAt: new Date("2024-01-15"),
@@ -47,625 +42,459 @@ class EnhancedBillDatabase {
       },
       {
         id: "cust-002",
-        name: "Somchai Jaidee",
-        nickname: "Som",
-        email: "somchai@example.com",
-        phone: "+66-81-987-6543",
+        name: "John Smith",
+        nickname: "Johnny",
+        email: "john.smith@example.com",
+        phone: "+1 555 123 4567",
         address: {
-          street: "456 Phahonyothin Road",
-          city: "Bangkok",
-          province: "Bangkok",
-          postalCode: "10400",
-          country: "Thailand",
+          street: "456 Oak Street",
+          city: "New York",
+          state: "NY",
+          zipCode: "10001",
+          country: "USA",
         },
         createdAt: new Date("2024-01-20"),
         updatedAt: new Date("2024-01-20"),
       },
       {
         id: "cust-003",
-        name: "Malee Suksawat",
-        nickname: "Mali",
-        email: "malee@example.com",
-        phone: "+66-82-555-1234",
+        name: "Maria Garcia",
+        email: "maria.garcia@example.com",
+        phone: "+34 612 345 678",
         address: {
-          street: "789 Ratchadamri Road",
-          city: "Bangkok",
-          province: "Bangkok",
-          postalCode: "10330",
-          country: "Thailand",
+          street: "789 Plaza Mayor",
+          city: "Madrid",
+          state: "Madrid",
+          zipCode: "28013",
+          country: "Spain",
         },
         createdAt: new Date("2024-02-01"),
         updatedAt: new Date("2024-02-01"),
       },
     ]
 
-    customers.forEach((customer) => {
-      this.customers.set(customer.id, customer)
-      if (customer.nickname) {
-        const mapping: CustomerNameMapping = {
-          id: this.generateId(),
-          customerId: customer.id,
-          nickname: customer.nickname,
-          fullName: customer.name,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        }
-        this.customerNameMapping.set(customer.nickname.toLowerCase(), mapping)
-      }
-    })
+    // Initialize customer name mappings
+    this.customerNameMappings = [
+      {
+        id: "mapping-001",
+        customerId: "cust-001",
+        nickname: "Cat",
+        fullName: "Siriporn Tanaka",
+        createdAt: new Date("2024-01-15"),
+        updatedAt: new Date("2024-01-15"),
+      },
+      {
+        id: "mapping-002",
+        customerId: "cust-002",
+        nickname: "Johnny",
+        fullName: "John Smith",
+        createdAt: new Date("2024-01-20"),
+        updatedAt: new Date("2024-01-20"),
+      },
+    ]
 
-    // Sample purchase orders
-    const purchaseOrders: PurchaseOrderReference[] = [
+    // Initialize purchase orders
+    this.purchaseOrders = [
       {
         id: "po-001",
         platform: "lazada",
-        orderId: "LZ-2024-001",
-        url: "https://lazada.com/order/LZ-2024-001",
-        amount: 1500,
+        orderId: "LZ123456789",
+        url: "https://lazada.com/order/LZ123456789",
+        amount: 2500,
         currency: "THB",
-        attachments: [],
+        attachments: ["receipt-001.pdf"],
         supplierInfo: {
-          name: "Premium Fabrics Co.",
-          contact: "+66-2-123-4567",
-          address: "Bangkok, Thailand",
+          name: "Bangkok Fabric Co.",
+          contact: "+66 2 123 4567",
+          address: "456 Textile District, Bangkok",
         },
-        orderDate: new Date("2024-01-16"),
-        expectedDelivery: new Date("2024-01-25"),
-        notes: "High-quality velvet fabric",
+        orderDate: new Date("2024-01-10"),
+        expectedDelivery: new Date("2024-01-20"),
+        notes: "Premium cotton fabric for sofa covers",
       },
       {
         id: "po-002",
         platform: "shopee",
-        orderId: "SP-2024-002",
-        url: "https://shopee.co.th/order/SP-2024-002",
-        amount: 800,
+        orderId: "SP987654321",
+        url: "https://shopee.com/order/SP987654321",
+        amount: 1800,
         currency: "THB",
         attachments: [],
         supplierInfo: {
-          name: "Textile World",
-          contact: "+66-2-987-6543",
-          address: "Chiang Mai, Thailand",
+          name: "Quality Zippers Ltd.",
+          contact: "+66 81 987 6543",
         },
-        orderDate: new Date("2024-02-01"),
-        expectedDelivery: new Date("2024-02-10"),
-        notes: "Cotton blend fabric",
+        orderDate: new Date("2024-01-12"),
+        expectedDelivery: new Date("2024-01-25"),
       },
     ]
 
-    purchaseOrders.forEach((po) => {
-      this.purchaseOrders.set(po.id, po)
-    })
-
-    // Sample supplier receipts
-    const supplierReceipts: SupplierReceipt[] = [
+    // Initialize supplier receipts
+    this.supplierReceipts = [
       {
         id: "receipt-001",
-        supplierId: "sup-001",
-        supplierName: "Premium Fabrics Co.",
-        receiptNumber: "PF-2024-001",
-        amount: 1500,
+        supplierId: "supplier-001",
+        supplierName: "Bangkok Fabric Co.",
+        receiptNumber: "BFC-2024-001",
+        amount: 2500,
         currency: "THB",
-        date: new Date("2024-01-16"),
-        attachments: [],
+        date: new Date("2024-01-10"),
         category: "Raw Materials",
-        notes: "Payment for velvet fabric order",
+        notes: "Premium cotton fabric delivery",
+        attachments: ["fabric-receipt.pdf", "quality-cert.jpg"],
       },
       {
         id: "receipt-002",
-        supplierId: "sup-002",
-        supplierName: "Textile World",
-        receiptNumber: "TW-2024-002",
-        amount: 800,
+        supplierId: "supplier-002",
+        supplierName: "Express Shipping Co.",
+        receiptNumber: "ESC-2024-015",
+        amount: 350,
         currency: "THB",
-        date: new Date("2024-02-01"),
-        attachments: [],
-        category: "Raw Materials",
-        notes: "Cotton blend fabric purchase",
+        date: new Date("2024-01-15"),
+        category: "Shipping",
+        attachments: ["shipping-receipt.pdf"],
       },
     ]
 
-    supplierReceipts.forEach((receipt) => {
-      this.supplierReceipts.set(receipt.id, receipt)
-    })
-
-    // Sample bills with comprehensive data
-    const bills: Bill[] = [
+    // Initialize bills with enhanced data
+    this.bills = [
       {
         id: "bill-001",
         billNumber: "INV-2024-001",
-        customerId: "cust-001",
-        customer: customers[0],
+        customer: this.customers[0],
         items: [
           {
             id: "item-001",
-            name: "Custom Sofa Cover - 3 Seater",
-            description: "Premium velvet sofa cover with custom measurements",
-            quantity: 1,
-            unitPrice: 2500,
-            totalPrice: 2500,
+            name: "3-Seater Sofa Cover - Premium Cotton",
+            description: "Custom-fitted cover for 3-seater sofa in premium cotton fabric",
+            quantity: 2,
+            unitPrice: 1500,
+            total: 3000,
             category: "Sofa Covers",
-            sku: "SC-3S-001",
           },
           {
             id: "item-002",
             name: "Cushion Covers Set",
-            description: "Matching cushion covers (4 pieces)",
-            quantity: 4,
-            unitPrice: 300,
-            totalPrice: 1200,
+            description: "Set of 4 matching cushion covers",
+            quantity: 1,
+            unitPrice: 800,
+            total: 800,
             category: "Accessories",
-            sku: "CC-SET-001",
           },
         ],
-        subtotal: 3700,
-        tax: 259,
+        subtotal: 3800,
+        tax: 266,
         discount: 0,
-        total: 3959,
-        paidAmount: 0,
-        remainingBalance: 3959,
-        currency: "THB",
-        status: "sent",
+        total: 4066,
+        paidAmount: 2000,
+        remainingBalance: 2066,
+        status: "partially_paid",
+        priority: "high",
+        tags: ["VIP", "Custom", "Rush Order"],
+        notes: "Customer requested rush delivery for special event",
         dueDate: new Date("2024-02-15"),
         createdAt: new Date("2024-01-15"),
-        updatedAt: new Date("2024-01-18"),
-        progress: [
+        updatedAt: new Date("2024-01-20"),
+        purchaseOrders: [this.purchaseOrders[0]],
+        supplierReceipts: [this.supplierReceipts[0]],
+        progressStages: [
           {
+            stage: "Order Received",
+            status: "completed",
+            completedAt: new Date("2024-01-15"),
+            notes: "Order confirmed with customer",
+          },
+          {
+            stage: "Tailoring",
+            status: "in_progress",
+            startedAt: new Date("2024-01-16"),
+            estimatedCompletion: new Date("2024-02-10"),
+          },
+          {
+            stage: "Packing",
             status: "pending",
-            timestamp: new Date("2024-01-15T10:00:00Z"),
-            notes: "Bill created and sent to customer",
-            updatedBy: "admin-001",
           },
           {
-            status: "confirmed",
-            timestamp: new Date("2024-01-16T14:30:00Z"),
-            notes: "Customer confirmed order",
-            updatedBy: "system",
-            estimatedCompletion: new Date("2024-01-20T17:00:00Z"),
+            stage: "Shipping",
+            status: "pending",
           },
           {
-            status: "tailoring",
-            timestamp: new Date("2024-01-18T09:00:00Z"),
-            notes: "Started tailoring process",
-            updatedBy: "admin-001",
-            estimatedCompletion: new Date("2024-01-25T17:00:00Z"),
+            stage: "Delivered",
+            status: "pending",
           },
         ],
-        tags: ["Premium", "Custom", "Urgent"],
-        purchaseOrders: [purchaseOrders[0]],
-        supplierReceipts: [supplierReceipts[0]],
-        paymentRecords: [],
-        paymentQrCode:
-          "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==",
-        notes: "Customer prefers delivery on weekends",
-        createdBy: "admin-001",
-        priority: "high",
       },
       {
         id: "bill-002",
         billNumber: "INV-2024-002",
-        customerId: "cust-002",
-        customer: customers[1],
+        customer: this.customers[1],
         items: [
           {
             id: "item-003",
-            name: "Waterproof Sofa Cover",
-            description: "Water-resistant fabric sofa cover",
+            name: "2-Seater Sofa Cover - Linen Blend",
+            description: "Standard cover for 2-seater sofa in linen blend fabric",
             quantity: 1,
-            unitPrice: 1800,
-            totalPrice: 1800,
+            unitPrice: 1200,
+            total: 1200,
             category: "Sofa Covers",
-            sku: "SC-WP-001",
           },
         ],
-        subtotal: 1800,
-        tax: 126,
-        discount: 180,
-        total: 1746,
-        paidAmount: 1746,
+        subtotal: 1200,
+        tax: 84,
+        discount: 120,
+        total: 1164,
+        paidAmount: 1164,
         remainingBalance: 0,
-        currency: "THB",
         status: "paid",
+        priority: "medium",
+        tags: ["Standard", "Retail"],
         dueDate: new Date("2024-02-20"),
         createdAt: new Date("2024-01-20"),
-        updatedAt: new Date("2024-02-05"),
-        progress: [
+        updatedAt: new Date("2024-01-25"),
+        purchaseOrders: [],
+        supplierReceipts: [this.supplierReceipts[1]],
+        progressStages: [
           {
-            status: "pending",
-            timestamp: new Date("2024-01-20T10:00:00Z"),
-            notes: "Bill created and sent to customer",
-            updatedBy: "admin-001",
-          },
-          {
-            status: "confirmed",
-            timestamp: new Date("2024-01-21T11:00:00Z"),
-            notes: "Customer confirmed and paid",
-            updatedBy: "system",
-          },
-          {
-            status: "tailoring",
-            timestamp: new Date("2024-01-22T09:00:00Z"),
-            notes: "Started production",
-            updatedBy: "admin-001",
-            actualCompletion: new Date("2024-01-28T16:00:00Z"),
-          },
-          {
-            status: "packing",
-            timestamp: new Date("2024-01-28T16:30:00Z"),
-            notes: "Quality check passed, packing started",
-            updatedBy: "admin-001",
-            actualCompletion: new Date("2024-01-29T10:00:00Z"),
-          },
-          {
-            status: "shipped",
-            timestamp: new Date("2024-01-29T14:00:00Z"),
-            notes: "Shipped via Thailand Post",
-            updatedBy: "admin-001",
-          },
-          {
-            status: "delivered",
-            timestamp: new Date("2024-02-02T15:30:00Z"),
-            notes: "Successfully delivered to customer",
-            updatedBy: "system",
-            actualCompletion: new Date("2024-02-02T15:30:00Z"),
-          },
-          {
+            stage: "Order Received",
             status: "completed",
-            timestamp: new Date("2024-02-05T10:00:00Z"),
-            notes: "Order completed, customer satisfied",
-            updatedBy: "admin-001",
-            actualCompletion: new Date("2024-02-05T10:00:00Z"),
+            completedAt: new Date("2024-01-20"),
           },
-        ],
-        tags: ["Waterproof", "Quick Order"],
-        purchaseOrders: [purchaseOrders[1]],
-        supplierReceipts: [supplierReceipts[1]],
-        paymentRecords: [
           {
-            id: "pay-001",
-            amount: 1746,
-            currency: "THB",
-            method: "qr_code",
-            transactionId: "TXN-2024-001",
-            date: new Date("2024-01-21T11:30:00Z"),
-            status: "confirmed",
-            notes: "Payment via PromptPay QR code",
+            stage: "Tailoring",
+            status: "completed",
+            completedAt: new Date("2024-01-28"),
+          },
+          {
+            stage: "Packing",
+            status: "completed",
+            completedAt: new Date("2024-01-29"),
+          },
+          {
+            stage: "Shipping",
+            status: "completed",
+            completedAt: new Date("2024-01-30"),
+          },
+          {
+            stage: "Delivered",
+            status: "completed",
+            completedAt: new Date("2024-02-01"),
           },
         ],
-        paymentQrCode:
-          "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==",
-        notes: "Fast delivery requested",
-        createdBy: "admin-001",
-        priority: "medium",
       },
       {
         id: "bill-003",
         billNumber: "INV-2024-003",
-        customerId: "cust-003",
-        customer: customers[2],
+        customer: this.customers[2],
         items: [
           {
             id: "item-004",
-            name: "Sectional Sofa Cover Set",
-            description: "L-shaped sectional sofa cover with corner piece",
+            name: "L-Shaped Sofa Cover - Microfiber",
+            description: "Custom L-shaped sofa cover in microfiber material",
             quantity: 1,
-            unitPrice: 4200,
-            totalPrice: 4200,
+            unitPrice: 2200,
+            total: 2200,
             category: "Sofa Covers",
-            sku: "SC-SEC-001",
           },
           {
             id: "item-005",
-            name: "Fabric Protection Spray",
-            description: "Professional fabric protection treatment",
-            quantity: 2,
-            unitPrice: 350,
-            totalPrice: 700,
-            category: "Care Products",
-            sku: "FPS-001",
+            name: "Ottoman Cover",
+            description: "Matching ottoman cover",
+            quantity: 1,
+            unitPrice: 400,
+            total: 400,
+            category: "Accessories",
           },
         ],
-        subtotal: 4900,
-        tax: 343,
-        discount: 490,
-        total: 4753,
-        paidAmount: 2000,
-        remainingBalance: 2753,
-        currency: "THB",
-        status: "partially_paid",
+        subtotal: 2600,
+        tax: 182,
+        discount: 0,
+        total: 2782,
+        paidAmount: 0,
+        remainingBalance: 2782,
+        status: "sent",
+        priority: "low",
+        tags: ["Custom", "Wholesale"],
         dueDate: new Date("2024-03-01"),
         createdAt: new Date("2024-02-01"),
-        updatedAt: new Date("2024-02-10"),
-        progress: [
-          {
-            status: "pending",
-            timestamp: new Date("2024-02-01T10:00:00Z"),
-            notes: "Bill created, awaiting customer confirmation",
-            updatedBy: "admin-001",
-          },
-          {
-            status: "confirmed",
-            timestamp: new Date("2024-02-03T14:00:00Z"),
-            notes: "Customer confirmed, partial payment received",
-            updatedBy: "system",
-          },
-          {
-            status: "tailoring",
-            timestamp: new Date("2024-02-05T09:00:00Z"),
-            notes: "Started production with partial payment",
-            updatedBy: "admin-001",
-            estimatedCompletion: new Date("2024-02-20T17:00:00Z"),
-          },
-        ],
-        tags: ["Sectional", "Large Order", "VIP Customer"],
-        purchaseOrders: [],
+        updatedAt: new Date("2024-02-01"),
+        purchaseOrders: [this.purchaseOrders[1]],
         supplierReceipts: [],
-        paymentRecords: [
+        progressStages: [
           {
-            id: "pay-002",
-            amount: 2000,
-            currency: "THB",
-            method: "bank_transfer",
-            transactionId: "TXN-2024-002",
-            date: new Date("2024-02-03T16:00:00Z"),
-            status: "confirmed",
-            notes: "Partial payment - 50% deposit",
+            stage: "Order Received",
+            status: "completed",
+            completedAt: new Date("2024-02-01"),
+          },
+          {
+            stage: "Tailoring",
+            status: "pending",
+          },
+          {
+            stage: "Packing",
+            status: "pending",
+          },
+          {
+            stage: "Shipping",
+            status: "pending",
+          },
+          {
+            stage: "Delivered",
+            status: "pending",
           },
         ],
-        paymentQrCode:
-          "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==",
-        notes: "VIP customer - priority handling required",
-        createdBy: "admin-001",
-        priority: "high",
       },
     ]
-
-    bills.forEach((bill) => {
-      this.bills.set(bill.id, bill)
-      bill.tags.forEach((tag) => this.customTags.add(tag))
-    })
-
-    // Add more sample tags
-    this.customTags.add("Rush Order")
-    this.customTags.add("Cut")
-    this.customTags.add("Special Fabric")
-    this.customTags.add("Repeat Customer")
-    this.customTags.add("Bulk Order")
   }
 
-  // Bill Management
-  async createBill(billData: Omit<Bill, "id" | "billNumber" | "createdAt" | "updatedAt">): Promise<Bill> {
-    const id = this.generateId()
-    const billNumber = `INV-${new Date().getFullYear()}-${String(this.bills.size + 1).padStart(3, "0")}`
-
-    const bill: Bill = {
-      ...billData,
-      id,
-      billNumber,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      remainingBalance: billData.total - billData.paidAmount,
-    }
-
-    this.bills.set(id, bill)
-    bill.tags.forEach((tag) => this.customTags.add(tag))
-
-    return bill
-  }
-
-  async getBill(id: string): Promise<Bill | null> {
-    return this.bills.get(id) || null
-  }
-
-  async updateBill(id: string, updates: Partial<Bill>): Promise<Bill | null> {
-    const bill = this.bills.get(id)
-    if (!bill) return null
-
-    const updatedBill = {
-      ...bill,
-      ...updates,
-      updatedAt: new Date(),
-      remainingBalance: (updates.total || bill.total) - (updates.paidAmount || bill.paidAmount),
-    }
-
-    this.bills.set(id, updatedBill)
-    if (updates.tags) {
-      updates.tags.forEach((tag) => this.customTags.add(tag))
-    }
-
-    return updatedBill
-  }
-
-  async deleteBill(id: string): Promise<boolean> {
-    return this.bills.delete(id)
-  }
-
+  // Bill operations
   async getBills(filter?: BillFilter): Promise<Bill[]> {
-    let bills = Array.from(this.bills.values())
+    let filteredBills = [...this.bills]
 
     if (filter) {
+      if (filter.search) {
+        const searchTerm = filter.search.toLowerCase()
+        filteredBills = filteredBills.filter(
+          (bill) =>
+            bill.billNumber.toLowerCase().includes(searchTerm) ||
+            bill.customer.name.toLowerCase().includes(searchTerm) ||
+            bill.customer.nickname?.toLowerCase().includes(searchTerm) ||
+            bill.notes?.toLowerCase().includes(searchTerm),
+        )
+      }
+
       if (filter.status && filter.status.length > 0) {
-        bills = bills.filter((bill) => filter.status!.includes(bill.status))
-      }
-
-      if (filter.dateFrom) {
-        bills = bills.filter((bill) => bill.createdAt >= filter.dateFrom!)
-      }
-
-      if (filter.dateTo) {
-        bills = bills.filter((bill) => bill.createdAt <= filter.dateTo!)
-      }
-
-      if (filter.tags && filter.tags.length > 0) {
-        bills = bills.filter((bill) => filter.tags!.some((tag) => bill.tags.includes(tag)))
-      }
-
-      if (filter.customerId) {
-        bills = bills.filter((bill) => bill.customerId === filter.customerId)
+        filteredBills = filteredBills.filter((bill) => filter.status!.includes(bill.status))
       }
 
       if (filter.priority && filter.priority.length > 0) {
-        bills = bills.filter((bill) => filter.priority!.includes(bill.priority))
+        filteredBills = filteredBills.filter((bill) => filter.priority!.includes(bill.priority))
+      }
+
+      if (filter.customerId) {
+        filteredBills = filteredBills.filter((bill) => bill.customer.id === filter.customerId)
+      }
+
+      if (filter.tags && filter.tags.length > 0) {
+        filteredBills = filteredBills.filter((bill) => filter.tags!.some((tag) => bill.tags.includes(tag)))
+      }
+
+      if (filter.dateFrom) {
+        filteredBills = filteredBills.filter((bill) => bill.createdAt >= filter.dateFrom!)
+      }
+
+      if (filter.dateTo) {
+        filteredBills = filteredBills.filter((bill) => bill.createdAt <= filter.dateTo!)
       }
 
       if (filter.minAmount !== undefined) {
-        bills = bills.filter((bill) => bill.total >= filter.minAmount!)
+        filteredBills = filteredBills.filter((bill) => bill.total >= filter.minAmount!)
       }
 
       if (filter.maxAmount !== undefined) {
-        bills = bills.filter((bill) => bill.total <= filter.maxAmount!)
-      }
-
-      if (filter.search) {
-        const searchLower = filter.search.toLowerCase()
-        bills = bills.filter(
-          (bill) =>
-            bill.billNumber.toLowerCase().includes(searchLower) ||
-            bill.customer.name.toLowerCase().includes(searchLower) ||
-            bill.customer.nickname?.toLowerCase().includes(searchLower) ||
-            bill.items.some(
-              (item) =>
-                item.name.toLowerCase().includes(searchLower) || item.description?.toLowerCase().includes(searchLower),
-            ) ||
-            bill.notes?.toLowerCase().includes(searchLower),
-        )
+        filteredBills = filteredBills.filter((bill) => bill.total <= filter.maxAmount!)
       }
     }
 
-    return bills.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+    return filteredBills
   }
 
-  // Progress Management
-  async updateBillProgress(billId: string, progress: BillProgress): Promise<Bill | null> {
-    const bill = this.bills.get(billId)
-    if (!bill) return null
-
-    bill.progress.push(progress)
-    bill.updatedAt = new Date()
-
-    // Auto-update bill status based on progress
-    const latestProgress = bill.progress[bill.progress.length - 1]
-    if (latestProgress.status === "completed" && bill.paidAmount >= bill.total) {
-      bill.status = "paid"
-    }
-
-    return bill
+  async getBillById(id: string): Promise<Bill | null> {
+    return this.bills.find((bill) => bill.id === id) || null
   }
 
-  // Payment Management
-  async addPaymentRecord(billId: string, payment: Omit<PaymentRecord, "id">): Promise<Bill | null> {
-    const bill = this.bills.get(billId)
-    if (!bill) return null
-
-    const paymentRecord: PaymentRecord = {
-      ...payment,
-      id: this.generateId(),
-    }
-
-    bill.paymentRecords.push(paymentRecord)
-    bill.paidAmount += payment.amount
-    bill.remainingBalance = bill.total - bill.paidAmount
-
-    // Update bill status based on payment
-    if (bill.remainingBalance <= 0) {
-      bill.status = "paid"
-    } else if (bill.paidAmount > 0) {
-      bill.status = "partially_paid"
-    }
-
-    bill.updatedAt = new Date()
-    return bill
-  }
-
-  // Customer Management
-  async createCustomer(customerData: Omit<Customer, "id" | "createdAt" | "updatedAt">): Promise<Customer> {
-    const id = this.generateId()
-    const customer: Customer = {
-      ...customerData,
-      id,
+  async createBill(billData: Omit<Bill, "id" | "createdAt" | "updatedAt">): Promise<Bill> {
+    const newBill: Bill = {
+      ...billData,
+      id: `bill-${Date.now()}`,
       createdAt: new Date(),
       updatedAt: new Date(),
     }
-
-    this.customers.set(id, customer)
-    if (customer.nickname) {
-      const mapping: CustomerNameMapping = {
-        id: this.generateId(),
-        customerId: id,
-        nickname: customer.nickname,
-        fullName: customer.name,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }
-      this.customerNameMapping.set(customer.nickname.toLowerCase(), mapping)
-    }
-
-    return customer
+    this.bills.push(newBill)
+    return newBill
   }
 
-  async getCustomer(id: string): Promise<Customer | null> {
-    return this.customers.get(id) || null
-  }
+  async updateBill(id: string, updates: Partial<Bill>): Promise<Bill | null> {
+    const billIndex = this.bills.findIndex((bill) => bill.id === id)
+    if (billIndex === -1) return null
 
-  async getCustomerByNickname(nickname: string): Promise<Customer | null> {
-    const mapping = this.customerNameMapping.get(nickname.toLowerCase())
-    return mapping ? this.customers.get(mapping.customerId) || null : null
-  }
-
-  async updateCustomer(id: string, updates: Partial<Customer>): Promise<Customer | null> {
-    const customer = this.customers.get(id)
-    if (!customer) return null
-
-    const updatedCustomer = {
-      ...customer,
+    this.bills[billIndex] = {
+      ...this.bills[billIndex],
       ...updates,
       updatedAt: new Date(),
     }
-
-    this.customers.set(id, updatedCustomer)
-
-    // Update nickname mapping
-    if (updates.nickname !== undefined) {
-      // Remove old mapping
-      if (customer.nickname) {
-        this.customerNameMapping.delete(customer.nickname.toLowerCase())
-      }
-      // Add new mapping
-      if (updates.nickname) {
-        const mapping: CustomerNameMapping = {
-          id: this.generateId(),
-          customerId: id,
-          nickname: updates.nickname,
-          fullName: updatedCustomer.name,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        }
-        this.customerNameMapping.set(updates.nickname.toLowerCase(), mapping)
-      }
-    }
-
-    return updatedCustomer
+    return this.bills[billIndex]
   }
 
+  async deleteBill(id: string): Promise<boolean> {
+    const billIndex = this.bills.findIndex((bill) => bill.id === id)
+    if (billIndex === -1) return false
+
+    this.bills.splice(billIndex, 1)
+    return true
+  }
+
+  // Customer operations
   async getCustomers(): Promise<Customer[]> {
-    return Array.from(this.customers.values())
+    return [...this.customers]
   }
 
-  // Customer Name Mapping Management
-  async getCustomerNameMappings(): Promise<CustomerNameMapping[]> {
-    return Array.from(this.customerNameMapping.values())
+  async getCustomerById(id: string): Promise<Customer | null> {
+    return this.customers.find((customer) => customer.id === id) || null
   }
 
-  async createCustomerNameMapping(
-    mapping: Omit<CustomerNameMapping, "id" | "createdAt" | "updatedAt">,
-  ): Promise<CustomerNameMapping> {
-    const newMapping: CustomerNameMapping = {
-      ...mapping,
-      id: this.generateId(),
+  async createCustomer(customerData: Omit<Customer, "id" | "createdAt" | "updatedAt">): Promise<Customer> {
+    const newCustomer: Customer = {
+      ...customerData,
+      id: `cust-${Date.now()}`,
       createdAt: new Date(),
       updatedAt: new Date(),
     }
+    this.customers.push(newCustomer)
+    return newCustomer
+  }
 
-    this.customerNameMapping.set(mapping.nickname.toLowerCase(), newMapping)
+  async updateCustomer(id: string, updates: Partial<Customer>): Promise<Customer | null> {
+    const customerIndex = this.customers.findIndex((customer) => customer.id === id)
+    if (customerIndex === -1) return null
+
+    this.customers[customerIndex] = {
+      ...this.customers[customerIndex],
+      ...updates,
+      updatedAt: new Date(),
+    }
+    return this.customers[customerIndex]
+  }
+
+  // Custom tags operations
+  async getCustomTags(): Promise<string[]> {
+    return [...this.customTags]
+  }
+
+  async addCustomTag(tag: string): Promise<void> {
+    if (!this.customTags.includes(tag)) {
+      this.customTags.push(tag)
+    }
+  }
+
+  async removeCustomTag(tag: string): Promise<void> {
+    this.customTags = this.customTags.filter((t) => t !== tag)
+  }
+
+  // Customer name mapping operations
+  async getCustomerNameMappings(): Promise<CustomerNameMapping[]> {
+    return [...this.customerNameMappings]
+  }
+
+  async createCustomerNameMapping(
+    mappingData: Omit<CustomerNameMapping, "id" | "createdAt" | "updatedAt">,
+  ): Promise<CustomerNameMapping> {
+    const newMapping: CustomerNameMapping = {
+      ...mappingData,
+      id: `mapping-${Date.now()}`,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    }
+    this.customerNameMappings.push(newMapping)
     return newMapping
   }
 
@@ -673,280 +502,220 @@ class EnhancedBillDatabase {
     nickname: string,
     updates: Partial<CustomerNameMapping>,
   ): Promise<CustomerNameMapping | null> {
-    const mapping = this.customerNameMapping.get(nickname.toLowerCase())
-    if (!mapping) return null
+    const mappingIndex = this.customerNameMappings.findIndex((mapping) => mapping.nickname === nickname)
+    if (mappingIndex === -1) return null
 
-    const updatedMapping = {
-      ...mapping,
+    this.customerNameMappings[mappingIndex] = {
+      ...this.customerNameMappings[mappingIndex],
       ...updates,
       updatedAt: new Date(),
     }
-
-    // If nickname changed, update the key
-    if (updates.nickname && updates.nickname !== mapping.nickname) {
-      this.customerNameMapping.delete(nickname.toLowerCase())
-      this.customerNameMapping.set(updates.nickname.toLowerCase(), updatedMapping)
-    } else {
-      this.customerNameMapping.set(nickname.toLowerCase(), updatedMapping)
-    }
-
-    return updatedMapping
+    return this.customerNameMappings[mappingIndex]
   }
 
   async deleteCustomerNameMapping(nickname: string): Promise<boolean> {
-    return this.customerNameMapping.delete(nickname.toLowerCase())
+    const mappingIndex = this.customerNameMappings.findIndex((mapping) => mapping.nickname === nickname)
+    if (mappingIndex === -1) return false
+
+    this.customerNameMappings.splice(mappingIndex, 1)
+    return true
   }
 
-  // Tag Management
-  async getCustomTags(): Promise<string[]> {
-    return Array.from(this.customTags)
-  }
-
-  async addCustomTag(tag: string): Promise<void> {
-    this.customTags.add(tag)
-  }
-
-  async removeCustomTag(tag: string): Promise<void> {
-    this.customTags.delete(tag)
-
-    // Remove tag from all bills
-    for (const bill of this.bills.values()) {
-      bill.tags = bill.tags.filter((t) => t !== tag)
-    }
-  }
-
-  // Purchase Order Management
+  // Purchase order operations
   async createPurchaseOrder(poData: Omit<PurchaseOrderReference, "id">): Promise<PurchaseOrderReference> {
-    const id = this.generateId()
-    const purchaseOrder: PurchaseOrderReference = {
+    const newPO: PurchaseOrderReference = {
       ...poData,
-      id,
+      id: `po-${Date.now()}`,
     }
-
-    this.purchaseOrders.set(id, purchaseOrder)
-    return purchaseOrder
-  }
-
-  async getPurchaseOrder(id: string): Promise<PurchaseOrderReference | null> {
-    return this.purchaseOrders.get(id) || null
+    this.purchaseOrders.push(newPO)
+    return newPO
   }
 
   async updatePurchaseOrder(
     id: string,
     updates: Partial<PurchaseOrderReference>,
   ): Promise<PurchaseOrderReference | null> {
-    const po = this.purchaseOrders.get(id)
-    if (!po) return null
+    const poIndex = this.purchaseOrders.findIndex((po) => po.id === id)
+    if (poIndex === -1) return null
 
-    const updatedPO = { ...po, ...updates }
-    this.purchaseOrders.set(id, updatedPO)
-    return updatedPO
+    this.purchaseOrders[poIndex] = {
+      ...this.purchaseOrders[poIndex],
+      ...updates,
+    }
+    return this.purchaseOrders[poIndex]
   }
 
   async deletePurchaseOrder(id: string): Promise<boolean> {
-    return this.purchaseOrders.delete(id)
+    const poIndex = this.purchaseOrders.findIndex((po) => po.id === id)
+    if (poIndex === -1) return false
+
+    this.purchaseOrders.splice(poIndex, 1)
+    return true
   }
 
-  async linkPurchaseOrderToBill(billId: string, purchaseOrderId: string): Promise<Bill | null> {
-    const bill = this.bills.get(billId)
-    const po = this.purchaseOrders.get(purchaseOrderId)
+  async linkPurchaseOrderToBill(billId: string, poId: string): Promise<boolean> {
+    const bill = this.bills.find((b) => b.id === billId)
+    const po = this.purchaseOrders.find((p) => p.id === poId)
 
-    if (!bill || !po) return null
+    if (!bill || !po) return false
 
-    if (!bill.purchaseOrders.find((p) => p.id === purchaseOrderId)) {
+    if (!bill.purchaseOrders.some((existingPO) => existingPO.id === poId)) {
       bill.purchaseOrders.push(po)
       bill.updatedAt = new Date()
     }
 
-    return bill
+    return true
   }
 
-  // Supplier Receipt Management
+  // Supplier receipt operations
   async createSupplierReceipt(receiptData: Omit<SupplierReceipt, "id">): Promise<SupplierReceipt> {
-    const id = this.generateId()
-    const receipt: SupplierReceipt = {
+    const newReceipt: SupplierReceipt = {
       ...receiptData,
-      id,
+      id: `receipt-${Date.now()}`,
     }
-
-    this.supplierReceipts.set(id, receipt)
-    return receipt
-  }
-
-  async getSupplierReceipt(id: string): Promise<SupplierReceipt | null> {
-    return this.supplierReceipts.get(id) || null
+    this.supplierReceipts.push(newReceipt)
+    return newReceipt
   }
 
   async updateSupplierReceipt(id: string, updates: Partial<SupplierReceipt>): Promise<SupplierReceipt | null> {
-    const receipt = this.supplierReceipts.get(id)
-    if (!receipt) return null
+    const receiptIndex = this.supplierReceipts.findIndex((receipt) => receipt.id === id)
+    if (receiptIndex === -1) return null
 
-    const updatedReceipt = { ...receipt, ...updates }
-    this.supplierReceipts.set(id, updatedReceipt)
-    return updatedReceipt
+    this.supplierReceipts[receiptIndex] = {
+      ...this.supplierReceipts[receiptIndex],
+      ...updates,
+    }
+    return this.supplierReceipts[receiptIndex]
   }
 
   async deleteSupplierReceipt(id: string): Promise<boolean> {
-    return this.supplierReceipts.delete(id)
+    const receiptIndex = this.supplierReceipts.findIndex((receipt) => receipt.id === id)
+    if (receiptIndex === -1) return false
+
+    this.supplierReceipts.splice(receiptIndex, 1)
+    return true
   }
 
-  async attachReceiptToBill(billId: string, receiptId: string): Promise<Bill | null> {
-    const bill = this.bills.get(billId)
-    const receipt = this.supplierReceipts.get(receiptId)
+  async attachReceiptToBill(billId: string, receiptId: string): Promise<boolean> {
+    const bill = this.bills.find((b) => b.id === billId)
+    const receipt = this.supplierReceipts.find((r) => r.id === receiptId)
 
-    if (!bill || !receipt) return null
+    if (!bill || !receipt) return false
 
-    if (!bill.supplierReceipts.find((r) => r.id === receiptId)) {
+    if (!bill.supplierReceipts.some((existingReceipt) => existingReceipt.id === receiptId)) {
       bill.supplierReceipts.push(receipt)
       bill.updatedAt = new Date()
     }
 
-    return bill
+    return true
   }
 
   // Dashboard KPIs
   async getDashboardKPIs(): Promise<DashboardKPI> {
-    const bills = Array.from(this.bills.values())
+    const totalRevenue = this.bills.reduce((sum, bill) => sum + bill.total, 0)
+    const totalBills = this.bills.length
+    const paidBills = this.bills.filter((bill) => bill.status === "paid").length
+    const pendingBills = this.bills.filter((bill) => bill.status === "sent" || bill.status === "draft").length
+    const overdueBills = this.bills.filter((bill) => bill.status !== "paid" && bill.dueDate < new Date()).length
+    const partiallyPaidBills = this.bills.filter((bill) => bill.status === "partially_paid").length
+    const completedBills = this.bills.filter((bill) => bill.status === "paid").length
+    const averageOrderValue = totalBills > 0 ? totalRevenue / totalBills : 0
+
+    // Calculate monthly growth (mock calculation)
     const currentMonth = new Date().getMonth()
-    const currentYear = new Date().getFullYear()
-
-    const totalBills = bills.length
-    const totalRevenue = bills
-      .filter((bill) => bill.status === "paid" || bill.status === "partially_paid")
-      .reduce((sum, bill) => sum + bill.paidAmount, 0)
-
-    const pendingBills = bills.filter((bill) => bill.status === "sent").length
-    const overdueBills = bills.filter((bill) => bill.status === "sent" && bill.dueDate < new Date()).length
-    const completedBills = bills.filter((bill) => bill.status === "paid").length
-    const partiallyPaidBills = bills.filter((bill) => bill.status === "partially_paid").length
-
-    const paidBills = bills.filter((bill) => bill.status === "paid")
-    const averageOrderValue = paidBills.length > 0 ? totalRevenue / paidBills.length : 0
-
-    // Calculate monthly growth
-    const thisMonthBills = bills.filter(
-      (bill) => bill.createdAt.getMonth() === currentMonth && bill.createdAt.getFullYear() === currentYear,
-    )
-    const lastMonthBills = bills.filter((bill) => {
-      const lastMonth = currentMonth === 0 ? 11 : currentMonth - 1
-      const lastMonthYear = currentMonth === 0 ? currentYear - 1 : currentYear
-      return bill.createdAt.getMonth() === lastMonth && bill.createdAt.getFullYear() === lastMonthYear
-    })
-
-    const monthlyGrowth =
-      lastMonthBills.length > 0 ? ((thisMonthBills.length - lastMonthBills.length) / lastMonthBills.length) * 100 : 0
-
-    // Top customers
-    const customerStats = new Map<string, { totalSpent: number; billCount: number }>()
-    bills.forEach((bill) => {
-      if (bill.paidAmount > 0) {
-        const existing = customerStats.get(bill.customerId) || { totalSpent: 0, billCount: 0 }
-        customerStats.set(bill.customerId, {
-          totalSpent: existing.totalSpent + bill.paidAmount,
-          billCount: existing.billCount + 1,
-        })
-      }
-    })
-
-    const topCustomers = Array.from(customerStats.entries())
-      .map(([customerId, stats]) => ({
-        customerId,
-        customerName: this.customers.get(customerId)?.name || "Unknown",
-        ...stats,
-      }))
-      .sort((a, b) => b.totalSpent - a.totalSpent)
-      .slice(0, 5)
-
-    // Top selling items
-    const itemStats = new Map<string, { quantitySold: number; revenue: number }>()
-    bills.forEach((bill) => {
-      if (bill.paidAmount > 0) {
-        bill.items.forEach((item) => {
-          const existing = itemStats.get(item.name) || { quantitySold: 0, revenue: 0 }
-          const itemRevenue = (item.totalPrice / bill.total) * bill.paidAmount
-          itemStats.set(item.name, {
-            quantitySold: existing.quantitySold + item.quantity,
-            revenue: existing.revenue + itemRevenue,
-          })
-        })
-      }
-    })
-
-    const topSellingItems = Array.from(itemStats.entries())
-      .map(([itemName, stats]) => ({
-        itemName,
-        ...stats,
-      }))
-      .sort((a, b) => b.revenue - a.revenue)
-      .slice(0, 5)
+    const currentMonthBills = this.bills.filter((bill) => bill.createdAt.getMonth() === currentMonth)
+    const lastMonthBills = this.bills.filter((bill) => bill.createdAt.getMonth() === currentMonth - 1)
+    const currentMonthRevenue = currentMonthBills.reduce((sum, bill) => sum + bill.total, 0)
+    const lastMonthRevenue = lastMonthBills.reduce((sum, bill) => sum + bill.total, 0)
+    const monthlyGrowth = lastMonthRevenue > 0 ? ((currentMonthRevenue - lastMonthRevenue) / lastMonthRevenue) * 100 : 0
 
     // Revenue by month (last 6 months)
     const revenueByMonth = []
     for (let i = 5; i >= 0; i--) {
       const date = new Date()
       date.setMonth(date.getMonth() - i)
-      const month = date.toLocaleString("default", { month: "short" })
-
-      const monthBills = bills.filter((bill) => {
-        const billDate = new Date(bill.createdAt)
-        return (
-          billDate.getMonth() === date.getMonth() &&
-          billDate.getFullYear() === date.getFullYear() &&
-          bill.paidAmount > 0
-        )
-      })
-
+      const monthBills = this.bills.filter(
+        (bill) => bill.createdAt.getMonth() === date.getMonth() && bill.createdAt.getFullYear() === date.getFullYear(),
+      )
       revenueByMonth.push({
-        month,
-        revenue: monthBills.reduce((sum, bill) => sum + bill.paidAmount, 0),
+        month: date.toLocaleDateString("en-US", { month: "short", year: "numeric" }),
+        revenue: monthBills.reduce((sum, bill) => sum + bill.total, 0),
         billCount: monthBills.length,
       })
     }
 
     // Status distribution
-    const statusCounts = new Map<string, number>()
-    bills.forEach((bill) => {
-      statusCounts.set(bill.status, (statusCounts.get(bill.status) || 0) + 1)
-    })
+    const statusCounts = this.bills.reduce(
+      (acc, bill) => {
+        acc[bill.status] = (acc[bill.status] || 0) + 1
+        return acc
+      },
+      {} as Record<string, number>,
+    )
 
-    const statusDistribution = Array.from(statusCounts.entries()).map(([status, count]) => ({
+    const statusDistribution = Object.entries(statusCounts).map(([status, count]) => ({
       status,
       count,
       percentage: (count / totalBills) * 100,
     }))
 
+    // Top selling items
+    const itemCounts = this.bills
+      .flatMap((bill) => bill.items)
+      .reduce(
+        (acc, item) => {
+          const key = item.name
+          if (!acc[key]) {
+            acc[key] = { itemName: key, quantity: 0, revenue: 0 }
+          }
+          acc[key].quantity += item.quantity
+          acc[key].revenue += item.total
+          return acc
+        },
+        {} as Record<string, { itemName: string; quantity: number; revenue: number }>,
+      )
+
+    const topSellingItems = Object.values(itemCounts)
+      .sort((a, b) => b.revenue - a.revenue)
+      .slice(0, 5)
+
+    // Top customers
+    const customerRevenue = this.bills.reduce(
+      (acc, bill) => {
+        const customerId = bill.customer.id
+        if (!acc[customerId]) {
+          acc[customerId] = {
+            customerId,
+            customerName: bill.customer.name,
+            totalSpent: 0,
+            billCount: 0,
+          }
+        }
+        acc[customerId].totalSpent += bill.total
+        acc[customerId].billCount += 1
+        return acc
+      },
+      {} as Record<string, { customerId: string; customerName: string; totalSpent: number; billCount: number }>,
+    )
+
+    const topCustomers = Object.values(customerRevenue)
+      .sort((a, b) => b.totalSpent - a.totalSpent)
+      .slice(0, 5)
+
     return {
-      totalBills,
       totalRevenue,
+      totalBills,
       pendingBills,
       overdueBills,
-      completedBills,
-      partiallyPaidBills,
       averageOrderValue,
       monthlyGrowth,
-      topCustomers,
-      topSellingItems,
+      completedBills,
+      partiallyPaidBills,
       revenueByMonth,
       statusDistribution,
+      topSellingItems,
+      topCustomers,
     }
-  }
-
-  // Notification for payment
-  async notifyPayment(billId: string, customerMessage?: string): Promise<boolean> {
-    const bill = this.bills.get(billId)
-    if (!bill) return false
-
-    // In a real application, this would send notifications to admin
-    console.log(`Payment notification received for bill ${bill.billNumber}`)
-    if (customerMessage) {
-      console.log(`Customer message: ${customerMessage}`)
-    }
-
-    // Add a note to the bill
-    bill.notes = (bill.notes || "") + `\n[${new Date().toISOString()}] Customer notified payment completion`
-    bill.updatedAt = new Date()
-
-    return true
   }
 }
 
