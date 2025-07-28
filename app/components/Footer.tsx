@@ -1,143 +1,163 @@
 "use client"
 
 import Link from "next/link"
-import { Facebook, Instagram, PenLineIcon as Line, Mail, Phone, MapPin, Clock, MessageCircle } from "lucide-react"
+import { Facebook, Instagram, Twitter, Mail, Phone, MapPin, Clock } from "lucide-react"
 import { useLanguage } from "../contexts/LanguageContext"
 
 export default function Footer() {
   const { language } = useLanguage()
 
-  const quickLinks = [
-    { name: { th: "หน้าแรก", en: "Home" }, href: "/" },
-    { name: { th: "สินค้า", en: "Products" }, href: "/products" },
-    { name: { th: "ลายผ้า", en: "Fabric Gallery" }, href: "/fabric-gallery" },
-    { name: { th: "ตัดตามขนาด", en: "Custom Covers" }, href: "/custom-covers" },
-    { name: { th: "เกี่ยวกับเรา", en: "About" }, href: "/about" },
-    { name: { th: "ติดต่อ", en: "Contact" }, href: "/contact" },
-  ]
+  const footerSections = {
+    company: {
+      title: { en: "Company", th: "บริษัท" },
+      links: [
+        { name: { en: "About Us", th: "เกี่ยวกับเรา" }, href: "/about" },
+        { name: { en: "Our Story", th: "เรื่องราวของเรา" }, href: "/about#story" },
+        { name: { en: "Careers", th: "ร่วมงานกับเรา" }, href: "/careers" },
+        { name: { en: "Press", th: "ข่าวสาร" }, href: "/press" },
+      ],
+    },
+    products: {
+      title: { en: "Products", th: "สินค้า" },
+      links: [
+        { name: { en: "Sofa Covers", th: "ผ้าคลุมโซฟา" }, href: "/products" },
+        { name: { en: "Custom Covers", th: "ผ้าคลุมตามสั่ง" }, href: "/custom-covers" },
+        { name: { en: "Fabric Collections", th: "คอลเลกชันผ้า" }, href: "/fabric-collections" },
+        { name: { en: "Accessories", th: "อุปกรณ์เสริม" }, href: "/products?category=accessories" },
+      ],
+    },
+    support: {
+      title: { en: "Support", th: "ช่วยเหลือ" },
+      links: [
+        { name: { en: "Contact Us", th: "ติดต่อเรา" }, href: "/contact" },
+        { name: { en: "Size Guide", th: "คู่มือขนาด" }, href: "/size-guide" },
+        { name: { en: "Care Instructions", th: "วิธีดูแล" }, href: "/care-guide" },
+        { name: { en: "Returns", th: "การคืนสินค้า" }, href: "/returns" },
+      ],
+    },
+  }
 
-  const services = [
-    { name: { th: "ผ้าคลุมโซฟาตัดตามขนาด", en: "Custom Sofa Covers" } },
-    { name: { th: "หมอนอิงและอุปกรณ์เสริม", en: "Pillows & Accessories" } },
-    { name: { th: "บริการวัดและติดตั้ง", en: "Measurement & Installation" } },
-    { name: { th: "ปรึกษาการเลือกผ้า", en: "Fabric Consultation" } },
-    { name: { th: "ซ่อมแซมและดูแลรักษา", en: "Repair & Maintenance" } },
-  ]
-
-  const handleContactClick = () => {
-    const message =
-      language === "th"
-        ? "สวัสดีครับ/ค่ะ! ผมสนใจผ้าคลุมโซฟา ต้องการสอบถามข้อมูลเพิ่มเติมครับ/ค่ะ"
-        : "Hello! I'm interested in sofa covers. I'd like to know more information."
-
-    const facebookUrl = `https://m.me/your-facebook-page?text=${encodeURIComponent(message)}`
-    window.open(facebookUrl, "_blank")
+  const contactInfo = {
+    address: {
+      en: "123 Fabric Street, Bangkok 10110, Thailand",
+      th: "123 ถนนผ้า กรุงเทพฯ 10110 ประเทศไทย",
+    },
+    phone: "+66 2 123 4567",
+    email: "info@sofacoverpro.com",
+    hours: {
+      en: "Mon-Fri: 9AM-6PM, Sat: 9AM-4PM",
+      th: "จ-ศ: 9:00-18:00, ส: 9:00-16:00",
+    },
   }
 
   return (
     <footer className="bg-gray-900 text-white">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Company Info */}
-          <div className="space-y-4">
-            <div className="flex items-center space-x-2">
-              <img src="/placeholder-logo.svg" alt="Logo" className="h-8 w-8 filter brightness-0 invert" />
-              <span className="text-xl font-bold">{language === "th" ? "ผ้าคลุมโซฟา" : "SofaCover"}</span>
+          <div className="lg:col-span-1">
+            <div className="flex items-center space-x-2 mb-4">
+              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+                <span className="text-white font-bold text-sm">SC</span>
+              </div>
+              <span className="text-xl font-bold">{language === "en" ? "SofaCover Pro" : "โซฟาคัฟเวอร์ โปร"}</span>
             </div>
-            <p className="text-gray-300 text-sm leading-relaxed">
-              {language === "th"
-                ? "ผู้เชี่ยวชาญด้านผ้าคลุมโซฟาตัดตามขนาด ด้วยประสบการณ์กว่า 10 ปี และลูกค้าไว้วางใจมากกว่า 10,000 ราย"
-                : "Specialists in custom sofa covers with over 10 years of experience and 10,000+ satisfied customers"}
+            <p className="text-gray-300 mb-6 text-sm leading-relaxed">
+              {language === "en"
+                ? "Premium quality sofa covers and custom furniture protection solutions. Transform your living space with our beautiful, durable covers."
+                : "ผ้าคลุมโซฟาคุณภาพพรีเมียมและโซลูชันป้องกันเฟอร์นิเจอร์ตามสั่ง เปลี่ยนพื้นที่นั่งเล่นของคุณด้วยผ้าคลุมที่สวยงามและทนทาน"}
             </p>
+
+            {/* Social Media */}
             <div className="flex space-x-4">
-              <a href="#" className="text-gray-400 hover:text-pink-500 transition-colors">
+              <a
+                href="https://facebook.com"
+                className="text-gray-400 hover:text-blue-500 transition-colors"
+                aria-label="Facebook"
+              >
                 <Facebook className="w-5 h-5" />
               </a>
-              <a href="#" className="text-gray-400 hover:text-pink-500 transition-colors">
+              <a
+                href="https://instagram.com"
+                className="text-gray-400 hover:text-pink-500 transition-colors"
+                aria-label="Instagram"
+              >
                 <Instagram className="w-5 h-5" />
               </a>
-              <a href="#" className="text-gray-400 hover:text-pink-500 transition-colors">
-                <Line className="w-5 h-5" />
+              <a
+                href="https://twitter.com"
+                className="text-gray-400 hover:text-blue-400 transition-colors"
+                aria-label="Twitter"
+              >
+                <Twitter className="w-5 h-5" />
               </a>
             </div>
           </div>
 
-          {/* Quick Links */}
-          <div>
-            <h3 className="text-lg font-semibold mb-4">{language === "th" ? "ลิงก์ด่วน" : "Quick Links"}</h3>
-            <ul className="space-y-2">
-              {quickLinks.map((link) => (
-                <li key={link.href}>
-                  <Link href={link.href} className="text-gray-300 hover:text-pink-500 transition-colors text-sm">
-                    {link.name[language]}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
+          {/* Footer Links */}
+          {Object.entries(footerSections).map(([key, section]) => (
+            <div key={key}>
+              <h3 className="text-lg font-semibold mb-4">{section.title[language]}</h3>
+              <ul className="space-y-2">
+                {section.links.map((link, index) => (
+                  <li key={index}>
+                    <Link href={link.href} className="text-gray-300 hover:text-white transition-colors text-sm">
+                      {link.name[language]}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
 
-          {/* Services */}
+          {/* Contact Information */}
           <div>
-            <h3 className="text-lg font-semibold mb-4">{language === "th" ? "บริการของเรา" : "Our Services"}</h3>
-            <ul className="space-y-2">
-              {services.map((service, index) => (
-                <li key={index}>
-                  <span className="text-gray-300 text-sm">{service.name[language]}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Contact Info */}
-          <div>
-            <h3 className="text-lg font-semibold mb-4">{language === "th" ? "ติดต่อเรา" : "Contact Us"}</h3>
+            <h3 className="text-lg font-semibold mb-4">{language === "en" ? "Contact Info" : "ข้อมูลติดต่อ"}</h3>
             <div className="space-y-3">
               <div className="flex items-start space-x-3">
-                <MapPin className="w-5 h-5 text-pink-500 flex-shrink-0 mt-0.5" />
-                <div className="text-sm text-gray-300">
-                  <p>123 ถนนสุขุมวิท แขวงคลองตัน</p>
-                  <p>เขตวัฒนา กรุงเทพฯ 10110</p>
-                </div>
+                <MapPin className="w-4 h-4 text-gray-400 mt-1 flex-shrink-0" />
+                <span className="text-gray-300 text-sm">{contactInfo.address[language]}</span>
               </div>
+
               <div className="flex items-center space-x-3">
-                <Phone className="w-5 h-5 text-pink-500" />
-                <span className="text-sm text-gray-300">02-123-4567</span>
+                <Phone className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                <a href={`tel:${contactInfo.phone}`} className="text-gray-300 hover:text-white text-sm">
+                  {contactInfo.phone}
+                </a>
               </div>
+
               <div className="flex items-center space-x-3">
-                <Mail className="w-5 h-5 text-pink-500" />
-                <span className="text-sm text-gray-300">info@sofacover.com</span>
+                <Mail className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                <a href={`mailto:${contactInfo.email}`} className="text-gray-300 hover:text-white text-sm">
+                  {contactInfo.email}
+                </a>
               </div>
+
               <div className="flex items-start space-x-3">
-                <Clock className="w-5 h-5 text-pink-500 flex-shrink-0 mt-0.5" />
-                <div className="text-sm text-gray-300">
-                  <p>{language === "th" ? "จันทร์-เสาร์: 9:00-18:00" : "Mon-Sat: 9:00-18:00"}</p>
-                  <p>{language === "th" ? "อาทิตย์: 10:00-16:00" : "Sun: 10:00-16:00"}</p>
-                </div>
+                <Clock className="w-4 h-4 text-gray-400 mt-1 flex-shrink-0" />
+                <span className="text-gray-300 text-sm">{contactInfo.hours[language]}</span>
               </div>
             </div>
-            <button
-              onClick={handleContactClick}
-              className="mt-4 bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 flex items-center"
-            >
-              <MessageCircle className="w-4 h-4 mr-2" />
-              {language === "th" ? "แชทเลย" : "Chat Now"}
-            </button>
           </div>
         </div>
 
         {/* Bottom Bar */}
-        <div className="border-t border-gray-800 mt-8 pt-8">
+        <div className="border-t border-gray-800 mt-12 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <p className="text-gray-400 text-sm">
-              © 2024 {language === "th" ? "ผ้าคลุมโซฟา" : "SofaCover"}.{" "}
-              {language === "th" ? "สงวนลิขสิทธิ์" : "All rights reserved"}.
+              © 2024 {language === "en" ? "SofaCover Pro" : "โซฟาคัฟเวอร์ โปร"}.{" "}
+              {language === "en" ? "All rights reserved." : "สงวนลิขสิทธิ์"}
             </p>
+
             <div className="flex space-x-6 mt-4 md:mt-0">
-              <Link href="/privacy" className="text-gray-400 hover:text-pink-500 text-sm transition-colors">
-                {language === "th" ? "นโยบายความเป็นส่วนตัว" : "Privacy Policy"}
+              <Link href="/privacy" className="text-gray-400 hover:text-white text-sm transition-colors">
+                {language === "en" ? "Privacy Policy" : "นโยบายความเป็นส่วนตัว"}
               </Link>
-              <Link href="/terms" className="text-gray-400 hover:text-pink-500 text-sm transition-colors">
-                {language === "th" ? "ข้อกำหนดการใช้งาน" : "Terms of Service"}
+              <Link href="/terms" className="text-gray-400 hover:text-white text-sm transition-colors">
+                {language === "en" ? "Terms of Service" : "ข้อกำหนดการใช้งาน"}
+              </Link>
+              <Link href="/cookies" className="text-gray-400 hover:text-white text-sm transition-colors">
+                {language === "en" ? "Cookie Policy" : "นโยบายคุกกี้"}
               </Link>
             </div>
           </div>

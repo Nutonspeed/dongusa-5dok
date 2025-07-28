@@ -2,156 +2,149 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { Menu, X, ShoppingCart, Search, Globe, MessageCircle, Phone } from "lucide-react"
+import { Menu, X, ShoppingCart, User, Search, Globe } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import { useLanguage } from "../contexts/LanguageContext"
 import { useCart } from "../contexts/CartContext"
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const { language, toggleLanguage } = useLanguage()
+  const { language, setLanguage } = useLanguage()
   const { items } = useCart()
 
   const navigation = [
-    { name: { th: "หน้าแรก", en: "Home" }, href: "/" },
-    { name: { th: "สินค้า", en: "Products" }, href: "/products" },
-    { name: { th: "ลายผ้า", en: "Fabric Gallery" }, href: "/fabric-gallery" },
-    { name: { th: "ตัดตามขนาด", en: "Custom Covers" }, href: "/custom-covers" },
-    { name: { th: "เกี่ยวกับเรา", en: "About" }, href: "/about" },
-    { name: { th: "ติดต่อ", en: "Contact" }, href: "/contact" },
+    {
+      name: { en: "Home", th: "หน้าแรก" },
+      href: "/",
+    },
+    {
+      name: { en: "Products", th: "สินค้า" },
+      href: "/products",
+    },
+    {
+      name: { en: "Custom Covers", th: "ผ้าคลุมตามสั่ง" },
+      href: "/custom-covers",
+    },
+    {
+      name: { en: "Fabric Gallery", th: "แกลเลอรี่ผ้า" },
+      href: "/fabric-gallery",
+    },
+    {
+      name: { en: "Collections", th: "คอลเลกชัน" },
+      href: "/fabric-collections",
+    },
+    {
+      name: { en: "About", th: "เกี่ยวกับเรา" },
+      href: "/about",
+    },
+    {
+      name: { en: "Contact", th: "ติดต่อ" },
+      href: "/contact",
+    },
   ]
 
-  const handleContactClick = () => {
-    const message =
-      language === "th"
-        ? "สวัสดีครับ/ค่ะ! ผมสนใจผ้าคลุมโซฟา ต้องการสอบถามข้อมูลเพิ่มเติมครับ/ค่ะ"
-        : "Hello! I'm interested in sofa covers. I'd like to know more information."
-
-    const facebookUrl = `https://m.me/your-facebook-page?text=${encodeURIComponent(message)}`
-    window.open(facebookUrl, "_blank")
+  const toggleLanguage = () => {
+    setLanguage(language === "en" ? "th" : "en")
   }
 
+  const cartItemCount = items.reduce((total, item) => total + item.quantity, 0)
+
   return (
-    <header className="bg-white shadow-sm sticky top-0 z-50">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+    <header className="bg-white shadow-sm border-b sticky top-0 z-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <Link href="/" className="flex items-center space-x-2">
-            <img src="/placeholder-logo.svg" alt="Logo" className="h-8 w-8" />
-            <span className="text-xl font-bold text-gray-900">{language === "th" ? "ผ้าคลุมโซฟา" : "SofaCover"}</span>
-          </Link>
+          <div className="flex-shrink-0">
+            <Link href="/" className="flex items-center space-x-2">
+              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+                <span className="text-white font-bold text-sm">SC</span>
+              </div>
+              <span className="text-xl font-bold text-gray-900">
+                {language === "en" ? "SofaCover Pro" : "โซฟาคัฟเวอร์ โปร"}
+              </span>
+            </Link>
+          </div>
 
           {/* Desktop Navigation */}
-          <nav className="hidden lg:flex items-center space-x-8">
+          <nav className="hidden md:flex space-x-8">
             {navigation.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
-                className="text-gray-700 hover:text-pink-600 font-medium transition-colors"
+                className="text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium transition-colors"
               >
                 {item.name[language]}
               </Link>
             ))}
           </nav>
 
-          {/* Right Side Actions */}
+          {/* Right side actions */}
           <div className="flex items-center space-x-4">
-            {/* Language Toggle */}
-            <button
-              onClick={toggleLanguage}
-              className="p-2 text-gray-600 hover:text-pink-600 transition-colors"
-              title={language === "th" ? "Switch to English" : "เปลี่ยนเป็นภาษาไทย"}
-            >
-              <Globe className="w-5 h-5" />
-              <span className="ml-1 text-sm font-medium">{language === "th" ? "EN" : "TH"}</span>
-            </button>
-
             {/* Search */}
-            <Link href="/products" className="p-2 text-gray-600 hover:text-pink-600 transition-colors">
-              <Search className="w-5 h-5" />
-            </Link>
-
-            {/* Cart */}
-            <Link href="/cart" className="relative p-2 text-gray-600 hover:text-pink-600 transition-colors">
-              <ShoppingCart className="w-5 h-5" />
-              {items.length > 0 && (
-                <span className="absolute -top-1 -right-1 bg-pink-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                  {items.length}
-                </span>
-              )}
-            </Link>
-
-            {/* Contact Button */}
-            <Button
-              onClick={handleContactClick}
-              size="sm"
-              className="hidden md:flex bg-gradient-to-r from-pink-500 to-rose-600 hover:from-pink-600 hover:to-rose-700 text-white"
-            >
-              <MessageCircle className="w-4 h-4 mr-2" />
-              {language === "th" ? "แชท" : "Chat"}
+            <Button variant="ghost" size="sm" className="hidden sm:flex">
+              <Search className="w-4 h-4" />
             </Button>
 
-            {/* Mobile Menu Button */}
-            <button
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="lg:hidden p-2 text-gray-600 hover:text-pink-600 transition-colors"
-            >
-              {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-            </button>
+            {/* Language Toggle */}
+            <Button variant="ghost" size="sm" onClick={toggleLanguage} className="flex items-center space-x-1">
+              <Globe className="w-4 h-4" />
+              <span className="text-sm font-medium">{language.toUpperCase()}</span>
+            </Button>
+
+            {/* Cart */}
+            <Link href="/cart">
+              <Button variant="ghost" size="sm" className="relative">
+                <ShoppingCart className="w-4 h-4" />
+                {cartItemCount > 0 && (
+                  <Badge className="absolute -top-2 -right-2 w-5 h-5 flex items-center justify-center p-0 text-xs bg-blue-600">
+                    {cartItemCount}
+                  </Badge>
+                )}
+              </Button>
+            </Link>
+
+            {/* User Account */}
+            <Button variant="ghost" size="sm">
+              <User className="w-4 h-4" />
+            </Button>
+
+            {/* Mobile menu button */}
+            <Button variant="ghost" size="sm" className="md:hidden" onClick={() => setIsMenuOpen(!isMenuOpen)}>
+              {isMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </Button>
           </div>
         </div>
 
-        {/* Mobile Menu */}
+        {/* Mobile Navigation */}
         {isMenuOpen && (
-          <div className="lg:hidden border-t border-gray-200 py-4">
-            <nav className="flex flex-col space-y-4">
+          <div className="md:hidden border-t border-gray-200 py-4">
+            <div className="space-y-2">
               {navigation.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}
-                  className="text-gray-700 hover:text-pink-600 font-medium transition-colors px-2 py-1"
+                  className="block px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md transition-colors"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   {item.name[language]}
                 </Link>
               ))}
-              <div className="pt-4 border-t border-gray-200">
-                <Button
-                  onClick={() => {
-                    handleContactClick()
-                    setIsMenuOpen(false)
-                  }}
-                  className="w-full bg-gradient-to-r from-pink-500 to-rose-600 hover:from-pink-600 hover:to-rose-700 text-white"
-                >
-                  <MessageCircle className="w-4 h-4 mr-2" />
-                  {language === "th" ? "ติดต่อเรา" : "Contact Us"}
-                </Button>
+            </div>
+
+            {/* Mobile Search */}
+            <div className="mt-4 px-3">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder={language === "en" ? "Search products..." : "ค้นหาสินค้า..."}
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
               </div>
-            </nav>
+            </div>
           </div>
         )}
-      </div>
-
-      {/* Top Bar with Contact Info */}
-      <div className="bg-gradient-to-r from-pink-500 to-purple-600 text-white py-2">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center text-sm">
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center">
-                <Phone className="w-4 h-4 mr-1" />
-                <span>02-123-4567</span>
-              </div>
-              <div className="hidden sm:block">{language === "th" ? "จัดส่งฟรีทั่วประเทศ" : "Free nationwide delivery"}</div>
-            </div>
-            <div className="flex items-center space-x-4">
-              <div className="hidden sm:block">{language === "th" ? "รับประกัน 1 ปี" : "1 year warranty"}</div>
-              <button onClick={handleContactClick} className="flex items-center hover:underline">
-                <MessageCircle className="w-4 h-4 mr-1" />
-                {language === "th" ? "แชทเลย" : "Chat now"}
-              </button>
-            </div>
-          </div>
-        </div>
       </div>
     </header>
   )
