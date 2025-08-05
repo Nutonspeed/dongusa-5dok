@@ -1,115 +1,159 @@
 "use client"
 
-import { useState } from "react"
-import { useParams } from "next/navigation"
 import Link from "next/link"
-import { ArrowLeft, Star, Heart, ShoppingCart, Truck, Shield, RotateCcw, MessageCircle } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { useLanguage } from "../../contexts/LanguageContext"
-import { useCart } from "../../contexts/CartContext"
-import Header from "../../components/Header"
-import Footer from "../../components/Footer"
 
-// Mock product data (in real app, this would come from API)
-const productData = {
-  "1": {
-    id: "1",
-    name: "ผ้าคลุมโซฟากำมะหยี่พรีเมียม",
-    nameEn: "Premium Velvet Sofa Cover",
-    price: 2299,
-    originalPrice: 2899,
+import { useState, useEffect } from "react"
+import Image from "next/image"
+import { useParams } from "next/navigation"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Star, ShoppingCart, Minus, Plus, Heart, CheckCircle } from "lucide-react"
+import { useCart } from "@/app/contexts/CartContext"
+import { useLanguage } from "@/app/contexts/LanguageContext"
+import Header from "@/app/components/Header"
+import Footer from "@/app/components/Footer"
+import { toast } from "sonner"
+import { Skeleton } from "@/components/ui/skeleton"
+
+// Mock data for a single product (replace with actual API call later)
+const mockProductDetail = {
+  "prod-001": {
+    id: "prod-001",
+    name: "ผ้าคลุมโซฟา 3 ที่นั่ง - คลาสสิค",
+    name_en: "3-Seater Sofa Cover - Classic",
+    description: "ผ้าคลุมโซฟาคุณภาพสูง ทำจากผ้าคอตตอน 100% ให้สัมผัสที่นุ่มสบายและทนทาน เหมาะสำหรับโซฟา 3 ที่นั่งทุกสไตล์",
+    description_en:
+      "High-quality sofa cover made from 100% cotton, offering a soft and durable feel. Perfect for all 3-seater sofa styles.",
+    category: "covers",
+    type: "fixed",
+    price: 2490,
+    originalPrice: 3200,
     images: [
-      "/placeholder.svg?height=500&width=500&text=Velvet+Cover+1",
-      "/placeholder.svg?height=500&width=500&text=Velvet+Cover+2",
-      "/placeholder.svg?height=500&width=500&text=Velvet+Cover+3",
-      "/placeholder.svg?height=500&width=500&text=Velvet+Cover+4",
+      "/classic-elegant-fabric-pattern-1.png",
+      "/classic-elegant-fabric-pattern-2.png",
+      "/classic-elegant-fabric-pattern-3.png",
+      "/classic-elegant-fabric-pattern-4.png",
     ],
-    category: "premium",
-    rating: 4.8,
-    reviews: 124,
     colors: [
-      { name: "Navy", nameEn: "Navy", value: "#1e3a8a" },
-      { name: "เทา", nameEn: "Gray", value: "#6b7280" },
-      { name: "เบจ", nameEn: "Beige", value: "#d2b48c" },
+      { name: "เบจ", name_en: "Beige", value: "#F5F5DC" },
+      { name: "เทา", name_en: "Gray", value: "#808080" },
+      { name: "น้ำเงิน", name_en: "Navy", value: "#000080" },
+      { name: "เขียวมิ้นต์", name_en: "Mint Green", value: "#98FF98" },
     ],
     sizes: [
-      { name: "1 ที่นั่ง", nameEn: "1-seat", price: 2299 },
-      { name: "2 ที่นั่ง", nameEn: "2-seat", price: 2799 },
-      { name: "3 ที่นั่ง", nameEn: "3-seat", price: 3299 },
+      { name: "S", name_en: "S", price: 0 },
+      { name: "M", name_en: "M", price: 100 },
+      { name: "L", name_en: "L", price: 200 },
     ],
-    description: {
-      th: "ผ้าคลุมโซฟากำมะหยี่พรีเมียมที่ให้ความนุ่มสบายและหรูหรา ทำจากเส้นใยคุณภาพสูง ทนทานต่อการใช้งาน ง่ายต่อการดูแลรักษา",
-      en: "Premium velvet sofa cover that provides comfort and luxury. Made from high-quality fibers, durable and easy to maintain.",
-    },
     features: {
-      th: [
-        "ผ้ากำมะหยี่คุณภาพพรีเมียม",
-        "ยืดหยุ่นได้ดี พอดีกับโซฟาทุกรูปทรง",
-        "ป้องกันรอยขีดข่วนและคราบสกปรก",
-        "ซักเครื่องได้ ง่ายต่อการดูแล",
-        "สีไม่ตก ไม่ซีด",
-      ],
-      en: [
-        "Premium quality velvet fabric",
-        "Highly stretchable, fits all sofa shapes",
-        "Protects against scratches and stains",
-        "Machine washable, easy to care",
-        "Colorfast, fade-resistant",
-      ],
+      th: ["กันน้ำ", "ซักได้", "ป้องกันขนสัตว์", "ติดตั้งง่าย", "ระบายอากาศดี"],
+      en: ["Waterproof", "Washable", "Pet-friendly", "Easy installation", "Breathable"],
     },
     specifications: {
-      material: { th: "กำมะหยี่ 95% โพลีเอสเตอร์ 5% สแปนเด็กซ์", en: "95% Polyester Velvet, 5% Spandex" },
-      care: { th: "ซักเครื่องน้ำเย็น ห้ามฟอกขาว", en: "Machine wash cold, do not bleach" },
+      material: { th: "ผ้าคอตตอน 100%", en: "100% Cotton" },
+      care: { th: "ซักเครื่องได้ที่อุณหภูมิ 30°C", en: "Machine washable at 30°C" },
       origin: { th: "ผลิตในประเทศไทย", en: "Made in Thailand" },
-      warranty: { th: "รับประกัน 1 ปี", en: "1 Year Warranty" },
+      warranty: { th: "รับประกัน 1 ปี", en: "1 Year warranty" },
     },
+    stock: 25,
+    status: "active",
+    rating: 4.8,
+    reviews_count: 156,
+    sold_count: 89,
     bestseller: true,
-    discount: 21,
-    inStock: true,
+    discount: 0.22,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
   },
+  "prod-002": {
+    id: "prod-002",
+    name: "ผ้าคลุมโซฟา 2 ที่นั่ง - โมเดิร์น",
+    name_en: "2-Seater Sofa Cover - Modern",
+    description: "ผ้าคลุมโซฟาสไตล์โมเดิร์น เหมาะกับบ้านสมัยใหม่ ให้ความรู้สึกเรียบง่ายแต่หรูหรา",
+    description_en: "Modern style sofa cover perfect for contemporary homes, offering a simple yet elegant feel.",
+    category: "covers",
+    type: "fixed",
+    price: 1990,
+    originalPrice: 2500,
+    images: [
+      "/modern-minimalist-fabric-pattern-1.png",
+      "/modern-minimalist-fabric-pattern-2.png",
+      "/modern-minimalist-fabric-pattern-3.png",
+    ],
+    colors: [
+      { name: "ขาว", name_en: "White", value: "#FFFFFF" },
+      { name: "ดำ", name_en: "Black", value: "#000000" },
+      { name: "เทาอ่อน", name_en: "Light Gray", value: "#D3D3D3" },
+    ],
+    features: {
+      th: ["ยืดหยุ่น", "ระบายอากาศดี", "ต้านคราบ", "แห้งเร็ว"],
+      en: ["Stretchable", "Breathable", "Stain resistant", "Quick dry"],
+    },
+    specifications: {
+      material: { th: "ผ้าโพลีเอสเตอร์", en: "Polyester blend" },
+      care: { th: "ซักเครื่องได้ 30°C", en: "Machine wash 30°C" },
+      origin: { th: "ผลิตในประเทศไทย", en: "Made in Thailand" },
+      warranty: { th: "รับประกัน 6 เดือน", en: "6 Months warranty" },
+    },
+    stock: 15,
+    status: "active",
+    rating: 4.7,
+    reviews_count: 89,
+    sold_count: 67,
+    bestseller: false,
+    discount: 0.2,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  },
+  // Add more mock products as needed
 }
 
 export default function ProductDetailPage() {
-  const params = useParams()
-  const { language, t } = useLanguage()
+  const { id } = useParams()
   const { addItem } = useCart()
-  const [selectedImage, setSelectedImage] = useState(0)
-  const [selectedColor, setSelectedColor] = useState(0)
-  const [selectedSize, setSelectedSize] = useState(0)
+  const { language, t } = useLanguage()
+  const [product, setProduct] = useState<(typeof mockProductDetail)[keyof typeof mockProductDetail] | null>(null)
+  const [loading, setLoading] = useState(true)
   const [quantity, setQuantity] = useState(1)
+  const [selectedColor, setSelectedColor] = useState<string | null>(null)
+  const [selectedSize, setSelectedSize] = useState<string | null>(null)
+  const [mainImage, setMainImage] = useState<string | null>(null)
 
-  const product = productData[params.id as keyof typeof productData]
-
-  if (!product) {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <Header />
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">
-            {language === "th" ? "ไม่พบสินค้า" : "Product not found"}
-          </h1>
-          <Link href="/products">
-            <Button variant="outline">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              {language === "th" ? "กลับไปหน้าสินค้า" : "Back to Products"}
-            </Button>
-          </Link>
-        </div>
-        <Footer />
-      </div>
-    )
-  }
+  useEffect(() => {
+    if (id) {
+      setLoading(true)
+      // Simulate API call
+      setTimeout(() => {
+        const foundProduct = mockProductDetail[id as keyof typeof mockProductDetail]
+        if (foundProduct) {
+          setProduct(foundProduct)
+          setMainImage(foundProduct.images[0]) // Set first image as main
+          setSelectedColor(foundProduct.colors[0]?.value || null) // Select first color by default
+          setSelectedSize(foundProduct.sizes?.[0]?.name || null) // Select first size by default
+        } else {
+          // Handle product not found
+          console.error("Product not found")
+        }
+        setLoading(false)
+      }, 500)
+    }
+  }, [id])
 
   const handleAddToCart = () => {
-    addItem({
-      id: `${product.id}-${selectedColor}-${selectedSize}`,
-      name: `${language === "th" ? product.name : product.nameEn} - ${
-        product.colors[selectedColor][language === "th" ? "name" : "nameEn"]
-      } - ${product.sizes[selectedSize][language === "th" ? "name" : "nameEn"]}`,
-      price: product.sizes[selectedSize].price,
+    if (!product) return
+
+    const itemToAdd = {
+      id: product.id,
+      name: language === "th" ? product.name : product.name_en,
+      price: product.price + (product.sizes?.find((s) => s.name === selectedSize)?.price || 0),
       image: product.images[0],
-    })
+      quantity: quantity,
+      color: selectedColor ? product.colors.find((c) => c.value === selectedColor)?.name : undefined,
+      size: selectedSize || undefined,
+    }
+    addItem(itemToAdd)
+    toast.success(t("product-detail.added-to-cart"))
   }
 
   const formatPrice = (price: number) => {
@@ -119,284 +163,290 @@ export default function ProductDetailPage() {
     }).format(price)
   }
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <Header />
+  const currentPrice = product ? product.price + (product.sizes?.find((s) => s.name === selectedSize)?.price || 0) : 0
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Breadcrumb */}
-        <nav className="flex items-center space-x-2 text-sm text-gray-600 mb-8">
-          <Link href="/" className="hover:text-pink-600">
-            {language === "th" ? "หน้าแรก" : "Home"}
-          </Link>
-          <span>/</span>
-          <Link href="/products" className="hover:text-pink-600">
-            {language === "th" ? "สินค้า" : "Products"}
-          </Link>
-          <span>/</span>
-          <span className="text-gray-900">{language === "th" ? product.name : product.nameEn}</span>
-        </nav>
+  if (loading) {
+    return (
+      <div className="min-h-screen flex flex-col bg-gray-50">
+        <Header />
+        <main className="flex-1 py-8">
+          <div className="container mx-auto px-4">
+            <div className="grid md:grid-cols-2 gap-8">
+              {/* Image Gallery Skeleton */}
+              <div>
+                <Skeleton className="w-full h-[400px] rounded-lg mb-4" />
+                <div className="flex gap-2">
+                  {Array.from({ length: 4 }).map((_, i) => (
+                    <Skeleton key={i} className="w-20 h-20 rounded-lg" />
+                  ))}
+                </div>
+              </div>
 
-        <div className="grid lg:grid-cols-2 gap-12">
-          {/* Product Images */}
-          <div className="space-y-4">
-            {/* Main Image */}
-            <div className="aspect-square bg-white rounded-lg overflow-hidden shadow-sm">
-              <img
-                src={product.images[selectedImage] || "/placeholder.svg"}
-                alt={language === "th" ? product.name : product.nameEn}
-                className="w-full h-full object-cover"
-              />
-            </div>
-
-            {/* Thumbnail Images */}
-            <div className="grid grid-cols-4 gap-2">
-              {product.images.map((image, index) => (
-                <button
-                  key={index}
-                  onClick={() => setSelectedImage(index)}
-                  className={`aspect-square bg-white rounded-lg overflow-hidden border-2 transition-colors ${
-                    selectedImage === index ? "border-pink-500" : "border-gray-200 hover:border-gray-300"
-                  }`}
-                >
-                  <img
-                    src={image || "/placeholder.svg"}
-                    alt={`Product ${index + 1}`}
-                    className="w-full h-full object-cover"
-                  />
-                </button>
-              ))}
+              {/* Product Info Skeleton */}
+              <div>
+                <Skeleton className="h-8 w-3/4 mb-4" />
+                <Skeleton className="h-6 w-1/2 mb-4" />
+                <Skeleton className="h-4 w-full mb-2" />
+                <Skeleton className="h-4 w-5/6 mb-6" />
+                <Skeleton className="h-10 w-32 mb-4" /> {/* Price */}
+                <div className="flex gap-2 mb-4">
+                  <Skeleton className="h-8 w-20" />
+                  <Skeleton className="h-8 w-20" />
+                </div>
+                <Skeleton className="h-12 w-full mb-4" /> {/* Add to Cart */}
+                <Skeleton className="h-4 w-full mb-2" />
+                <Skeleton className="h-4 w-full mb-2" />
+                <Skeleton className="h-4 w-full mb-2" />
+              </div>
             </div>
           </div>
+        </main>
+        <Footer />
+      </div>
+    )
+  }
 
-          {/* Product Info */}
-          <div className="space-y-6">
-            {/* Badges */}
-            <div className="flex space-x-2">
-              {product.bestseller && (
-                <Badge className="bg-pink-600 text-white">{language === "th" ? "ขายดี" : "Bestseller"}</Badge>
-              )}
-              {product.discount > 0 && <Badge variant="destructive">-{product.discount}%</Badge>}
+  if (!product) {
+    return (
+      <div className="min-h-screen flex flex-col bg-gray-50">
+        <Header />
+        <main className="flex-1 py-16 text-center text-gray-600">
+          <h1 className="text-2xl font-bold mb-4">{t("product-detail.not-found")}</h1>
+          <p>{t("product-detail.not-found-message")}</p>
+          <Button asChild className="mt-6 bg-pink-600 hover:bg-pink-700">
+            <Link href="/products">{t("product-detail.back-to-products")}</Link>
+          </Button>
+        </main>
+        <Footer />
+      </div>
+    )
+  }
+
+  return (
+    <div className="min-h-screen flex flex-col bg-gray-50">
+      <Header />
+      <main className="flex-1 py-8">
+        <div className="container mx-auto px-4">
+          <div className="grid md:grid-cols-2 gap-8 lg:gap-12">
+            {/* Product Image Gallery */}
+            <div>
+              <div className="relative w-full aspect-square rounded-lg overflow-hidden mb-4 shadow-lg">
+                <Image
+                  src={mainImage || product.images[0] || "/placeholder.svg"}
+                  alt={language === "th" ? product.name : product.name_en}
+                  layout="fill"
+                  objectFit="cover"
+                  className="transition-transform duration-300 hover:scale-105"
+                />
+              </div>
+              <div className="flex gap-2 overflow-x-auto pb-2">
+                {product.images.map((img, index) => (
+                  <div
+                    key={index}
+                    className={`w-20 h-20 flex-shrink-0 rounded-lg overflow-hidden cursor-pointer border-2 ${
+                      mainImage === img ? "border-pink-600" : "border-transparent"
+                    } hover:border-pink-400 transition-colors`}
+                    onClick={() => setMainImage(img)}
+                  >
+                    <Image
+                      src={img || "/placeholder.svg"}
+                      alt={`${language === "th" ? product.name : product.name_en} - ${index + 1}`}
+                      width={80}
+                      height={80}
+                      objectFit="cover"
+                    />
+                  </div>
+                ))}
+              </div>
             </div>
 
-            {/* Title and Rating */}
+            {/* Product Details */}
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                {language === "th" ? product.name : product.nameEn}
+              <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-2">
+                {language === "th" ? product.name : product.name_en}
               </h1>
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center gap-2 mb-4">
                 <div className="flex items-center">
-                  {[...Array(5)].map((_, i) => (
+                  {Array.from({ length: 5 }).map((_, i) => (
                     <Star
                       key={i}
-                      className={`w-4 h-4 ${
+                      className={`w-5 h-5 ${
                         i < Math.floor(product.rating) ? "text-yellow-400 fill-current" : "text-gray-300"
                       }`}
                     />
                   ))}
                 </div>
-                <span className="text-sm text-gray-600">
-                  {product.rating} ({product.reviews} {language === "th" ? "รีวิว" : "reviews"})
+                <span className="text-gray-600">
+                  {product.rating} ({product.reviews_count} {t("product-detail.reviews")})
                 </span>
               </div>
-            </div>
 
-            {/* Price */}
-            <div className="flex items-center space-x-3">
-              <span className="text-3xl font-bold text-pink-600">{formatPrice(product.sizes[selectedSize].price)}</span>
-              {product.originalPrice > product.price && (
-                <span className="text-xl text-gray-500 line-through">{formatPrice(product.originalPrice)}</span>
-              )}
-            </div>
+              <p className="text-gray-700 leading-relaxed mb-6">
+                {language === "th" ? product.description : product.description_en}
+              </p>
 
-            {/* Description */}
-            <p className="text-gray-600 leading-relaxed">{product.description[language]}</p>
-
-            {/* Color Selection */}
-            <div>
-              <h3 className="font-semibold text-gray-900 mb-3">
-                {language === "th" ? "สี" : "Color"}:{" "}
-                {product.colors[selectedColor][language === "th" ? "name" : "nameEn"]}
-              </h3>
-              <div className="flex space-x-2">
-                {product.colors.map((color, index) => (
-                  <button
-                    key={index}
-                    onClick={() => setSelectedColor(index)}
-                    className={`w-8 h-8 rounded-full border-2 transition-colors ${
-                      selectedColor === index ? "border-pink-500 ring-2 ring-pink-200" : "border-gray-300"
-                    }`}
-                    style={{ backgroundColor: color.value }}
-                    title={color[language === "th" ? "name" : "nameEn"]}
-                  />
-                ))}
+              {/* Price */}
+              <div className="flex items-center gap-3 mb-6">
+                <span className="text-4xl font-bold text-pink-600">{formatPrice(currentPrice)}</span>
+                {product.originalPrice && product.discount > 0 && (
+                  <span className="text-xl text-gray-500 line-through">{formatPrice(product.originalPrice)}</span>
+                )}
+                {product.discount > 0 && (
+                  <Badge variant="destructive" className="text-lg px-3 py-1">
+                    -{Math.round(product.discount * 100)}%
+                  </Badge>
+                )}
               </div>
-            </div>
 
-            {/* Size Selection */}
-            <div>
-              <h3 className="font-semibold text-gray-900 mb-3">
-                {language === "th" ? "ขนาด" : "Size"}:{" "}
-                {product.sizes[selectedSize][language === "th" ? "name" : "nameEn"]}
-              </h3>
-              <div className="grid grid-cols-3 gap-2">
-                {product.sizes.map((size, index) => (
-                  <button
-                    key={index}
-                    onClick={() => setSelectedSize(index)}
-                    className={`p-3 border rounded-lg text-sm font-medium transition-colors ${
-                      selectedSize === index
-                        ? "border-pink-500 bg-pink-50 text-pink-700"
-                        : "border-gray-300 hover:border-gray-400"
-                    }`}
-                  >
-                    <div>{size[language === "th" ? "name" : "nameEn"]}</div>
-                    <div className="text-xs text-gray-500">{formatPrice(size.price)}</div>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Quantity */}
-            <div>
-              <h3 className="font-semibold text-gray-900 mb-3">{language === "th" ? "จำนวน" : "Quantity"}</h3>
-              <div className="flex items-center space-x-3">
-                <button
-                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                  className="w-10 h-10 border border-gray-300 rounded-lg flex items-center justify-center hover:bg-gray-50"
-                >
-                  -
-                </button>
-                <span className="w-12 text-center font-medium">{quantity}</span>
-                <button
-                  onClick={() => setQuantity(quantity + 1)}
-                  className="w-10 h-10 border border-gray-300 rounded-lg flex items-center justify-center hover:bg-gray-50"
-                >
-                  +
-                </button>
-              </div>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex space-x-4">
-              <Button
-                onClick={handleAddToCart}
-                className="flex-1 bg-gradient-to-r from-pink-500 to-rose-600 hover:from-pink-600 hover:to-rose-700 text-white"
-                size="lg"
-              >
-                <ShoppingCart className="w-5 h-5 mr-2" />
-                {language === "th" ? "เพิ่มลงตะกร้า" : "Add to Cart"}
-              </Button>
-              <Button variant="outline" size="lg" className="px-6 bg-transparent">
-                <Heart className="w-5 h-5" />
-              </Button>
-            </div>
-
-            {/* Features */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-6 border-t">
-              <div className="flex items-center space-x-2">
-                <Truck className="w-5 h-5 text-pink-600" />
-                <span className="text-sm text-gray-600">{language === "th" ? "จัดส่งฟรี" : "Free Shipping"}</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Shield className="w-5 h-5 text-pink-600" />
-                <span className="text-sm text-gray-600">{language === "th" ? "รับประกัน 1 ปี" : "1 Year Warranty"}</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RotateCcw className="w-5 h-5 text-pink-600" />
-                <span className="text-sm text-gray-600">{language === "th" ? "คืนได้ 30 วัน" : "30-Day Returns"}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Product Details Tabs */}
-        <div className="mt-16">
-          <div className="bg-white rounded-lg shadow-sm">
-            <div className="border-b">
-              <nav className="flex space-x-8 px-6">
-                <button className="py-4 border-b-2 border-pink-500 text-pink-600 font-medium">
-                  {language === "th" ? "รายละเอียด" : "Details"}
-                </button>
-                <button className="py-4 text-gray-500 hover:text-gray-700">
-                  {language === "th" ? "คุณสมบัติ" : "Features"}
-                </button>
-                <button className="py-4 text-gray-500 hover:text-gray-700">
-                  {language === "th" ? "รีวิว" : "Reviews"}
-                </button>
-              </nav>
-            </div>
-
-            <div className="p-6">
-              <div className="grid md:grid-cols-2 gap-8">
-                <div>
-                  <h3 className="font-semibold text-gray-900 mb-4">
-                    {language === "th" ? "คุณสมบัติเด่น" : "Key Features"}
+              {/* Options: Color */}
+              {product.colors && product.colors.length > 0 && (
+                <div className="mb-6">
+                  <h3 className="font-semibold text-gray-800 mb-3">
+                    {t("product-detail.color")}:{" "}
+                    {selectedColor
+                      ? language === "th"
+                        ? product.colors.find((c) => c.value === selectedColor)?.name
+                        : product.colors.find((c) => c.value === selectedColor)?.name_en
+                      : ""}
                   </h3>
-                  <ul className="space-y-2">
-                    {product.features[language].map((feature, index) => (
-                      <li key={index} className="flex items-start space-x-2">
-                        <div className="w-2 h-2 bg-pink-500 rounded-full mt-2 flex-shrink-0"></div>
-                        <span className="text-gray-600">{feature}</span>
+                  <div className="flex flex-wrap gap-3">
+                    {product.colors.map((color) => (
+                      <button
+                        key={color.value}
+                        className={`w-8 h-8 rounded-full border-2 ${
+                          selectedColor === color.value ? "border-pink-600 ring-2 ring-pink-300" : "border-gray-300"
+                        } transition-all duration-200`}
+                        style={{ backgroundColor: color.value }}
+                        onClick={() => setSelectedColor(color.value)}
+                        aria-label={language === "th" ? color.name : color.name_en}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Options: Size */}
+              {product.sizes && product.sizes.length > 0 && (
+                <div className="mb-6">
+                  <h3 className="font-semibold text-gray-800 mb-3">
+                    {t("product-detail.size")}: {selectedSize}
+                  </h3>
+                  <div className="flex flex-wrap gap-3">
+                    {product.sizes.map((size) => (
+                      <Button
+                        key={size.name}
+                        variant={selectedSize === size.name ? "default" : "outline"}
+                        className={
+                          selectedSize === size.name
+                            ? "bg-pink-600 hover:bg-pink-700 text-white"
+                            : "bg-white hover:bg-gray-100"
+                        }
+                        onClick={() => setSelectedSize(size.name)}
+                      >
+                        {language === "th" ? size.name : size.name_en}{" "}
+                        {size.price > 0 && `(+${formatPrice(size.price)})`}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Quantity Selector */}
+              <div className="flex items-center gap-4 mb-6">
+                <h3 className="font-semibold text-gray-800">{t("product-detail.quantity")}:</h3>
+                <div className="flex items-center border border-gray-300 rounded-lg">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                    className="rounded-r-none"
+                  >
+                    <Minus className="w-4 h-4" />
+                  </Button>
+                  <span className="w-10 text-center font-medium">{quantity}</span>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setQuantity(quantity + 1)}
+                    className="rounded-l-none"
+                  >
+                    <Plus className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-4 mb-8">
+                <Button
+                  className="flex-1 bg-pink-600 hover:bg-pink-700 text-white text-lg py-3"
+                  onClick={handleAddToCart}
+                  disabled={
+                    product.stock === 0 ||
+                    (product.colors.length > 0 && !selectedColor) ||
+                    (product.sizes && product.sizes.length > 0 && !selectedSize)
+                  }
+                >
+                  <ShoppingCart className="w-5 h-5 mr-2" />
+                  {product.stock === 0 ? t("product-detail.out-of-stock") : t("product-detail.add-to-cart")}
+                </Button>
+                <Button variant="outline" size="lg" className="w-12 h-12 p-0 bg-transparent">
+                  <Heart className="w-6 h-6 text-gray-600" />
+                </Button>
+              </div>
+
+              {/* Product Features */}
+              <Card className="mb-6 shadow-sm">
+                <CardHeader>
+                  <CardTitle className="text-xl font-bold text-gray-900">{t("product-detail.features")}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-gray-700">
+                    {(language === "th" ? product.features.th : product.features.en).map((feature, index) => (
+                      <li key={index} className="flex items-center gap-2">
+                        <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
+                        {feature}
                       </li>
                     ))}
                   </ul>
-                </div>
+                </CardContent>
+              </Card>
 
-                <div>
-                  <h3 className="font-semibold text-gray-900 mb-4">
-                    {language === "th" ? "ข้อมูลจำเพาะ" : "Specifications"}
-                  </h3>
-                  <dl className="space-y-3">
+              {/* Product Specifications */}
+              <Card className="shadow-sm">
+                <CardHeader>
+                  <CardTitle className="text-xl font-bold text-gray-900">
+                    {t("product-detail.specifications")}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-gray-700">
                     <div>
-                      <dt className="text-sm font-medium text-gray-500">{language === "th" ? "วัสดุ" : "Material"}</dt>
-                      <dd className="text-gray-900">{product.specifications.material[language]}</dd>
+                      <p className="font-semibold">{t("product-detail.material")}:</p>
+                      <p>
+                        {language === "th" ? product.specifications.material.th : product.specifications.material.en}
+                      </p>
                     </div>
                     <div>
-                      <dt className="text-sm font-medium text-gray-500">
-                        {language === "th" ? "การดูแล" : "Care Instructions"}
-                      </dt>
-                      <dd className="text-gray-900">{product.specifications.care[language]}</dd>
+                      <p className="font-semibold">{t("product-detail.care")}:</p>
+                      <p>{language === "th" ? product.specifications.care.th : product.specifications.care.en}</p>
                     </div>
                     <div>
-                      <dt className="text-sm font-medium text-gray-500">{language === "th" ? "แหล่งผลิต" : "Origin"}</dt>
-                      <dd className="text-gray-900">{product.specifications.origin[language]}</dd>
+                      <p className="font-semibold">{t("product-detail.origin")}:</p>
+                      <p>{language === "th" ? product.specifications.origin.th : product.specifications.origin.en}</p>
                     </div>
                     <div>
-                      <dt className="text-sm font-medium text-gray-500">
-                        {language === "th" ? "การรับประกัน" : "Warranty"}
-                      </dt>
-                      <dd className="text-gray-900">{product.specifications.warranty[language]}</dd>
+                      <p className="font-semibold">{t("product-detail.warranty")}:</p>
+                      <p>
+                        {language === "th" ? product.specifications.warranty.th : product.specifications.warranty.en}
+                      </p>
                     </div>
-                  </dl>
-                </div>
-              </div>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           </div>
         </div>
-
-        {/* Contact Section */}
-        <div className="mt-12 bg-gradient-to-r from-pink-600 to-rose-700 rounded-lg p-8 text-white text-center">
-          <h3 className="text-2xl font-bold mb-4">{language === "th" ? "ต้องการคำปรึกษา?" : "Need Consultation?"}</h3>
-          <p className="mb-6">
-            {language === "th"
-              ? "ทีมผู้เชี่ยวชาญพร้อมให้คำแนะนำเรื่องการเลือกผ้าคลุมโซฟาที่เหมาะสม"
-              : "Our expert team is ready to help you choose the perfect sofa cover"}
-          </p>
-          <Button
-            onClick={() => {
-              const message = `สวัสดีครับ/ค่ะ! ผมสนใจสินค้า "${product.name}" ช่วยให้คำแนะนำเพิ่มเติมได้ไหมครับ/ค่ะ?`
-              const facebookUrl = `https://m.me/your-facebook-page?text=${encodeURIComponent(message)}`
-              window.open(facebookUrl, "_blank")
-            }}
-            className="bg-white text-pink-600 hover:bg-gray-100"
-          >
-            <MessageCircle className="w-5 h-5 mr-2" />
-            {language === "th" ? "แชทใน Facebook" : "Chat on Facebook"}
-          </Button>
-        </div>
       </main>
-
       <Footer />
     </div>
   )
