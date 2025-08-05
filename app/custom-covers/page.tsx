@@ -1,11 +1,19 @@
 "use client"
 
 import type React from "react"
-
-import { useState } from "react"
-import { Calculator, MessageCircle } from "lucide-react"
+import { useState, useEffect } from "react"
+import { Calculator, MessageCircle, CheckCircle, Phone } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Textarea } from "@/components/ui/textarea"
+import { useLanguage } from "@/app/contexts/LanguageContext" // Assuming LanguageContext is available
 
 export default function CustomCoversPage() {
+  const { t } = useLanguage() // Use translation hook
+
   const [measurements, setMeasurements] = useState({
     sofaType: "",
     width: "",
@@ -38,14 +46,19 @@ export default function CustomCoversPage() {
     { value: "outdoor", label: "Outdoor Fabric", multiplier: 1.6 },
   ]
 
+  // Effect to recalculate price whenever measurements or fabric change
+  useEffect(() => {
+    calculatePrice()
+  }, [measurements, selectedFabric])
+
   const calculatePrice = () => {
-    const sofaType = sofaTypes.find((type) => type.value === measurements.sofaType)
-    const fabric = fabricTypes.find((type) => type.value === selectedFabric)
+    const sofaTypeData = sofaTypes.find((type) => type.value === measurements.sofaType)
+    const fabricTypeData = fabricTypes.find((type) => type.value === selectedFabric)
 
-    if (sofaType && fabric) {
-      let price = sofaType.basePrice * fabric.multiplier
+    if (sofaTypeData && fabricTypeData) {
+      let price = sofaTypeData.basePrice * fabricTypeData.multiplier
 
-      // Add complexity based on measurements
+      // Add complexity based on measurements (example logic)
       const width = Number.parseFloat(measurements.width) || 0
       const depth = Number.parseFloat(measurements.depth) || 0
 
@@ -53,7 +66,9 @@ export default function CustomCoversPage() {
         price *= 1.2 // 20% surcharge for oversized
       }
 
-      setEstimatedPrice(Math.round(price))
+      setEstimatedPrice(Math.round(price * 35)) // Convert to THB (example rate)
+    } else {
+      setEstimatedPrice(0)
     }
   }
 
@@ -61,265 +76,284 @@ export default function CustomCoversPage() {
     e.preventDefault()
 
     const orderDetails = `
-Custom Sofa Cover Order Request:
+คำขอสั่งทำผ้าคลุมโซฟาแบบพิเศษ:
 
-Sofa Type: ${sofaTypes.find((type) => type.value === measurements.sofaType)?.label}
-Fabric: ${fabricTypes.find((type) => type.value === selectedFabric)?.label}
+ประเภทโซฟา: ${sofaTypes.find((type) => type.value === measurements.sofaType)?.label || "ไม่ได้ระบุ"}
+ประเภทผ้า: ${fabricTypes.find((type) => type.value === selectedFabric)?.label || "ไม่ได้ระบุ"}
 
-Measurements:
-- Width: ${measurements.width} inches
-- Depth: ${measurements.depth} inches  
-- Height: ${measurements.height} inches
-- Arm Height: ${measurements.armHeight} inches
-- Back Height: ${measurements.backHeight} inches
+ขนาด:
+- ความกว้าง: ${measurements.width || "ไม่ได้ระบุ"} นิ้ว
+- ความลึก: ${measurements.depth || "ไม่ได้ระบุ"} นิ้ว
+- ความสูงโดยรวม: ${measurements.height || "ไม่ได้ระบุ"} นิ้ว
+- ความสูงที่วางแขน: ${measurements.armHeight || "ไม่ได้ระบุ"} นิ้ว
+- ความสูงพนักพิง: ${measurements.backHeight || "ไม่ได้ระบุ"} นิ้ว
 
-Additional Notes: ${measurements.additionalNotes}
+หมายเหตุเพิ่มเติม: ${measurements.additionalNotes || "ไม่มี"}
 
-Estimated Price: $${estimatedPrice}
+ราคาประมาณการ: ${estimatedPrice > 0 ? `฿${estimatedPrice}` : "ยังไม่สามารถประมาณการได้"}
 
-Please provide a detailed quote and timeline for this custom order.
+กรุณาให้ใบเสนอราคาและระยะเวลาการผลิตสำหรับคำสั่งซื้อพิเศษนี้
     `
 
+    // Replace 'your-facebook-page' with your actual Facebook page ID or username
     const facebookUrl = `https://m.me/your-facebook-page?text=${encodeURIComponent(orderDetails)}`
     window.open(facebookUrl, "_blank")
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 py-12">
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">Custom Sofa Covers</h1>
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">สั่งทำผ้าคลุมโซฟาแบบพิเศษ</h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Get a perfectly fitted cover made specifically for your furniture. Fill out the form below to get your
-            custom quote.
+            รับผ้าคลุมที่พอดีเป๊ะสำหรับโซฟาของคุณโดยเฉพาะ กรอกแบบฟอร์มด้านล่างเพื่อรับใบเสนอราคาแบบกำหนดเอง
           </p>
         </div>
 
         <div className="grid lg:grid-cols-2 gap-12">
           {/* Measurement Form */}
-          <div className="bg-white rounded-lg shadow-lg p-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
-              <Calculator className="w-6 h-6 mr-2 text-blue-600" />
-              Measurements & Details
-            </h2>
-
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Sofa Type *</label>
-                <select
-                  value={measurements.sofaType}
-                  onChange={(e) => {
-                    setMeasurements({ ...measurements, sofaType: e.target.value })
-                    calculatePrice()
-                  }}
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  required
-                >
-                  <option value="">Select your sofa type</option>
-                  {sofaTypes.map((type) => (
-                    <option key={type.value} value={type.value}>
-                      {type.label} (from ${type.basePrice})
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Fabric Type *</label>
-                <select
-                  value={selectedFabric}
-                  onChange={(e) => {
-                    setSelectedFabric(e.target.value)
-                    calculatePrice()
-                  }}
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  required
-                >
-                  <option value="">Select fabric type</option>
-                  {fabricTypes.map((fabric) => (
-                    <option key={fabric.value} value={fabric.value}>
-                      {fabric.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="grid md:grid-cols-2 gap-4">
+          <Card className="bg-white rounded-lg shadow-xl p-8">
+            <CardHeader className="p-0 mb-6">
+              <CardTitle className="text-2xl font-bold text-gray-900 flex items-center">
+                <Calculator className="w-6 h-6 mr-2 text-blue-600" />
+                ขนาดและรายละเอียด
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Width (inches) *</label>
-                  <input
-                    type="number"
-                    value={measurements.width}
-                    onChange={(e) => {
-                      setMeasurements({ ...measurements, width: e.target.value })
-                      calculatePrice()
-                    }}
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="e.g., 84"
+                  <Label htmlFor="sofaType" className="mb-2">
+                    ประเภทโซฟา *
+                  </Label>
+                  <Select
+                    value={measurements.sofaType}
+                    onValueChange={(value) => setMeasurements({ ...measurements, sofaType: value })}
                     required
-                  />
+                  >
+                    <SelectTrigger className="w-full p-3">
+                      <SelectValue placeholder="เลือกประเภทโซฟาของคุณ" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {sofaTypes.map((type) => (
+                        <SelectItem key={type.value} value={type.value}>
+                          {type.label} (เริ่มต้น ฿{Math.round(type.basePrice * 35)})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
+
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Depth (inches) *</label>
-                  <input
-                    type="number"
-                    value={measurements.depth}
-                    onChange={(e) => {
-                      setMeasurements({ ...measurements, depth: e.target.value })
-                      calculatePrice()
-                    }}
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="e.g., 36"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="grid md:grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Overall Height (inches)</label>
-                  <input
-                    type="number"
-                    value={measurements.height}
-                    onChange={(e) => setMeasurements({ ...measurements, height: e.target.value })}
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="e.g., 32"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Arm Height (inches)</label>
-                  <input
-                    type="number"
-                    value={measurements.armHeight}
-                    onChange={(e) => setMeasurements({ ...measurements, armHeight: e.target.value })}
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="e.g., 24"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Back Height (inches)</label>
-                  <input
-                    type="number"
-                    value={measurements.backHeight}
-                    onChange={(e) => setMeasurements({ ...measurements, backHeight: e.target.value })}
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="e.g., 32"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Additional Notes</label>
-                <textarea
-                  value={measurements.additionalNotes}
-                  onChange={(e) => setMeasurements({ ...measurements, additionalNotes: e.target.value })}
-                  rows={4}
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Any special requirements, unusual features, or questions..."
-                />
-              </div>
-
-              {estimatedPrice > 0 && (
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
-                  <h3 className="text-lg font-semibold text-blue-900 mb-2">Estimated Price: ${estimatedPrice}</h3>
-                  <p className="text-blue-700 text-sm">
-                    This is a preliminary estimate. Final pricing will be confirmed after reviewing your specifications.
-                  </p>
-                </div>
-              )}
-
-              <button
-                type="submit"
-                className="w-full bg-blue-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-blue-700 transition-colors flex items-center justify-center"
-                disabled={!measurements.sofaType || !selectedFabric}
-              >
-                <MessageCircle className="w-5 h-5 mr-2" />
-                Get Quote via Facebook
-              </button>
-            </form>
-          </div>
-
-          {/* Measurement Guide */}
-          <div className="space-y-8">
-            <div className="bg-white rounded-lg shadow-lg p-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">How to Measure Your Sofa</h2>
-
-              <div className="space-y-6">
-                <div>
-                  <img
-                    src="/placeholder.svg?height=300&width=400"
-                    alt="Sofa measurement guide"
-                    className="w-full rounded-lg mb-4"
-                  />
+                  <Label htmlFor="fabricType" className="mb-2">
+                    ประเภทผ้า *
+                  </Label>
+                  <Select value={selectedFabric} onValueChange={setSelectedFabric} required>
+                    <SelectTrigger className="w-full p-3">
+                      <SelectValue placeholder="เลือกประเภทผ้า" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {fabricTypes.map((fabric) => (
+                        <SelectItem key={fabric.value} value={fabric.value}>
+                          {fabric.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
-                <div className="space-y-4">
+                <div className="grid md:grid-cols-2 gap-4">
                   <div>
-                    <h3 className="font-semibold text-gray-900">Width</h3>
-                    <p className="text-gray-600">
-                      Measure from the outside of one arm to the outside of the other arm.
+                    <Label htmlFor="width" className="mb-2">
+                      ความกว้าง (นิ้ว) *
+                    </Label>
+                    <Input
+                      id="width"
+                      type="number"
+                      value={measurements.width}
+                      onChange={(e) => setMeasurements({ ...measurements, width: e.target.value })}
+                      placeholder="เช่น 84"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="depth" className="mb-2">
+                      ความลึก (นิ้ว) *
+                    </Label>
+                    <Input
+                      id="depth"
+                      type="number"
+                      value={measurements.depth}
+                      onChange={(e) => setMeasurements({ ...measurements, depth: e.target.value })}
+                      placeholder="เช่น 36"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="grid md:grid-cols-3 gap-4">
+                  <div>
+                    <Label htmlFor="height" className="mb-2">
+                      ความสูงโดยรวม (นิ้ว)
+                    </Label>
+                    <Input
+                      id="height"
+                      type="number"
+                      value={measurements.height}
+                      onChange={(e) => setMeasurements({ ...measurements, height: e.target.value })}
+                      placeholder="เช่น 32"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="armHeight" className="mb-2">
+                      ความสูงที่วางแขน (นิ้ว)
+                    </Label>
+                    <Input
+                      id="armHeight"
+                      type="number"
+                      value={measurements.armHeight}
+                      onChange={(e) => setMeasurements({ ...measurements, armHeight: e.target.value })}
+                      placeholder="เช่น 24"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="backHeight" className="mb-2">
+                      ความสูงพนักพิง (นิ้ว)
+                    </Label>
+                    <Input
+                      id="backHeight"
+                      type="number"
+                      value={measurements.backHeight}
+                      onChange={(e) => setMeasurements({ ...measurements, backHeight: e.target.value })}
+                      placeholder="เช่น 32"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <Label htmlFor="additionalNotes" className="mb-2">
+                    หมายเหตุเพิ่มเติม
+                  </Label>
+                  <Textarea
+                    id="additionalNotes"
+                    value={measurements.additionalNotes}
+                    onChange={(e) => setMeasurements({ ...measurements, additionalNotes: e.target.value })}
+                    rows={4}
+                    placeholder="ความต้องการพิเศษ, คุณสมบัติที่ผิดปกติ, หรือคำถาม..."
+                  />
+                </div>
+
+                {estimatedPrice > 0 && (
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 text-center">
+                    <h3 className="text-2xl font-bold text-blue-900 mb-2">ราคาประมาณการ: ฿{estimatedPrice}</h3>
+                    <p className="text-blue-700 text-sm">
+                      นี่คือราคาประมาณการเบื้องต้น ราคาจริงจะได้รับการยืนยันหลังจากตรวจสอบรายละเอียดของคุณ
                     </p>
                   </div>
+                )}
 
+                <Button
+                  type="submit"
+                  className="w-full bg-blue-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-blue-700 transition-colors flex items-center justify-center text-lg"
+                  disabled={!measurements.sofaType || !selectedFabric || !measurements.width || !measurements.depth}
+                >
+                  <MessageCircle className="w-5 h-5 mr-2" />
+                  รับใบเสนอราคาผ่าน Facebook
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
+
+          {/* Right Column: Measurement Guide & Additional Info */}
+          <div className="space-y-8">
+            <Card className="bg-white rounded-lg shadow-xl p-8">
+              <CardHeader className="p-0 mb-6">
+                <CardTitle className="text-2xl font-bold text-gray-900">วิธีวัดขนาดโซฟาของคุณ</CardTitle>
+              </CardHeader>
+              <CardContent className="p-0">
+                <div className="space-y-6">
                   <div>
-                    <h3 className="font-semibold text-gray-900">Depth</h3>
-                    <p className="text-gray-600">Measure from the front edge of the seat to the back of the sofa.</p>
+                    <img
+                      src="/sofa-measurement-guide.png"
+                      alt="คู่มือการวัดขนาดโซฟา"
+                      className="w-full rounded-lg mb-4 shadow-md"
+                    />
                   </div>
 
-                  <div>
-                    <h3 className="font-semibold text-gray-900">Height</h3>
-                    <p className="text-gray-600">Measure from the floor to the highest point of the back.</p>
+                  <div className="space-y-4">
+                    <div>
+                      <h3 className="font-semibold text-gray-900 text-lg">ความกว้าง</h3>
+                      <p className="text-gray-600">วัดจากด้านนอกของที่วางแขนด้านหนึ่งไปยังด้านนอกของที่วางแขนอีกด้านหนึ่ง</p>
+                    </div>
+
+                    <div>
+                      <h3 className="font-semibold text-gray-900 text-lg">ความลึก</h3>
+                      <p className="text-gray-600">วัดจากขอบด้านหน้าของเบาะนั่งไปจนถึงด้านหลังสุดของโซฟา</p>
+                    </div>
+
+                    <div>
+                      <h3 className="font-semibold text-gray-900 text-lg">ความสูง</h3>
+                      <p className="text-gray-600">วัดจากพื้นถึงจุดที่สูงที่สุดของพนักพิง</p>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </div>
+              </CardContent>
+            </Card>
 
-            <div className="bg-green-50 border border-green-200 rounded-lg p-6">
-              <h3 className="text-lg font-semibold text-green-900 mb-3">Need Help Measuring?</h3>
-              <p className="text-green-700 mb-4">
-                Our team can guide you through the measurement process via video call or provide detailed instructions.
-              </p>
-              <button
-                onClick={() => {
-                  const message = "Hi! I need help measuring my sofa for a custom cover. Can someone assist me?"
-                  const facebookUrl = `https://m.me/your-facebook-page?text=${encodeURIComponent(message)}`
-                  window.open(facebookUrl, "_blank")
-                }}
-                className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition-colors"
-              >
-                Get Measurement Help
-              </button>
-            </div>
+            <Card className="bg-green-50 border border-green-200 rounded-lg shadow-xl p-6">
+              <CardTitle className="text-xl font-semibold text-green-900 mb-3 flex items-center">
+                <Phone className="w-5 h-5 mr-2" />
+                ต้องการความช่วยเหลือในการวัดขนาด?
+              </CardTitle>
+              <CardContent className="p-0">
+                <p className="text-green-700 mb-4">
+                  ทีมงานของเราสามารถแนะนำคุณตลอดกระบวนการวัดขนาดผ่านวิดีโอคอล หรือให้คำแนะนำโดยละเอียด
+                </p>
+                <Button
+                  onClick={() => {
+                    const message = "สวัสดีครับ! ผมต้องการความช่วยเหลือในการวัดขนาดโซฟาสำหรับผ้าคลุมแบบพิเศษครับ"
+                    const facebookUrl = `https://m.me/your-facebook-page?text=${encodeURIComponent(message)}`
+                    window.open(facebookUrl, "_blank")
+                  }}
+                  className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition-colors"
+                >
+                  รับความช่วยเหลือในการวัดขนาด
+                </Button>
+              </CardContent>
+            </Card>
 
-            <div className="bg-white rounded-lg shadow-lg p-8">
-              <h3 className="text-xl font-bold text-gray-900 mb-4">What's Included</h3>
-              <ul className="space-y-3 text-gray-600">
-                <li className="flex items-center">
-                  <div className="w-2 h-2 bg-blue-600 rounded-full mr-3"></div>
-                  Perfect fit guarantee
-                </li>
-                <li className="flex items-center">
-                  <div className="w-2 h-2 bg-blue-600 rounded-full mr-3"></div>
-                  Premium fabric of your choice
-                </li>
-                <li className="flex items-center">
-                  <div className="w-2 h-2 bg-blue-600 rounded-full mr-3"></div>
-                  Professional construction
-                </li>
-                <li className="flex items-center">
-                  <div className="w-2 h-2 bg-blue-600 rounded-full mr-3"></div>
-                  Easy installation instructions
-                </li>
-                <li className="flex items-center">
-                  <div className="w-2 h-2 bg-blue-600 rounded-full mr-3"></div>
-                  7-10 business day turnaround
-                </li>
-                <li className="flex items-center">
-                  <div className="w-2 h-2 bg-blue-600 rounded-full mr-3"></div>
-                  Free shipping on orders over $100
-                </li>
-              </ul>
-            </div>
+            <Card className="bg-white rounded-lg shadow-xl p-8">
+              <CardHeader className="p-0 mb-6">
+                <CardTitle className="text-xl font-bold text-gray-900">สิ่งที่คุณจะได้รับ</CardTitle>
+              </CardHeader>
+              <CardContent className="p-0">
+                <ul className="space-y-3 text-gray-700">
+                  <li className="flex items-center">
+                    <CheckCircle className="w-5 h-5 text-blue-600 mr-3 flex-shrink-0" />
+                    รับประกันความพอดี 100%
+                  </li>
+                  <li className="flex items-center">
+                    <CheckCircle className="w-5 h-5 text-blue-600 mr-3 flex-shrink-0" />
+                    ผ้าพรีเมียมที่คุณเลือก
+                  </li>
+                  <li className="flex items-center">
+                    <CheckCircle className="w-5 h-5 text-blue-600 mr-3 flex-shrink-0" />
+                    การตัดเย็บโดยช่างมืออาชีพ
+                  </li>
+                  <li className="flex items-center">
+                    <CheckCircle className="w-5 h-5 text-blue-600 mr-3 flex-shrink-0" />
+                    คำแนะนำการติดตั้งที่ง่ายดาย
+                  </li>
+                  <li className="flex items-center">
+                    <CheckCircle className="w-5 h-5 text-blue-600 mr-3 flex-shrink-0" />
+                    ระยะเวลาผลิต 7-10 วันทำการ
+                  </li>
+                  <li className="flex items-center">
+                    <CheckCircle className="w-5 h-5 text-blue-600 mr-3 flex-shrink-0" />
+                    จัดส่งฟรีสำหรับคำสั่งซื้อเกิน ฿3,500
+                  </li>
+                </ul>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </div>
