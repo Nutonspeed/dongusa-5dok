@@ -1,122 +1,98 @@
 "use client"
-import Link from "next/link"
+
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Star, Shield, Truck, Clock } from "lucide-react"
+import { ArrowRight, Star, Shield, Truck } from "lucide-react"
+import Link from "next/link"
+import { useLanguage } from "../contexts/LanguageContext"
 
 export default function Hero() {
+  const { t } = useLanguage()
+
   return (
-    <section className="relative bg-gradient-to-br from-blue-50 via-white to-pink-50 py-20 overflow-hidden">
-      {/* Background Pattern */}
-      <div className="absolute inset-0 opacity-5">
-        <div className="absolute inset-0 bg-[url('/placeholder.svg?height=400&width=400')] bg-repeat opacity-10"></div>
-      </div>
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+    <section className="relative overflow-hidden bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50">
+      <div className="absolute inset-0 bg-grid-pattern opacity-5"></div>
+      <div className="container mx-auto px-4 py-20 lg:py-32">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
-          {/* Left Content */}
+          {/* Content */}
           <div className="space-y-8">
-            {/* Trust Badge */}
-            <div className="flex items-center space-x-2">
-              <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 border-yellow-200">
-                <Star className="w-3 h-3 mr-1 fill-current" />
-                ผู้เชี่ยวชาญอันดับ 1
-              </Badge>
-              <div className="flex items-center space-x-1 text-sm text-gray-600">
-                <span>4.9/5 จาก 2,500+ รีวิว</span>
-              </div>
-            </div>
-
-            {/* Main Heading */}
             <div className="space-y-4">
+              <div className="inline-flex items-center px-3 py-1 rounded-full bg-pink-100 text-pink-800 text-sm font-medium">
+                <Star className="w-4 h-4 mr-1" />
+                คุณภาพพรีเมียม
+              </div>
               <h1 className="text-4xl lg:text-6xl font-bold text-gray-900 leading-tight">
-                เปลี่ยนโฉม
-                <span className="block text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-pink-600">
-                  พื้นที่นั่งเล่น
+                {t("hero.title")}
+                <span className="block text-transparent bg-clip-text bg-gradient-to-r from-pink-600 to-purple-600">
+                  สั่งทำพิเศษ
                 </span>
               </h1>
-              <p className="text-lg lg:text-xl text-gray-600 leading-relaxed max-w-lg">
-                ผ้าคลุมโซฟาพรีเมียมที่ปกป้องและเพิ่มความสวยงามให้เฟอร์นิเจอร์ของคุณ หาคุณสีสันด้วยความแม่นยำ จัดส่งรวดเร็ว ใสใจ
+              <p className="text-xl text-gray-600 leading-relaxed">
+                {t("hero.subtitle")} จัดส่งฟรีทั่วประเทศ รับประกันคุณภาพ 1 ปี
               </p>
             </div>
 
-            {/* Feature Points */}
-            <div className="grid grid-cols-3 gap-6">
-              <div className="text-center">
-                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                  <Shield className="w-6 h-6 text-blue-600" />
-                </div>
-                <h3 className="font-semibold text-gray-900 text-sm">คุณภาพพรีเมียม</h3>
-                <p className="text-xs text-gray-600 mt-1">วัสดุคุณภาพ</p>
+            {/* Features */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="flex items-center space-x-2 text-sm text-gray-600">
+                <Shield className="w-5 h-5 text-green-500" />
+                <span>กันน้ำ 100%</span>
               </div>
-              <div className="text-center">
-                <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                  <Truck className="w-6 h-6 text-green-600" />
-                </div>
-                <h3 className="font-semibold text-gray-900 text-sm">จัดส่งรวดเร็ว</h3>
-                <p className="text-xs text-gray-600 mt-1">จัดส่ง 2-3 วัน</p>
+              <div className="flex items-center space-x-2 text-sm text-gray-600">
+                <Truck className="w-5 h-5 text-blue-500" />
+                <span>จัดส่งฟรี</span>
               </div>
-              <div className="text-center">
-                <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                  <Clock className="w-6 h-6 text-purple-600" />
-                </div>
-                <h3 className="font-semibold text-gray-900 text-sm">ดีลเลอร์มาตรฐาน</h3>
-                <p className="text-xs text-gray-600 mt-1">ให้บริการ 24/7</p>
+              <div className="flex items-center space-x-2 text-sm text-gray-600">
+                <Star className="w-5 h-5 text-yellow-500" />
+                <span>รับประกัน 1 ปี</span>
               </div>
             </div>
 
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4">
-              <Link href="/products">
-                <Button
-                  size="lg"
-                  className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
-                >
-                  ช้อปเลย
-                </Button>
-              </Link>
-              <Link href="/custom-covers">
-                <Button
-                  variant="outline"
-                  size="lg"
-                  className="w-full sm:w-auto border-gray-300 hover:bg-gray-50 bg-transparent"
-                >
-                  สั่งทำพิเศษ
-                </Button>
-              </Link>
+              <Button
+                asChild
+                size="lg"
+                className="bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700"
+              >
+                <Link href="/products">
+                  {t("hero.cta")}
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Link>
+              </Button>
+              <Button variant="outline" size="lg" asChild>
+                <Link href="/custom-covers">สั่งทำตามขนาด</Link>
+              </Button>
             </div>
 
-            {/* Stats */}
-            <div className="grid grid-cols-3 gap-8 pt-8 border-t border-gray-200">
+            {/* Social Proof */}
+            <div className="flex items-center space-x-6 pt-8 border-t border-gray-200">
               <div className="text-center">
-                <div className="text-2xl font-bold text-gray-900">10K+</div>
-                <div className="text-sm text-gray-600">ลูกค้าพอใจ</div>
+                <div className="text-2xl font-bold text-gray-900">5,000+</div>
+                <div className="text-sm text-gray-600">ลูกค้าพึงพอใจ</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-gray-900">500+</div>
-                <div className="text-sm text-gray-600">ลายผ้า</div>
+                <div className="text-2xl font-bold text-gray-900">4.9/5</div>
+                <div className="text-sm text-gray-600">คะแนนรีวิว</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-gray-900">24/7</div>
-                <div className="text-sm text-gray-600">บริการ</div>
+                <div className="text-2xl font-bold text-gray-900">10+</div>
+                <div className="text-sm text-gray-600">ปีประสบการณ์</div>
               </div>
             </div>
           </div>
 
-          {/* Right Content - Hero Image */}
+          {/* Hero Image */}
           <div className="relative">
             <div className="relative z-10">
               <img
-                src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/1753730407887.jpg-zNiqK3ORdtjj4ROXOsK8K5lfzYLF0Z.jpeg"
-                alt="ผ้าคลุมโซฟาสวยงาม"
+                src="/modern-living-room-sofa-covers.png"
+                alt="Modern Sofa Covers"
                 className="w-full h-auto rounded-2xl shadow-2xl"
-                loading="eager"
               />
             </div>
-
             {/* Decorative Elements */}
-            <div className="absolute -top-4 -right-4 w-24 h-24 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full opacity-80 blur-xl"></div>
-            <div className="absolute -bottom-8 -left-8 w-32 h-32 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full opacity-60 blur-2xl"></div>
+            <div className="absolute -top-4 -right-4 w-72 h-72 bg-gradient-to-br from-pink-400 to-purple-500 rounded-full opacity-20 blur-3xl"></div>
+            <div className="absolute -bottom-8 -left-8 w-64 h-64 bg-gradient-to-br from-blue-400 to-indigo-500 rounded-full opacity-20 blur-3xl"></div>
           </div>
         </div>
       </div>

@@ -3,217 +3,167 @@
 import { useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { Menu, X, ShoppingCart, User, Search, Globe, LogIn, LogOut, Settings, Package } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { useLanguage } from "../contexts/LanguageContext"
-import { useCart } from "../contexts/CartContext"
+import { Menu, ShoppingCart, User, LogOut, Settings, Globe } from "lucide-react"
 import { useAuth } from "../contexts/AuthContext"
+import { useCart } from "../contexts/CartContext"
+import { useLanguage } from "../contexts/LanguageContext"
 
 export default function Header() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [isOpen, setIsOpen] = useState(false)
+  const { user, logout } = useAuth()
+  const { totalItems, setIsOpen: setCartOpen } = useCart()
   const { language, setLanguage, t } = useLanguage()
-  const { items } = useCart()
-  const { user, isAuthenticated, logout, isBackendUser } = useAuth()
   const router = useRouter()
 
   const navigation = [
-    { name: language === "th" ? "หน้าหลัก" : "Home", href: "/" },
-    { name: language === "th" ? "สินค้า" : "Products", href: "/products" },
-    { name: language === "th" ? "คอลเลกชัน" : "Collections", href: "/fabric-collections" },
-    { name: language === "th" ? "แกลเลอรี่" : "Gallery", href: "/fabric-gallery" },
-    { name: language === "th" ? "สั่งทำพิเศษ" : "Custom", href: "/custom-covers" },
-    { name: language === "th" ? "เกี่ยวกับเรา" : "About", href: "/about" },
-    { name: language === "th" ? "ติดต่อ" : "Contact", href: "/contact" },
+    { name: t("nav.home"), href: "/" },
+    { name: t("nav.products"), href: "/products" },
+    { name: t("nav.fabric-gallery"), href: "/fabric-gallery" },
+    { name: t("nav.custom-covers"), href: "/custom-covers" },
+    { name: t("nav.about"), href: "/about" },
+    { name: t("nav.contact"), href: "/contact" },
   ]
 
-  const totalItems = items.reduce((sum, item) => sum + item.quantity, 0)
-
-  const handleLogout = () => {
-    logout()
+  const handleLogout = async () => {
+    await logout()
     router.push("/")
   }
 
-  const getUserInitials = (name: string) => {
-    return name
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
-      .toUpperCase()
-      .slice(0, 2)
-  }
-
-  const getRoleColor = (role: string) => {
-    switch (role) {
-      case "admin":
-        return "bg-red-100 text-red-800"
-      case "manager":
-        return "bg-blue-100 text-blue-800"
-      case "staff":
-        return "bg-green-100 text-green-800"
-      case "customer":
-        return "bg-purple-100 text-purple-800"
-      default:
-        return "bg-gray-100 text-gray-800"
-    }
-  }
-
-  const getRoleLabel = (role: string) => {
-    switch (role) {
-      case "admin":
-        return "ผู้ดูแลระบบ"
-      case "manager":
-        return "ผู้จัดการ"
-      case "staff":
-        return "พนักงาน"
-      case "customer":
-        return "ลูกค้า"
-      default:
-        return "ผู้ใช้งาน"
-    }
-  }
-
   return (
-    <header className="bg-white shadow-sm sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
+    <header className="sticky top-0 z-50 w-full border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60">
+      <div className="container mx-auto px-4">
+        <div className="flex h-16 items-center justify-between">
           {/* Logo */}
-          <div className="flex items-center">
-            <Link href="/" className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-gradient-to-r from-pink-500 to-rose-600 rounded-lg flex items-center justify-center">
-                <Package className="w-5 h-5 text-white" />
-              </div>
-              <span className="text-xl font-bold text-gray-900 hidden sm:block">SofaCover</span>
-            </Link>
-          </div>
+          <Link href="/" className="flex items-center space-x-2">
+            <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-pink-500 to-purple-600 flex items-center justify-center">
+              <span className="text-white font-bold text-sm">SC</span>
+            </div>
+            <span className="font-bold text-xl bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
+              SofaCover Pro
+            </span>
+          </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden lg:flex space-x-8">
+          <nav className="hidden md:flex items-center space-x-8">
             {navigation.map((item) => (
               <Link
                 key={item.name}
                 href={item.href}
-                className="text-gray-600 hover:text-pink-600 px-3 py-2 text-sm font-medium transition-colors"
+                className="text-sm font-medium text-gray-700 hover:text-pink-600 transition-colors"
               >
                 {item.name}
               </Link>
             ))}
           </nav>
 
-          {/* Right side actions */}
+          {/* Right Side Actions */}
           <div className="flex items-center space-x-4">
-            {/* Language Toggle */}
-            <button
-              onClick={() => setLanguage(language === "th" ? "en" : "th")}
-              className="p-2 text-gray-600 hover:text-pink-600 transition-colors"
-              title={language === "th" ? "Switch to English" : "เปลี่ยนเป็นภาษาไทย"}
-            >
-              <Globe className="w-5 h-5" />
-            </button>
+            {/* Language Switcher */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm">
+                  <Globe className="h-4 w-4 mr-1" />
+                  {language.toUpperCase()}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => setLanguage("th")}>🇹🇭 ไทย</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setLanguage("en")}>🇺🇸 English</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
 
-            {/* Search */}
-            <button className="p-2 text-gray-600 hover:text-pink-600 transition-colors lg:hidden">
-              <Search className="w-5 h-5" />
-            </button>
-
-            {/* Shopping Cart */}
-            <Link href="/cart" className="relative p-2 text-gray-600 hover:text-pink-600 transition-colors">
-              <ShoppingCart className="w-5 h-5" />
+            {/* Cart */}
+            <Button variant="ghost" size="sm" className="relative" onClick={() => setCartOpen(true)}>
+              <ShoppingCart className="h-5 w-5" />
               {totalItems > 0 && (
-                <Badge className="absolute -top-1 -right-1 w-5 h-5 flex items-center justify-center text-xs bg-pink-600 hover:bg-pink-600">
+                <Badge className="absolute -top-2 -right-2 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs">
                   {totalItems}
                 </Badge>
               )}
-            </Link>
+            </Button>
 
             {/* User Menu */}
-            {isAuthenticated && user ? (
+            {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                     <Avatar className="h-8 w-8">
                       <AvatarImage src={user.avatar || "/placeholder.svg"} alt={user.name} />
-                      <AvatarFallback className="bg-pink-100 text-pink-600">
-                        {getUserInitials(user.name)}
-                      </AvatarFallback>
+                      <AvatarFallback>{user.name.charAt(0).toUpperCase()}</AvatarFallback>
                     </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-56" align="end" forceMount>
-                  <DropdownMenuLabel className="font-normal">
-                    <div className="flex flex-col space-y-1">
-                      <p className="text-sm font-medium leading-none">{user.name}</p>
-                      <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
-                      <Badge className={`${getRoleColor(user.role)} w-fit mt-1`}>{getRoleLabel(user.role)}</Badge>
+                  <div className="flex items-center justify-start gap-2 p-2">
+                    <div className="flex flex-col space-y-1 leading-none">
+                      <p className="font-medium">{user.name}</p>
+                      <p className="w-[200px] truncate text-sm text-muted-foreground">{user.email}</p>
                     </div>
-                  </DropdownMenuLabel>
-                  <DropdownMenuSeparator />
+                  </div>
                   <DropdownMenuItem asChild>
-                    <Link href="/profile" className="flex items-center">
+                    <Link href="/profile">
                       <User className="mr-2 h-4 w-4" />
-                      <span>โปรไฟล์</span>
+                      {t("nav.profile")}
                     </Link>
                   </DropdownMenuItem>
-                  {isBackendUser() && (
+                  {["admin", "manager", "staff"].includes(user.role) && (
                     <DropdownMenuItem asChild>
-                      <Link href="/admin" className="flex items-center">
+                      <Link href="/admin">
                         <Settings className="mr-2 h-4 w-4" />
-                        <span>ระบบจัดการ</span>
+                        {t("nav.admin")}
                       </Link>
                     </DropdownMenuItem>
                   )}
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleLogout} className="text-red-600">
+                  <DropdownMenuItem onClick={handleLogout}>
                     <LogOut className="mr-2 h-4 w-4" />
-                    <span>ออกจากระบบ</span>
+                    {t("nav.logout")}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <Button asChild variant="ghost" size="sm">
-                <Link href="/login" className="flex items-center space-x-2">
-                  <LogIn className="w-4 h-4" />
-                  <span className="hidden sm:inline">เข้าสู่ระบบ</span>
-                </Link>
+              <Button asChild size="sm">
+                <Link href="/login">{t("nav.login")}</Link>
               </Button>
             )}
 
-            {/* Mobile menu button */}
-            <button
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="lg:hidden p-2 text-gray-600 hover:text-pink-600 transition-colors"
-            >
-              {isMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-            </button>
+            {/* Mobile Menu */}
+            <Sheet open={isOpen} onOpenChange={setIsOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="sm" className="md:hidden">
+                  <Menu className="h-5 w-5" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-[300px] sm:w-[400px]">
+                <nav className="flex flex-col space-y-4 mt-8">
+                  {navigation.map((item) => (
+                    <Link
+                      key={item.name}
+                      href={item.href}
+                      className="text-lg font-medium text-gray-700 hover:text-pink-600 transition-colors"
+                      onClick={() => setIsOpen(false)}
+                    >
+                      {item.name}
+                    </Link>
+                  ))}
+                  {!user && (
+                    <Link
+                      href="/login"
+                      className="text-lg font-medium text-pink-600 hover:text-pink-700 transition-colors"
+                      onClick={() => setIsOpen(false)}
+                    >
+                      {t("nav.login")}
+                    </Link>
+                  )}
+                </nav>
+              </SheetContent>
+            </Sheet>
           </div>
         </div>
-
-        {/* Mobile Navigation */}
-        {isMenuOpen && (
-          <div className="lg:hidden border-t border-gray-200">
-            <div className="px-2 pt-2 pb-3 space-y-1">
-              {navigation.map((item) => (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  className="block px-3 py-2 text-base font-medium text-gray-600 hover:text-pink-600 hover:bg-gray-50 rounded-md transition-colors"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  {item.name}
-                </Link>
-              ))}
-            </div>
-          </div>
-        )}
       </div>
     </header>
   )

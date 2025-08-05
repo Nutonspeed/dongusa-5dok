@@ -1,27 +1,50 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { AuthService } from "@/lib/auth"
+
+// Mock user database (in production, use a real database)
+const users: any[] = []
 
 export async function POST(request: NextRequest) {
   try {
-    const userData = await request.json()
+    const { email, password, name } = await request.json()
 
-    if (!userData.email || !userData.password || !userData.name) {
-      return NextResponse.json({ success: false, message: "กรุณากรอกข้อมูลให้ครบถ้วน" }, { status: 400 })
+    // Validate input
+    if (!email || !password || !name) {
+      return NextResponse.json({ error: "กรุณากรอกข้อมูลให้ครบถ้วน" }, { status: 400 })
     }
 
-    if (userData.password.length < 6) {
-      return NextResponse.json({ success: false, message: "รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร" }, { status: 400 })
+    // Check if user already exists
+    const existingUser = users.find((user) => user.email === email)
+    if (existingUser) {
+      return NextResponse.json({ error: "อีเมลนี้ถูกใช้งานแล้ว" }, { status: 409 })
     }
 
-    const response = await AuthService.register(userData)
-
-    if (response.success) {
-      return NextResponse.json(response)
-    } else {
-      return NextResponse.json(response, { status: 400 })
+    // Create new user
+    const newUser = {
+      id: Date.now().toString(),
+      email,
+      password, // In production, hash this password
+      name,
+      role: "customer",
+      avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=ec4899&color=fff`,
+      createdAt: new Date().toISOString(),
     }
+
+    users.push(newUser)
+
+    // Generate token (simplified for demo)
+    const token = `token_${newUser.id}_${Date.now()}`
+
+    // Remove password from response
+    const { password: _, ...userWithoutPassword } = newUser
+
+    return NextResponse.json({
+      success: true,
+      message: "สมัครสมาชิกสำเร็จ",
+      user: userWithoutPassword,
+      token,
+    })
   } catch (error) {
     console.error("Register error:", error)
-    return NextResponse.json({ success: false, message: "เกิดข้อผิดพลาดในการสมัครสมาชิก" }, { status: 500 })
+    return NextResponse.json({ error: "เกิดข้อผิดพลาดในระบบ" }, { status: 500 })
   }
 }

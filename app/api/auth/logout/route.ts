@@ -1,39 +1,18 @@
-import { NextResponse } from "next/server"
-import { cookies } from "next/headers"
+import { type NextRequest, NextResponse } from "next/server"
 
-export async function POST() {
+export async function POST(request: NextRequest) {
   try {
-    console.log("🚪 Admin logout request")
-
-    const cookieStore = await cookies()
-
-    // Clear the admin session cookie
-    cookieStore.delete("admin-session")
-
-    console.log("✅ Admin logout successful")
+    // In a real application, you would:
+    // 1. Invalidate the token in your database
+    // 2. Add the token to a blacklist
+    // 3. Clear any server-side sessions
 
     return NextResponse.json({
       success: true,
-      message: "Logout successful",
+      message: "ออกจากระบบสำเร็จ",
     })
   } catch (error) {
-    console.error("❌ Logout error:", error)
-
-    return NextResponse.json(
-      {
-        success: false,
-        error: "Internal server error",
-      },
-      { status: 500 },
-    )
+    console.error("Logout error:", error)
+    return NextResponse.json({ error: "เกิดข้อผิดพลาดในการออกจากระบบ" }, { status: 500 })
   }
-}
-
-export async function GET() {
-  return NextResponse.json(
-    {
-      message: "Admin logout endpoint - use POST method",
-    },
-    { status: 405 },
-  )
 }

@@ -2,23 +2,27 @@
 
 import type React from "react"
 import { createContext, useContext, useEffect, useState } from "react"
-import { AuthService, type User, type AuthResponse } from "@/lib/auth"
+import { useRouter } from "next/navigation"
+import { toast } from "sonner"
+
+interface User {
+  id: string
+  email: string
+  name: string
+  role: "admin" | "manager" | "staff" | "customer"
+  avatar?: string
+  phone?: string
+  address?: string
+  createdAt: string
+}
 
 interface AuthContextType {
   user: User | null
-  isAuthenticated: boolean
   isLoading: boolean
-  login: (email: string, password: string) => Promise<AuthResponse>
-  register: (userData: {
-    email: string
-    password: string
-    name: string
-    role?: "customer"
-  }) => Promise<AuthResponse>
-  logout: () => void
-  hasPermission: (permission: string) => boolean
-  hasAnyPermission: (permissions: string[]) => boolean
-  isBackendUser: () => boolean
+  login: (email: string, password: string) => Promise<boolean>
+  register: (email: string, password: string, name: string) => Promise<boolean>
+  logout: () => Promise<void>
+  updateProfile: (data: Partial<User>) => Promise<boolean>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -26,92 +30,161 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const router = useRouter()
 
+  // Check authentication status on mount
   useEffect(() => {
-    // Check for existing token on mount
-    const token = localStorage.getItem("auth_token")
-    if (token) {
-      verifyToken(token)
-    } else {
-      setIsLoading(false)
-    }
+    checkAuthStatus()
   }, [])
 
-  const verifyToken = async (token: string) => {
+  const checkAuthStatus = async () => {
     try {
-      const response = await AuthService.verifyToken(token)
-      if (response.success && response.user) {
-        setUser(response.user)
+      const token = localStorage.getItem("auth_token")
+      if (!token) {
+        setIsLoading(false)
+        return
+      }
+
+      const response = await fetch("/api/auth/verify", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+
+      if (response.ok) {
+        const userData = await response.json()
+        setUser(userData.user)
       } else {
         localStorage.removeItem("auth_token")
       }
     } catch (error) {
+      console.error("Auth check failed:", error)
       localStorage.removeItem("auth_token")
     } finally {
       setIsLoading(false)
     }
   }
 
-  const login = async (email: string, password: string): Promise<AuthResponse> => {
-    setIsLoading(true)
+  const login = async (email: string, password: string): Promise<boolean> => {
     try {
-      const response = await AuthService.login(email, password)
-      if (response.success && response.user && response.token) {
-        setUser(response.user)
-        localStorage.setItem("auth_token", response.token)
+      setIsLoading(true)
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        localStorage.setItem("auth_token", data.token)
+        setUser(data.user)
+        toast.success("เข้าสู่ระบบสำเร็จ")
+        return true
+      } else {
+        toast.error(data.error || "เข้าสู่ระบบไม่สำเร็จ")
+        return false
       }
-      return response
+    } catch (error) {
+      console.error("Login error:", error)
+      toast.error("เกิดข้อผิดพลาดในการเข้าสู่ระบบ")
+      return false
     } finally {
       setIsLoading(false)
     }
   }
 
-  const register = async (userData: {
-    email: string
-    password: string
-    name: string
-    role?: "customer"
-  }): Promise<AuthResponse> => {
-    setIsLoading(true)
+  const register = async (email: string, password: string, name: string): Promise<boolean> => {
     try {
-      const response = await AuthService.register(userData)
-      if (response.success && response.user && response.token) {
-        setUser(response.user)
-        localStorage.setItem("auth_token", response.token)
+      setIsLoading(true)
+      const response = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password, name }),
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        localStorage.setItem("auth_token", data.token)
+        setUser(data.user)
+        toast.success("สมัครสมาชิกสำเร็จ")
+        return true
+      } else {
+        toast.error(data.error || "สมัครสมาชิกไม่สำเร็จ")
+        return false
       }
-      return response
+    } catch (error) {
+      console.error("Register error:", error)
+      toast.error("เกิดข้อผิดพลาดในการสมัครสมาชิก")
+      return false
     } finally {
       setIsLoading(false)
     }
   }
 
-  const logout = () => {
-    setUser(null)
-    localStorage.removeItem("auth_token")
+  const logout = async (): Promise<void> => {
+    try {
+      const token = localStorage.getItem("auth_token")
+      if (token) {
+        await fetch("/api/auth/logout", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+      }
+    } catch (error) {
+      console.error("Logout error:", error)
+    } finally {
+      localStorage.removeItem("auth_token")
+      setUser(null)
+      toast.success("ออกจากระบบแล้ว")
+      router.push("/")
+    }
   }
 
-  const hasPermission = (permission: string): boolean => {
-    return user ? AuthService.hasPermission(user, permission) : false
-  }
+  const updateProfile = async (data: Partial<User>): Promise<boolean> => {
+    try {
+      const token = localStorage.getItem("auth_token")
+      if (!token) return false
 
-  const hasAnyPermission = (permissions: string[]): boolean => {
-    return user ? AuthService.hasAnyPermission(user, permissions) : false
-  }
+      const response = await fetch("/api/auth/profile", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(data),
+      })
 
-  const isBackendUser = (): boolean => {
-    return user ? AuthService.isBackendUser(user) : false
+      if (response.ok) {
+        const updatedUser = await response.json()
+        setUser(updatedUser.user)
+        toast.success("อัปเดตข้อมูลสำเร็จ")
+        return true
+      } else {
+        toast.error("อัปเดตข้อมูลไม่สำเร็จ")
+        return false
+      }
+    } catch (error) {
+      console.error("Update profile error:", error)
+      toast.error("เกิดข้อผิดพลาดในการอัปเดตข้อมูล")
+      return false
+    }
   }
 
   const value: AuthContextType = {
     user,
-    isAuthenticated: !!user,
     isLoading,
     login,
     register,
     logout,
-    hasPermission,
-    hasAnyPermission,
-    isBackendUser,
+    updateProfile,
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

@@ -1,9 +1,14 @@
 "use client"
+
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
+import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Star, ShoppingCart, Eye } from "lucide-react"
+import { Skeleton } from "@/components/ui/skeleton"
+import { ShoppingCart, Star, ArrowRight } from "lucide-react"
+import { useCart } from "../contexts/CartContext"
+import { useLanguage } from "../contexts/LanguageContext"
 
 interface Product {
   id: string
@@ -13,174 +18,204 @@ interface Product {
   image: string
   rating: number
   reviews: number
-  badge: string
-  colors: string[]
+  category: string
+  isNew?: boolean
+  isBestSeller?: boolean
 }
 
 const featuredProducts: Product[] = [
   {
     id: "1",
-    name: "ผ้าคลุมโซฟาสไตล์โมเดิร์น",
-    price: 1290,
-    originalPrice: 1590,
-    image: "/modern-living-room-sofa-covers.png",
+    name: "ผ้าคลุมโซฟา 3 ที่นั่ง - Classic Elegant",
+    price: 2490,
+    originalPrice: 3200,
+    image: "/classic-elegant-fabric-pattern-1.png",
     rating: 4.8,
-    reviews: 124,
-    badge: "ขายดี",
-    colors: ["#8B4513", "#2F4F4F", "#696969"],
+    reviews: 156,
+    category: "3-seater",
+    isBestSeller: true,
   },
   {
     id: "2",
-    name: "ผ้าคลุมโซฟาลายคลาสสิก",
-    price: 1490,
-    originalPrice: 1890,
-    image: "/classic-elegant-fabric-pattern-1.png",
+    name: "ผ้าคลุมโซฟา L-Shape - Modern Minimalist",
+    price: 3990,
+    originalPrice: 4800,
+    image: "/modern-minimalist-fabric-pattern-1.png",
     rating: 4.9,
     reviews: 89,
-    badge: "แนะนำ",
-    colors: ["#8B0000", "#000080", "#006400"],
+    category: "l-shape",
+    isNew: true,
   },
   {
     id: "3",
-    name: "ผ้าคลุมโซฟาสไตล์มินิมอล",
-    price: 1190,
-    originalPrice: 1490,
-    image: "/modern-minimalist-fabric-pattern-1.png",
+    name: "ผ้าคลุมโซฟา 2 ที่นั่ง - Bohemian Chic",
+    price: 1990,
+    originalPrice: 2500,
+    image: "/bohemian-chic-fabric-pattern-1.png",
     rating: 4.7,
-    reviews: 156,
-    badge: "ใหม่",
-    colors: ["#F5F5DC", "#D3D3D3", "#C0C0C0"],
+    reviews: 203,
+    category: "2-seater",
   },
   {
     id: "4",
-    name: "ผ้าคลุมโซฟาลายโบฮีเมียน",
-    price: 1390,
-    originalPrice: 1690,
-    image: "/bohemian-chic-fabric-pattern-1.png",
-    rating: 4.6,
-    reviews: 78,
-    badge: "ลดราคา",
-    colors: ["#8B4513", "#CD853F", "#DEB887"],
+    name: "ผ้าคลุมโซฟา Premium - Luxury Collection",
+    price: 4990,
+    originalPrice: 6200,
+    image: "/classic-elegant-fabric-pattern-2.png",
+    rating: 5.0,
+    reviews: 45,
+    category: "premium",
+    isNew: true,
+    isBestSeller: true,
   },
 ]
 
 export default function FeaturedProducts() {
+  const [isLoading, setIsLoading] = useState(true)
+  const { addItem } = useCart()
+  const { t } = useLanguage()
+
+  useEffect(() => {
+    // Simulate loading
+    const timer = setTimeout(() => setIsLoading(false), 1000)
+    return () => clearTimeout(timer)
+  }, [])
+
+  const handleAddToCart = (product: Product) => {
+    addItem({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      image: product.image,
+    })
+  }
+
+  if (isLoading) {
+    return (
+      <section className="py-16 bg-white">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <Skeleton className="h-8 w-64 mx-auto mb-4" />
+            <Skeleton className="h-4 w-96 mx-auto" />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <Card key={i} className="overflow-hidden">
+                <Skeleton className="h-48 w-full" />
+                <CardContent className="p-4">
+                  <Skeleton className="h-4 w-full mb-2" />
+                  <Skeleton className="h-4 w-3/4 mb-4" />
+                  <Skeleton className="h-6 w-20" />
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+    )
+  }
+
   return (
-    <section className="py-16 bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Section Header */}
+    <section className="py-16 bg-white">
+      <div className="container mx-auto px-4">
+        {/* Header */}
         <div className="text-center mb-12">
-          <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">สินค้าแนะนำ</h2>
+          <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">{t("products.title")}</h2>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            ค้นพบผ้าคลุมโซฟายอดนิยมของเรา ที่ได้รับความไว้วางใจจากลูกค้าหลายพันคน
+            ผ้าคลุมโซฟาคุณภาพสูงที่ได้รับความนิยมมากที่สุด ราคาพิเศษสำหรับลูกค้าออนไลน์
           </p>
         </div>
 
         {/* Products Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
           {featuredProducts.map((product) => (
-            <Card key={product.id} className="group hover:shadow-xl transition-all duration-300 border-0 shadow-md">
-              <CardContent className="p-0">
-                {/* Product Image */}
-                <div className="relative overflow-hidden rounded-t-lg">
+            <Card key={product.id} className="group overflow-hidden hover:shadow-lg transition-all duration-300">
+              <CardHeader className="p-0 relative">
+                <div className="aspect-square overflow-hidden">
                   <img
                     src={product.image || "/placeholder.svg"}
                     alt={product.name}
-                    className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                   />
-
-                  {/* Badge */}
-                  <Badge
-                    className={`absolute top-3 left-3 ${
-                      product.badge === "ขายดี"
-                        ? "bg-red-500"
-                        : product.badge === "แนะนำ"
-                          ? "bg-blue-500"
-                          : product.badge === "ใหม่"
-                            ? "bg-green-500"
-                            : "bg-orange-500"
-                    }`}
-                  >
-                    {product.badge}
-                  </Badge>
-
-                  {/* Quick Actions */}
-                  <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    <div className="flex flex-col space-y-2">
-                      <Button size="sm" variant="secondary" className="w-8 h-8 p-0">
-                        <Eye className="w-4 h-4" />
-                      </Button>
-                      <Button size="sm" className="w-8 h-8 p-0">
-                        <ShoppingCart className="w-4 h-4" />
-                      </Button>
-                    </div>
+                </div>
+                {/* Badges */}
+                <div className="absolute top-3 left-3 flex flex-col gap-2">
+                  {product.isNew && <Badge className="bg-green-500 hover:bg-green-600 text-white">ใหม่</Badge>}
+                  {product.isBestSeller && <Badge className="bg-orange-500 hover:bg-orange-600 text-white">ขายดี</Badge>}
+                </div>
+                {/* Discount Badge */}
+                {product.originalPrice && (
+                  <div className="absolute top-3 right-3">
+                    <Badge variant="destructive">
+                      -{Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)}%
+                    </Badge>
                   </div>
+                )}
+              </CardHeader>
+
+              <CardContent className="p-4">
+                <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2 group-hover:text-pink-600 transition-colors">
+                  {product.name}
+                </h3>
+
+                {/* Rating */}
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="flex items-center">
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <Star
+                        key={i}
+                        className={`w-4 h-4 ${
+                          i < Math.floor(product.rating) ? "text-yellow-400 fill-current" : "text-gray-300"
+                        }`}
+                      />
+                    ))}
+                  </div>
+                  <span className="text-sm text-gray-600">
+                    {product.rating} ({product.reviews})
+                  </span>
                 </div>
 
-                {/* Product Info */}
-                <div className="p-4">
-                  {/* Rating */}
-                  <div className="flex items-center space-x-1 mb-2">
-                    <div className="flex items-center">
-                      {[...Array(5)].map((_, i) => (
-                        <Star
-                          key={i}
-                          className={`w-4 h-4 ${
-                            i < Math.floor(product.rating) ? "text-yellow-400 fill-current" : "text-gray-300"
-                          }`}
-                        />
-                      ))}
-                    </div>
-                    <span className="text-sm text-gray-600">
-                      {product.rating} ({product.reviews})
+                {/* Price */}
+                <div className="flex items-center gap-2 mb-4">
+                  <span className="text-xl font-bold text-pink-600">฿{product.price.toLocaleString()}</span>
+                  {product.originalPrice && (
+                    <span className="text-sm text-gray-500 line-through">
+                      ฿{product.originalPrice.toLocaleString()}
                     </span>
-                  </div>
-
-                  {/* Product Name */}
-                  <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2">{product.name}</h3>
-
-                  {/* Colors */}
-                  <div className="flex items-center space-x-2 mb-3">
-                    <span className="text-sm text-gray-600">สี:</span>
-                    <div className="flex space-x-1">
-                      {product.colors.map((color, index) => (
-                        <div
-                          key={index}
-                          className="w-4 h-4 rounded-full border border-gray-300"
-                          style={{ backgroundColor: color }}
-                        />
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Price */}
-                  <div className="flex items-center space-x-2 mb-4">
-                    <span className="text-lg font-bold text-gray-900">฿{product.price.toLocaleString()}</span>
-                    {product.originalPrice && (
-                      <span className="text-sm text-gray-500 line-through">
-                        ฿{product.originalPrice.toLocaleString()}
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Add to Cart Button */}
-                  <Button className="w-full" size="sm">
-                    <ShoppingCart className="w-4 h-4 mr-2" />
-                    เพิ่มลงตะกร้า
-                  </Button>
+                  )}
                 </div>
               </CardContent>
+
+              <CardFooter className="p-4 pt-0 flex gap-2">
+                <Button variant="outline" size="sm" className="flex-1 bg-transparent" asChild>
+                  <Link href={`/products/${product.id}`}>ดูรายละเอียด</Link>
+                </Button>
+                <Button
+                  size="sm"
+                  className="flex-1 bg-pink-600 hover:bg-pink-700"
+                  onClick={() => handleAddToCart(product)}
+                >
+                  <ShoppingCart className="w-4 h-4 mr-1" />
+                  เพิ่มลงตะกร้า
+                </Button>
+              </CardFooter>
             </Card>
           ))}
         </div>
 
         {/* View All Button */}
         <div className="text-center">
-          <Link href="/products">
-            <Button variant="outline" size="lg" className="px-8 bg-transparent">
-              ดูสินค้าทั้งหมด
-            </Button>
-          </Link>
+          <Button
+            asChild
+            size="lg"
+            variant="outline"
+            className="border-pink-200 text-pink-600 hover:bg-pink-50 bg-transparent"
+          >
+            <Link href="/products">
+              {t("products.view-all")}
+              <ArrowRight className="ml-2 w-5 h-5" />
+            </Link>
+          </Button>
         </div>
       </div>
     </section>

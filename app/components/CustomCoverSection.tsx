@@ -1,166 +1,165 @@
 "use client"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Ruler, Palette, ArrowRight, CheckCircle, MessageCircle, Camera, Calculator } from "lucide-react"
 
-const steps = [
+import { useState } from "react"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { ArrowRight, CheckCircle, Palette, Ruler, Scissors } from "lucide-react"
+import Link from "next/link"
+
+const customSteps = [
   {
     step: 1,
-    icon: Camera,
-    title: "ส่งรูปโซฟา",
-    description: "ถ่ายรูปโซฟาของคุณ หรือส่งขนาดที่ต้องการ",
-    color: "bg-blue-500",
-    time: "1 นาที",
+    icon: Ruler,
+    title: "วัดขนาด",
+    description: "วัดขนาดโซฟาของคุณตามคู่มือที่เราให้",
+    color: "bg-blue-100 text-blue-600",
   },
   {
     step: 2,
     icon: Palette,
-    title: "เลือกผ้าและสี",
-    description: "เลือกลายผ้าและสีที่ชอบจากคอลเลกชันของเรา",
-    color: "bg-purple-500",
-    time: "5 นาที",
+    title: "เลือกผ้า",
+    description: "เลือกผ้าและสีที่ต้องการจากคอลเลกชันของเรา",
+    color: "bg-purple-100 text-purple-600",
   },
   {
     step: 3,
-    icon: Calculator,
-    title: "รับใบเสนอราคา",
-    description: "ได้รับใบเสนอราคาและรายละเอียดทันที",
-    color: "bg-green-500",
-    time: "ทันที",
+    icon: Scissors,
+    title: "ตัดเย็บ",
+    description: "ช่างผู้เชี่ยวชาญตัดเย็บตามขนาดที่คุณต้องการ",
+    color: "bg-pink-100 text-pink-600",
+  },
+  {
+    step: 4,
+    icon: CheckCircle,
+    title: "จัดส่ง",
+    description: "จัดส่งถึงบ้านคุณภายใน 7-14 วันทำการ",
+    color: "bg-green-100 text-green-600",
   },
 ]
 
-const benefits = ["วัดขนาดแม่นยำ 100%", "เลือกผ้าได้ตามใจชอบ", "ราคาโปร่งใส ไม่มีค่าซ่อนเร้น", "จัดส่งและติดตั้งฟรี", "รับประกันคุณภาพ 2 ปี"]
+const customOptions = [
+  "เลือกผ้าจากคอลเลกชันพิเศษ 50+ แบบ",
+  "ปรับขนาดได้ตามโซฟาทุกรุ่น",
+  "เพิ่มกระเป๋าเก็บของด้านข้าง",
+  "เลือกสีเย็บขอบตามต้องการ",
+  "รับประกันความพอดี 100%",
+  "บริการวัดขนาดถึงบ้าน (กรุงเทพฯ)",
+]
 
 export default function CustomCoverSection() {
+  const [selectedImage, setSelectedImage] = useState(0)
+
+  const images = [
+    "/modern-living-room-sofa-covers.png",
+    "/classic-elegant-fabric-pattern-3.png",
+    "/modern-minimalist-fabric-pattern-2.png",
+  ]
+
   return (
-    <section className="py-20 bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600 relative overflow-hidden">
-      {/* Background Pattern */}
-      <div className="absolute inset-0 opacity-10">
-        <div className="absolute inset-0 bg-[url('/placeholder.svg?height=100&width=100')] bg-repeat"></div>
-      </div>
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
-        <div className="grid lg:grid-cols-2 gap-16 items-center">
+    <section className="py-16 bg-gradient-to-br from-purple-50 via-pink-50 to-white">
+      <div className="container mx-auto px-4">
+        <div className="grid lg:grid-cols-2 gap-12 items-center">
           {/* Left Content */}
-          <div className="text-white space-y-8">
-            {/* Header */}
-            <div className="space-y-4">
-              <Badge className="bg-white/20 text-white border-white/30">
-                <Ruler className="w-4 h-4 mr-2" />
-                บริการสั่งทำพิเศษ
-              </Badge>
-
-              <h2 className="text-3xl lg:text-5xl font-bold leading-tight">
-                รับผ้าคลุมตามสั่ง
-                <span className="block text-yellow-300">ที่สมบูรณ์แบบ</span>
+          <div className="space-y-8">
+            <div>
+              <Badge className="mb-4 bg-gradient-to-r from-pink-500 to-purple-500 text-white">บริการพิเศษ</Badge>
+              <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
+                สั่งทำผ้าคลุมโซฟา
+                <span className="block text-transparent bg-clip-text bg-gradient-to-r from-pink-600 to-purple-600">
+                  ตามขนาดที่คุณต้องการ
+                </span>
               </h2>
-
-              <p className="text-xl text-blue-100 leading-relaxed">
-                ทำตามขั้นตอนง่ายๆ 3 ขั้นตอน รับผ้าคลุมโซฟาที่เหมาะกับบ้านคุณ พร้อมบริการวัดขนาดและติดตั้งโดยช่างผู้เชี่ยวชาญ
+              <p className="text-lg text-gray-600 leading-relaxed">
+                ไม่ว่าโซฟาของคุณจะเป็นรุ่นไหน ขนาดเท่าไหร่ เราสามารถสั่งทำผ้าคลุมให้พอดีกับโซฟาของคุณได้ 100%
               </p>
             </div>
 
-            {/* Benefits List */}
+            {/* Custom Options */}
             <div className="space-y-3">
-              {benefits.map((benefit, index) => (
+              {customOptions.map((option, index) => (
                 <div key={index} className="flex items-center space-x-3">
-                  <CheckCircle className="w-6 h-6 text-green-300 flex-shrink-0" />
-                  <span className="text-blue-100">{benefit}</span>
+                  <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
+                  <span className="text-gray-700">{option}</span>
                 </div>
               ))}
             </div>
 
-            {/* CTA Buttons */}
+            {/* CTA */}
             <div className="flex flex-col sm:flex-row gap-4">
-              <Link href="/custom-covers">
-                <Button size="lg" className="w-full sm:w-auto bg-white text-blue-600 hover:bg-blue-50">
-                  <MessageCircle className="w-5 h-5 mr-2" />
+              <Button
+                asChild
+                size="lg"
+                className="bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700"
+              >
+                <Link href="/custom-covers">
                   เริ่มสั่งทำเลย
-                </Button>
-              </Link>
-              <Link href="/contact">
-                <Button
-                  variant="outline"
-                  size="lg"
-                  className="w-full sm:w-auto border-white text-white hover:bg-white/10 bg-transparent"
-                >
-                  ปรึกษาฟรี
-                </Button>
-              </Link>
-            </div>
-
-            {/* Contact Info */}
-            <div className="flex items-center space-x-6 text-blue-100">
-              <div className="flex items-center space-x-2">
-                <MessageCircle className="w-5 h-5" />
-                <span>Line: @sofacover</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <span>📞</span>
-                <span>02-123-4567</span>
-              </div>
+                  <ArrowRight className="ml-2 w-5 h-5" />
+                </Link>
+              </Button>
+              <Button variant="outline" size="lg" asChild>
+                <Link href="/fabric-gallery">ดูคอลเลกชันผ้า</Link>
+              </Button>
             </div>
           </div>
 
-          {/* Right Content - Steps */}
+          {/* Right Content - Process Steps */}
           <div className="space-y-6">
-            {steps.map((step, index) => (
-              <Card
-                key={index}
-                className="bg-white/95 backdrop-blur-sm border-0 shadow-xl hover:shadow-2xl transition-all duration-300 group"
-              >
-                <CardContent className="p-6">
-                  <div className="flex items-start space-x-4">
-                    {/* Step Icon */}
-                    <div
-                      className={`w-16 h-16 ${step.color} rounded-2xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform duration-300`}
-                    >
-                      <step.icon className="w-8 h-8 text-white" />
-                    </div>
+            <h3 className="text-2xl font-bold text-gray-900 text-center mb-8">ขั้นตอนการสั่งทำ</h3>
 
-                    {/* Step Content */}
-                    <div className="flex-1 space-y-3">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-3">
-                          <Badge variant="outline" className="text-gray-600">
-                            ขั้นตอน {step.step}
-                          </Badge>
-                          <Badge className="bg-green-100 text-green-800">{step.time}</Badge>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {customSteps.map((step, index) => {
+                const Icon = step.icon
+                return (
+                  <Card
+                    key={index}
+                    className="relative overflow-hidden group hover:shadow-lg transition-all duration-300"
+                  >
+                    <CardHeader className="pb-3">
+                      <div className="flex items-center space-x-3">
+                        <div className={`w-12 h-12 rounded-full ${step.color} flex items-center justify-center`}>
+                          <Icon className="w-6 h-6" />
+                        </div>
+                        <div>
+                          <div className="text-sm text-gray-500">ขั้นตอนที่ {step.step}</div>
+                          <CardTitle className="text-lg">{step.title}</CardTitle>
                         </div>
                       </div>
+                    </CardHeader>
+                    <CardContent className="pt-0">
+                      <p className="text-gray-600 text-sm leading-relaxed">{step.description}</p>
+                    </CardContent>
 
-                      <h3 className="text-xl font-bold text-gray-900">{step.title}</h3>
-
-                      <p className="text-gray-600 leading-relaxed">{step.description}</p>
-                    </div>
-
-                    {/* Arrow for non-last steps */}
-                    {index < steps.length - 1 && (
-                      <div className="hidden lg:block">
-                        <ArrowRight className="w-6 h-6 text-gray-300" />
-                      </div>
+                    {/* Step connector line */}
+                    {index < customSteps.length - 1 && index % 2 === 0 && (
+                      <div className="hidden sm:block absolute -right-2 top-1/2 w-4 h-0.5 bg-gradient-to-r from-pink-300 to-purple-300"></div>
                     )}
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                  </Card>
+                )
+              })}
+            </div>
 
-            {/* Final CTA */}
-            <Card className="bg-gradient-to-r from-yellow-400 to-orange-500 border-0 shadow-xl">
-              <CardContent className="p-6 text-center">
-                <h3 className="text-xl font-bold text-white mb-2">พร้อมเริ่มต้นแล้วใช่ไหม?</h3>
-                <p className="text-yellow-100 mb-4">รับคำปรึกษาฟรี และใบเสนอราคาทันที</p>
-                <Link href="/custom-covers">
-                  <Button className="bg-white text-orange-600 hover:bg-orange-50">
-                    เริ่มสั่งทำเลย
-                    <ArrowRight className="w-4 h-4 ml-2" />
-                  </Button>
-                </Link>
-              </CardContent>
-            </Card>
+            {/* Image Gallery */}
+            <div className="mt-8">
+              <div className="aspect-video rounded-xl overflow-hidden mb-4">
+                <img
+                  src={images[selectedImage] || "/placeholder.svg"}
+                  alt="Custom Sofa Cover"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div className="flex space-x-2 justify-center">
+                {images.map((_, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setSelectedImage(index)}
+                    className={`w-3 h-3 rounded-full transition-colors ${
+                      selectedImage === index ? "bg-pink-600" : "bg-gray-300 hover:bg-gray-400"
+                    }`}
+                  />
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       </div>

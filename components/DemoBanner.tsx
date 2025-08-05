@@ -1,96 +1,32 @@
 "use client"
 
-import React, { useState, useCallback, useMemo } from "react"
-import { X, Info, Settings } from "lucide-react"
+import { useState } from "react"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
+import { X, Info } from "lucide-react"
 
-const DemoBanner = React.memo(() => {
+export default function DemoBanner() {
   const [isVisible, setIsVisible] = useState(true)
-  const [showControls, setShowControls] = useState(false)
 
-  const handleClose = useCallback(() => {
-    setIsVisible(false)
-  }, [])
+  if (!isVisible) return null
 
-  const toggleControls = useCallback(() => {
-    setShowControls((prev) => !prev)
-  }, [])
-
-  const resetDemo = useCallback(() => {
-    if (typeof window !== "undefined") {
-      localStorage.clear()
-      window.location.reload()
-    }
-  }, [])
-
-  // Memoize the banner content
-  const bannerContent = useMemo(
-    () => (
-      <div className="bg-blue-600 text-white py-2 px-4 relative">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <div className="flex items-center space-x-2">
-              <Info className="w-4 h-4" />
-              <Badge variant="secondary" className="bg-blue-500 text-white border-blue-400">
-                DEMO
-              </Badge>
-            </div>
-            <span className="text-sm font-medium">นี่คือเว็บไซต์สาธิต บริการทั้งหมดจำลองขึ้นเพื่อการแสดง</span>
-          </div>
-
-          <div className="flex items-center space-x-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={toggleControls}
-              className="text-white hover:bg-blue-500 p-1"
-              aria-label="ควบคุมการสาธิต"
-            >
-              <Settings className="w-4 h-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleClose}
-              className="text-white hover:bg-blue-500 p-1"
-              aria-label="ปิด"
-            >
-              <X className="w-4 h-4" />
-            </Button>
-          </div>
-        </div>
-
-        {/* Demo Controls */}
-        {showControls && (
-          <div className="border-t border-blue-500 mt-2 pt-2">
-            <div className="max-w-7xl mx-auto flex items-center justify-between">
-              <div className="text-sm text-blue-100">ควบคุมการสาธิต:</div>
-              <div className="flex items-center space-x-2">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={resetDemo}
-                  className="text-white hover:bg-blue-500 text-xs px-3 py-1"
-                >
-                  รีเซ็ตข้อมูล
-                </Button>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-    ),
-    [showControls, toggleControls, handleClose, resetDemo],
+  return (
+    <Alert className="rounded-none border-x-0 border-t-0 bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
+      <Info className="h-4 w-4 text-blue-600" />
+      <AlertDescription className="flex items-center justify-between w-full">
+        <span className="text-blue-800">
+          🚀 <strong>Demo Mode:</strong> นี่คือเว็บไซต์ทดลอง ข้อมูลทั้งหมดเป็นข้อมูลจำลอง |<strong> Admin:</strong>{" "}
+          admin@sofacover.com / admin123
+        </span>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setIsVisible(false)}
+          className="text-blue-600 hover:text-blue-800 hover:bg-blue-100 ml-4"
+        >
+          <X className="h-4 w-4" />
+        </Button>
+      </AlertDescription>
+    </Alert>
   )
-
-  if (!isVisible) {
-    return null
-  }
-
-  return bannerContent
-})
-
-DemoBanner.displayName = "DemoBanner"
-
-export default DemoBanner
+}

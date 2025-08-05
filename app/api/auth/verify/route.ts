@@ -1,23 +1,60 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { AuthService } from "@/lib/auth"
 
-export async function POST(request: NextRequest) {
+// Mock users (same as in login route)
+const mockUsers = [
+  {
+    id: "1",
+    email: "admin@sofacover.com",
+    name: "Admin User",
+    role: "admin",
+    avatar: "/placeholder-user.jpg",
+  },
+  {
+    id: "2",
+    email: "manager@sofacover.com",
+    name: "Manager User",
+    role: "manager",
+    avatar: "/placeholder-user.jpg",
+  },
+  {
+    id: "3",
+    email: "staff@sofacover.com",
+    name: "Staff User",
+    role: "staff",
+    avatar: "/placeholder-user.jpg",
+  },
+  {
+    id: "4",
+    email: "customer@sofacover.com",
+    name: "Customer User",
+    role: "customer",
+    avatar: "/placeholder-user.jpg",
+  },
+]
+
+export async function GET(request: NextRequest) {
   try {
-    const { token } = await request.json()
+    const authHeader = request.headers.get("authorization")
+    const token = authHeader?.replace("Bearer ", "")
 
     if (!token) {
-      return NextResponse.json({ success: false, message: "ไม่พบ token" }, { status: 400 })
+      return NextResponse.json({ error: "ไม่พบ token" }, { status: 401 })
     }
 
-    const response = await AuthService.verifyToken(token)
+    // Simple token validation (in production, use proper JWT verification)
+    const userId = token.split("_")[1]
+    const user = mockUsers.find((u) => u.id === userId)
 
-    if (response.success) {
-      return NextResponse.json(response)
-    } else {
-      return NextResponse.json(response, { status: 401 })
+    if (!user) {
+      return NextResponse.json({ error: "Token ไม่ถูกต้อง" }, { status: 401 })
     }
+
+    return NextResponse.json({
+      success: true,
+      user,
+    })
   } catch (error) {
-    console.error("Token verification error:", error)
-    return NextResponse.json({ success: false, message: "เกิดข้อผิดพลาดในการตรวจสอบ token" }, { status: 500 })
+    console.error("Verify error:", error)
+    return NextResponse.json({ error: "เกิดข้อผิดพลาดในระบบ" }, { status: 500 })
   }
 }

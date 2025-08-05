@@ -1,24 +1,25 @@
-"use client"
 import Header from "./components/Header"
 import Hero from "./components/Hero"
 import FeaturedProducts from "./components/FeaturedProducts"
-import FabricCollections from "./components/FabricCollections"
 import WhyChooseUs from "./components/WhyChooseUs"
 import CustomCoverSection from "./components/CustomCoverSection"
+import FabricCollections from "./components/FabricCollections"
 import Footer from "./components/Footer"
+import DemoBanner from "@/components/DemoBanner"
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen bg-white">
+    <>
+      <DemoBanner />
       <Header />
       <main>
         <Hero />
         <FeaturedProducts />
-        <FabricCollections />
         <WhyChooseUs />
         <CustomCoverSection />
+        <FabricCollections />
       </main>
       <Footer />
-    </div>
+    </>
   )
 }
