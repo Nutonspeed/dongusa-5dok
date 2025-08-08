@@ -1,7 +1,8 @@
 import nodemailer from "nodemailer"
+import { Resend } from 'resend';
 
 // Email configuration
-const transporter = nodemailer.createTransporter({
+const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST || "smtp.gmail.com",
   port: Number.parseInt(process.env.SMTP_PORT || "587"),
   secure: false,
@@ -10,6 +11,8 @@ const transporter = nodemailer.createTransporter({
     pass: process.env.SMTP_PASS,
   },
 })
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 // Email templates
 export const emailTemplates = {
@@ -432,6 +435,64 @@ export const emailService = {
     } catch (error) {
       console.error("Email service connection failed:", error)
       return false
+    }
+  },
+
+  async sendOrderConfirmationEmail({
+    to,
+    orderId,
+    customerName,
+    items,
+    total,
+  }: any) {
+    if (!process.env.RESEND_API_KEY) {
+      console.warn('RESEND_API_KEY is not set. Skipping email sending.');
+      // In a real application, you might want to throw an error or handle this more robustly.
+      return { success: false, message: 'Email service not configured.' };
+    }
+
+    const itemDetails = items.map(item =>
+      `- ${item.name} (${item.color ? `สี: ${item.color}, ` : ''}${item.size ? `ขนาด: ${item.size}, ` : ''}จำนวน: ${item.quantity} x ${item.price.toLocaleString('th-TH', { style: 'currency', currency: 'THB' })})`
+    ).join('\n');
+
+    try {
+      const { data, error } = await resend.emails.send({
+        from: 'SofaCover Pro <noreply@yourdomain.com>', // Replace with your verified domain
+        to: [to],
+        subject: `ยืนยันคำสั่งซื้อ #${orderId} จาก SofaCover Pro`,
+        html: `
+          <p>เรียนคุณ ${customerName},</p>
+          <p>ขอบคุณสำหรับคำสั่งซื้อของคุณที่ SofaCover Pro!</p>
+          <p>หมายเลขคำสั่งซื้อของคุณคือ: <strong>${orderId}</strong></p>
+          <p>รายละเอียดคำสั่งซื้อ:</p>
+          <ul>
+            ${items.map(item => `
+              <li>
+                ${item.name} 
+                ${item.color ? `(สี: ${item.color})` : ''}
+                ${item.size ? `(ขนาด: ${item.size})` : ''}
+                x ${item.quantity} = 
+                ${(item.price * item.quantity).toLocaleString('th-TH', { style: 'currency', currency: 'THB' })}
+              </li>
+            `).join('')}
+          </ul>
+          <p>ยอดรวมทั้งหมด: <strong>${total.toLocaleString('th-TH', { style: 'currency', currency: 'THB' })}</strong></p>
+          <p>เราจะดำเนินการจัดส่งสินค้าของคุณโดยเร็วที่สุด</p>
+          <p>หากมีข้อสงสัยเพิ่มเติม โปรดติดต่อเรา</p>
+          <p>ขอแสดงความนับถือ,<br/>ทีมงาน SofaCover Pro</p>
+        `,
+      });
+
+      if (error) {
+        console.error('Error sending email:', error);
+        return { success: false, message: error.message };
+      }
+
+      console.log('Email sent successfully:', data);
+      return { success: true, message: 'Email sent successfully.' };
+    } catch (err) {
+      console.error('Unexpected error in sendOrderConfirmationEmail:', err);
+      return { success: false, message: 'An unexpected error occurred while sending email.' };
     }
   },
 }
