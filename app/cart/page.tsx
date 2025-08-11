@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { Minus, Plus, Trash2, ShoppingBag, ArrowLeft } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -11,10 +12,13 @@ import Header from "../components/Header"
 import Footer from "../components/Footer"
 
 export default function CartPage() {
-  const { language, t } = useLanguage()
-  const { items, removeItem, updateQuantity, clearCart, totalPrice } = useCart()
+  const router = useRouter()
+  const { language } = useLanguage()
+  const { items, removeItem, updateQuantity, clearCart, getTotalPrice } = useCart()
   const [promoCode, setPromoCode] = useState("")
   const [discount, setDiscount] = useState(0)
+
+  const totalPrice = getTotalPrice()
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("th-TH", {
@@ -36,6 +40,15 @@ export default function CartPage() {
 
   const shippingFee = totalPrice >= 1000 ? 0 : 100
   const finalTotal = totalPrice - discount + shippingFee
+
+  const handleCheckout = () => {
+    const isLoggedIn = typeof window !== "undefined" && localStorage.getItem("user_token")
+    if (!isLoggedIn) {
+      router.push("/login?redirect=/checkout")
+    } else {
+      router.push("/checkout")
+    }
+  }
 
   if (items.length === 0) {
     return (
@@ -86,13 +99,13 @@ export default function CartPage() {
           {/* Cart Items */}
           <div className="lg:col-span-2 space-y-4">
             {items.map((item) => (
-              <Card key={item.id} className="hover:shadow-md transition-shadow">
+              <Card key={`${item.id}-${item.size}-${item.color}`} className="hover:shadow-md transition-shadow">
                 <CardContent className="p-6">
                   <div className="flex gap-4">
                     {/* Product Image */}
                     <div className="w-24 h-24 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
                       <img
-                        src={item.image || "/placeholder.svg"}
+                        src={item.image || "/placeholder.svg?height=96&width=96&text=Product"}
                         alt={item.name}
                         className="w-full h-full object-cover"
                       />
@@ -101,27 +114,44 @@ export default function CartPage() {
                     {/* Product Info */}
                     <div className="flex-1 space-y-2">
                       <h3 className="font-semibold text-gray-900 line-clamp-2">{item.name}</h3>
+                      {(item.size || item.color) && (
+                        <div className="flex gap-2 text-sm text-gray-600">
+                          {item.size && (
+                            <span>
+                              {language === "th" ? "ขนาด:" : "Size:"} {item.size}
+                            </span>
+                          )}
+                          {item.color && (
+                            <span>
+                              {language === "th" ? "สี:" : "Color:"} {item.color}
+                            </span>
+                          )}
+                        </div>
+                      )}
                       <p className="text-pink-600 font-bold">{formatPrice(item.price)}</p>
 
                       {/* Quantity Controls */}
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-2">
                           <button
-                            onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                            onClick={() => updateQuantity(`${item.id}-${item.size}-${item.color}`, item.quantity - 1)}
                             className="w-8 h-8 border border-gray-300 rounded-lg flex items-center justify-center hover:bg-gray-50"
                           >
                             <Minus className="w-4 h-4" />
                           </button>
                           <span className="w-12 text-center font-medium">{item.quantity}</span>
                           <button
-                            onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                            onClick={() => updateQuantity(`${item.id}-${item.size}-${item.color}`, item.quantity + 1)}
                             className="w-8 h-8 border border-gray-300 rounded-lg flex items-center justify-center hover:bg-gray-50"
                           >
                             <Plus className="w-4 h-4" />
                           </button>
                         </div>
 
-                        <button onClick={() => removeItem(item.id)} className="text-red-500 hover:text-red-700 p-2">
+                        <button
+                          onClick={() => removeItem(`${item.id}-${item.size}-${item.color}`)}
+                          className="text-red-500 hover:text-red-700 p-2"
+                        >
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
@@ -220,7 +250,10 @@ export default function CartPage() {
                 </div>
 
                 {/* Checkout Button */}
-                <Button className="w-full bg-gradient-to-r from-pink-500 to-rose-600 hover:from-pink-600 hover:to-rose-700 text-white">
+                <Button
+                  onClick={handleCheckout}
+                  className="w-full bg-gradient-to-r from-pink-500 to-rose-600 hover:from-pink-600 hover:to-rose-700 text-white"
+                >
                   {language === "th" ? "ดำเนินการชำระเงิน" : "Proceed to Checkout"}
                 </Button>
 

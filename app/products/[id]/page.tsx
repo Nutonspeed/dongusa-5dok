@@ -3,83 +3,39 @@
 import { useState } from "react"
 import { useParams } from "next/navigation"
 import Link from "next/link"
-import { ArrowLeft, Star, Heart, ShoppingCart, Truck, Shield, RotateCcw, MessageCircle } from "lucide-react"
+import {
+  ArrowLeft,
+  Star,
+  Heart,
+  ShoppingCart,
+  Truck,
+  Shield,
+  RotateCcw,
+  MessageCircle,
+  Plus,
+  Minus,
+} from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { Card, CardContent } from "@/components/ui/card"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useLanguage } from "../../contexts/LanguageContext"
 import { useCart } from "../../contexts/CartContext"
 import Header from "../../components/Header"
 import Footer from "../../components/Footer"
-
-// Mock product data (in real app, this would come from API)
-const productData = {
-  "1": {
-    id: "1",
-    name: "ผ้าคลุมโซฟากำมะหยี่พรีเมียม",
-    nameEn: "Premium Velvet Sofa Cover",
-    price: 2299,
-    originalPrice: 2899,
-    images: [
-      "/placeholder.svg?height=500&width=500&text=Velvet+Cover+1",
-      "/placeholder.svg?height=500&width=500&text=Velvet+Cover+2",
-      "/placeholder.svg?height=500&width=500&text=Velvet+Cover+3",
-      "/placeholder.svg?height=500&width=500&text=Velvet+Cover+4",
-    ],
-    category: "premium",
-    rating: 4.8,
-    reviews: 124,
-    colors: [
-      { name: "Navy", nameEn: "Navy", value: "#1e3a8a" },
-      { name: "เทา", nameEn: "Gray", value: "#6b7280" },
-      { name: "เบจ", nameEn: "Beige", value: "#d2b48c" },
-    ],
-    sizes: [
-      { name: "1 ที่นั่ง", nameEn: "1-seat", price: 2299 },
-      { name: "2 ที่นั่ง", nameEn: "2-seat", price: 2799 },
-      { name: "3 ที่นั่ง", nameEn: "3-seat", price: 3299 },
-    ],
-    description: {
-      th: "ผ้าคลุมโซฟากำมะหยี่พรีเมียมที่ให้ความนุ่มสบายและหรูหรา ทำจากเส้นใยคุณภาพสูง ทนทานต่อการใช้งาน ง่ายต่อการดูแลรักษา",
-      en: "Premium velvet sofa cover that provides comfort and luxury. Made from high-quality fibers, durable and easy to maintain.",
-    },
-    features: {
-      th: [
-        "ผ้ากำมะหยี่คุณภาพพรีเมียม",
-        "ยืดหยุ่นได้ดี พอดีกับโซฟาทุกรูปทรง",
-        "ป้องกันรอยขีดข่วนและคราบสกปรก",
-        "ซักเครื่องได้ ง่ายต่อการดูแล",
-        "สีไม่ตก ไม่ซีด",
-      ],
-      en: [
-        "Premium quality velvet fabric",
-        "Highly stretchable, fits all sofa shapes",
-        "Protects against scratches and stains",
-        "Machine washable, easy to care",
-        "Colorfast, fade-resistant",
-      ],
-    },
-    specifications: {
-      material: { th: "กำมะหยี่ 95% โพลีเอสเตอร์ 5% สแปนเด็กซ์", en: "95% Polyester Velvet, 5% Spandex" },
-      care: { th: "ซักเครื่องน้ำเย็น ห้ามฟอกขาว", en: "Machine wash cold, do not bleach" },
-      origin: { th: "ผลิตในประเทศไทย", en: "Made in Thailand" },
-      warranty: { th: "รับประกัน 1 ปี", en: "1 Year Warranty" },
-    },
-    bestseller: true,
-    discount: 21,
-    inStock: true,
-  },
-}
+import { getProductById, getRelatedProducts } from "../../../lib/mock-products"
 
 export default function ProductDetailPage() {
   const params = useParams()
-  const { language, t } = useLanguage()
+  const { language } = useLanguage()
   const { addItem } = useCart()
   const [selectedImage, setSelectedImage] = useState(0)
   const [selectedColor, setSelectedColor] = useState(0)
   const [selectedSize, setSelectedSize] = useState(0)
   const [quantity, setQuantity] = useState(1)
 
-  const product = productData[params.id as keyof typeof productData]
+  const product = getProductById(params.id as string)
+  const relatedProducts = getRelatedProducts(params.id as string, 4)
 
   if (!product) {
     return (
@@ -102,14 +58,31 @@ export default function ProductDetailPage() {
   }
 
   const handleAddToCart = () => {
-    addItem({
-      id: `${product.id}-${selectedColor}-${selectedSize}`,
-      name: `${language === "th" ? product.name : product.nameEn} - ${
-        product.colors[selectedColor][language === "th" ? "name" : "nameEn"]
-      } - ${product.sizes[selectedSize][language === "th" ? "name" : "nameEn"]}`,
-      price: product.sizes[selectedSize].price,
-      image: product.images[0],
-    })
+    if (product.type === "fixed") {
+      const finalPrice = product.sizes ? product.sizes[selectedSize].price : product.price!
+      const colorName = product.colors ? product.colors[selectedColor][language === "th" ? "name" : "nameEn"] : ""
+      const sizeName = product.sizes ? product.sizes[selectedSize][language === "th" ? "name" : "nameEn"] : ""
+
+      addItem({
+        id: `${product.id}-${selectedColor}-${selectedSize}`,
+        name: `${language === "th" ? product.name : product.nameEn}${colorName ? ` - ${colorName}` : ""}${sizeName ? ` - ${sizeName}` : ""}`,
+        price: finalPrice,
+        image: product.images[0],
+        quantity: quantity,
+        color: colorName,
+        size: sizeName,
+      })
+    }
+  }
+
+  const handleGetQuote = () => {
+    const message =
+      language === "th"
+        ? `สวัสดีครับ/ค่ะ! ผมสนใจ "${product.name}" ช่วยให้คำแนะนำเพิ่มเติมได้ไหมครับ/ค่ะ?`
+        : `Hello! I'm interested in "${product.nameEn}". Could you provide more information?`
+
+    const facebookUrl = `https://m.me/your-facebook-page?text=${encodeURIComponent(message)}`
+    window.open(facebookUrl, "_blank")
   }
 
   const formatPrice = (price: number) => {
@@ -118,6 +91,9 @@ export default function ProductDetailPage() {
       currency: "THB",
     }).format(price)
   }
+
+  const currentPrice =
+    product.type === "fixed" ? (product.sizes ? product.sizes[selectedSize].price : product.price!) : product.basePrice!
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -176,7 +152,10 @@ export default function ProductDetailPage() {
               {product.bestseller && (
                 <Badge className="bg-pink-600 text-white">{language === "th" ? "ขายดี" : "Bestseller"}</Badge>
               )}
-              {product.discount > 0 && <Badge variant="destructive">-{product.discount}%</Badge>}
+              {product.discount && <Badge variant="destructive">-{product.discount}%</Badge>}
+              {product.type === "custom" && (
+                <Badge className="bg-blue-600 text-white">{language === "th" ? "ราคาตามขนาด" : "Custom Price"}</Badge>
+              )}
             </div>
 
             {/* Title and Rating */}
@@ -203,9 +182,17 @@ export default function ProductDetailPage() {
 
             {/* Price */}
             <div className="flex items-center space-x-3">
-              <span className="text-3xl font-bold text-pink-600">{formatPrice(product.sizes[selectedSize].price)}</span>
-              {product.originalPrice > product.price && (
-                <span className="text-xl text-gray-500 line-through">{formatPrice(product.originalPrice)}</span>
+              {product.type === "custom" ? (
+                <div>
+                  <span className="text-3xl font-bold text-pink-600">
+                    {formatPrice(product.priceRange!.min)} - {formatPrice(product.priceRange!.max)}
+                  </span>
+                  <p className="text-sm text-gray-500 mt-1">
+                    {language === "th" ? "ราคาขึ้นอยู่กับขนาดโซฟา" : "Price depends on sofa size"}
+                  </p>
+                </div>
+              ) : (
+                <span className="text-3xl font-bold text-pink-600">{formatPrice(currentPrice)}</span>
               )}
             </div>
 
@@ -213,80 +200,97 @@ export default function ProductDetailPage() {
             <p className="text-gray-600 leading-relaxed">{product.description[language]}</p>
 
             {/* Color Selection */}
-            <div>
-              <h3 className="font-semibold text-gray-900 mb-3">
-                {language === "th" ? "สี" : "Color"}:{" "}
-                {product.colors[selectedColor][language === "th" ? "name" : "nameEn"]}
-              </h3>
-              <div className="flex space-x-2">
-                {product.colors.map((color, index) => (
-                  <button
-                    key={index}
-                    onClick={() => setSelectedColor(index)}
-                    className={`w-8 h-8 rounded-full border-2 transition-colors ${
-                      selectedColor === index ? "border-pink-500 ring-2 ring-pink-200" : "border-gray-300"
-                    }`}
-                    style={{ backgroundColor: color.value }}
-                    title={color[language === "th" ? "name" : "nameEn"]}
-                  />
-                ))}
+            {product.colors && (
+              <div>
+                <h3 className="font-semibold text-gray-900 mb-3">
+                  {language === "th" ? "สี" : "Color"}:{" "}
+                  {product.colors[selectedColor][language === "th" ? "name" : "nameEn"]}
+                </h3>
+                <div className="flex space-x-2">
+                  {product.colors.map((color, index) => (
+                    <button
+                      key={index}
+                      onClick={() => setSelectedColor(index)}
+                      className={`w-8 h-8 rounded-full border-2 transition-colors ${
+                        selectedColor === index ? "border-pink-500 ring-2 ring-pink-200" : "border-gray-300"
+                      }`}
+                      style={{ backgroundColor: color.value }}
+                      title={color[language === "th" ? "name" : "nameEn"]}
+                    />
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Size Selection */}
-            <div>
-              <h3 className="font-semibold text-gray-900 mb-3">
-                {language === "th" ? "ขนาด" : "Size"}:{" "}
-                {product.sizes[selectedSize][language === "th" ? "name" : "nameEn"]}
-              </h3>
-              <div className="grid grid-cols-3 gap-2">
-                {product.sizes.map((size, index) => (
-                  <button
-                    key={index}
-                    onClick={() => setSelectedSize(index)}
-                    className={`p-3 border rounded-lg text-sm font-medium transition-colors ${
-                      selectedSize === index
-                        ? "border-pink-500 bg-pink-50 text-pink-700"
-                        : "border-gray-300 hover:border-gray-400"
-                    }`}
-                  >
-                    <div>{size[language === "th" ? "name" : "nameEn"]}</div>
-                    <div className="text-xs text-gray-500">{formatPrice(size.price)}</div>
-                  </button>
-                ))}
+            {product.sizes && (
+              <div>
+                <h3 className="font-semibold text-gray-900 mb-3">
+                  {language === "th" ? "ขนาด" : "Size"}:{" "}
+                  {product.sizes[selectedSize][language === "th" ? "name" : "nameEn"]}
+                </h3>
+                <div className="grid grid-cols-2 gap-2">
+                  {product.sizes.map((size, index) => (
+                    <button
+                      key={index}
+                      onClick={() => setSelectedSize(index)}
+                      className={`p-3 border rounded-lg text-sm font-medium transition-colors ${
+                        selectedSize === index
+                          ? "border-pink-500 bg-pink-50 text-pink-700"
+                          : "border-gray-300 hover:border-gray-400"
+                      }`}
+                    >
+                      <div>{size[language === "th" ? "name" : "nameEn"]}</div>
+                      <div className="text-xs text-gray-500">{formatPrice(size.price)}</div>
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Quantity */}
-            <div>
-              <h3 className="font-semibold text-gray-900 mb-3">{language === "th" ? "จำนวน" : "Quantity"}</h3>
-              <div className="flex items-center space-x-3">
-                <button
-                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                  className="w-10 h-10 border border-gray-300 rounded-lg flex items-center justify-center hover:bg-gray-50"
-                >
-                  -
-                </button>
-                <span className="w-12 text-center font-medium">{quantity}</span>
-                <button
-                  onClick={() => setQuantity(quantity + 1)}
-                  className="w-10 h-10 border border-gray-300 rounded-lg flex items-center justify-center hover:bg-gray-50"
-                >
-                  +
-                </button>
+            {product.type === "fixed" && (
+              <div>
+                <h3 className="font-semibold text-gray-900 mb-3">{language === "th" ? "จำนวน" : "Quantity"}</h3>
+                <div className="flex items-center space-x-3">
+                  <button
+                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                    className="w-10 h-10 border border-gray-300 rounded-lg flex items-center justify-center hover:bg-gray-50"
+                  >
+                    <Minus className="w-4 h-4" />
+                  </button>
+                  <span className="w-12 text-center font-medium">{quantity}</span>
+                  <button
+                    onClick={() => setQuantity(quantity + 1)}
+                    className="w-10 h-10 border border-gray-300 rounded-lg flex items-center justify-center hover:bg-gray-50"
+                  >
+                    <Plus className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Action Buttons */}
             <div className="flex space-x-4">
-              <Button
-                onClick={handleAddToCart}
-                className="flex-1 bg-gradient-to-r from-pink-500 to-rose-600 hover:from-pink-600 hover:to-rose-700 text-white"
-                size="lg"
-              >
-                <ShoppingCart className="w-5 h-5 mr-2" />
-                {language === "th" ? "เพิ่มลงตะกร้า" : "Add to Cart"}
-              </Button>
+              {product.type === "fixed" ? (
+                <Button
+                  onClick={handleAddToCart}
+                  className="flex-1 bg-gradient-to-r from-pink-500 to-rose-600 hover:from-pink-600 hover:to-rose-700 text-white"
+                  size="lg"
+                >
+                  <ShoppingCart className="w-5 h-5 mr-2" />
+                  {language === "th" ? "เพิ่มลงตะกร้า" : "Add to Cart"}
+                </Button>
+              ) : (
+                <Button
+                  onClick={handleGetQuote}
+                  className="flex-1 bg-gradient-to-r from-pink-500 to-rose-600 hover:from-pink-600 hover:to-rose-700 text-white"
+                  size="lg"
+                >
+                  <MessageCircle className="w-5 h-5 mr-2" />
+                  {language === "th" ? "ขอใบเสนอราคา" : "Get Quote"}
+                </Button>
+              )}
               <Button variant="outline" size="lg" className="px-6 bg-transparent">
                 <Heart className="w-5 h-5" />
               </Button>
@@ -300,7 +304,9 @@ export default function ProductDetailPage() {
               </div>
               <div className="flex items-center space-x-2">
                 <Shield className="w-5 h-5 text-pink-600" />
-                <span className="text-sm text-gray-600">{language === "th" ? "รับประกัน 1 ปี" : "1 Year Warranty"}</span>
+                <span className="text-sm text-gray-600">
+                  {product.specifications?.warranty[language] || (language === "th" ? "รับประกัน" : "Warranty")}
+                </span>
               </div>
               <div className="flex items-center space-x-2">
                 <RotateCcw className="w-5 h-5 text-pink-600" />
@@ -312,68 +318,163 @@ export default function ProductDetailPage() {
 
         {/* Product Details Tabs */}
         <div className="mt-16">
-          <div className="bg-white rounded-lg shadow-sm">
-            <div className="border-b">
-              <nav className="flex space-x-8 px-6">
-                <button className="py-4 border-b-2 border-pink-500 text-pink-600 font-medium">
-                  {language === "th" ? "รายละเอียด" : "Details"}
-                </button>
-                <button className="py-4 text-gray-500 hover:text-gray-700">
-                  {language === "th" ? "คุณสมบัติ" : "Features"}
-                </button>
-                <button className="py-4 text-gray-500 hover:text-gray-700">
-                  {language === "th" ? "รีวิว" : "Reviews"}
-                </button>
-              </nav>
-            </div>
+          <Tabs defaultValue="details" className="w-full">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="details">{language === "th" ? "รายละเอียด" : "Details"}</TabsTrigger>
+              <TabsTrigger value="features">{language === "th" ? "คุณสมบัติ" : "Features"}</TabsTrigger>
+              <TabsTrigger value="reviews">{language === "th" ? "รีวิว" : "Reviews"}</TabsTrigger>
+            </TabsList>
 
-            <div className="p-6">
-              <div className="grid md:grid-cols-2 gap-8">
-                <div>
-                  <h3 className="font-semibold text-gray-900 mb-4">
-                    {language === "th" ? "คุณสมบัติเด่น" : "Key Features"}
-                  </h3>
-                  <ul className="space-y-2">
-                    {product.features[language].map((feature, index) => (
-                      <li key={index} className="flex items-start space-x-2">
-                        <div className="w-2 h-2 bg-pink-500 rounded-full mt-2 flex-shrink-0"></div>
-                        <span className="text-gray-600">{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
+            <TabsContent value="details" className="mt-6">
+              <Card>
+                <CardContent className="p-6">
+                  <div className="grid md:grid-cols-2 gap-8">
+                    <div>
+                      <h3 className="font-semibold text-gray-900 mb-4">
+                        {language === "th" ? "รายละเอียดสินค้า" : "Product Details"}
+                      </h3>
+                      <p className="text-gray-600 leading-relaxed">{product.description[language]}</p>
+                    </div>
 
-                <div>
-                  <h3 className="font-semibold text-gray-900 mb-4">
-                    {language === "th" ? "ข้อมูลจำเพาะ" : "Specifications"}
-                  </h3>
-                  <dl className="space-y-3">
+                    {product.specifications && (
+                      <div>
+                        <h3 className="font-semibold text-gray-900 mb-4">
+                          {language === "th" ? "ข้อมูลจำเพาะ" : "Specifications"}
+                        </h3>
+                        <dl className="space-y-3">
+                          <div>
+                            <dt className="text-sm font-medium text-gray-500">
+                              {language === "th" ? "วัสดุ" : "Material"}
+                            </dt>
+                            <dd className="text-gray-900">{product.specifications.material[language]}</dd>
+                          </div>
+                          <div>
+                            <dt className="text-sm font-medium text-gray-500">
+                              {language === "th" ? "การดูแล" : "Care Instructions"}
+                            </dt>
+                            <dd className="text-gray-900">{product.specifications.care[language]}</dd>
+                          </div>
+                          <div>
+                            <dt className="text-sm font-medium text-gray-500">
+                              {language === "th" ? "แหล่งผลิต" : "Origin"}
+                            </dt>
+                            <dd className="text-gray-900">{product.specifications.origin[language]}</dd>
+                          </div>
+                          <div>
+                            <dt className="text-sm font-medium text-gray-500">
+                              {language === "th" ? "การรับประกัน" : "Warranty"}
+                            </dt>
+                            <dd className="text-gray-900">{product.specifications.warranty[language]}</dd>
+                          </div>
+                        </dl>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="features" className="mt-6">
+              <Card>
+                <CardContent className="p-6">
+                  {product.features && (
                     <div>
-                      <dt className="text-sm font-medium text-gray-500">{language === "th" ? "วัสดุ" : "Material"}</dt>
-                      <dd className="text-gray-900">{product.specifications.material[language]}</dd>
+                      <h3 className="font-semibold text-gray-900 mb-4">
+                        {language === "th" ? "คุณสมบัติเด่น" : "Key Features"}
+                      </h3>
+                      <ul className="space-y-3">
+                        {product.features[language].map((feature, index) => (
+                          <li key={index} className="flex items-start space-x-3">
+                            <div className="w-2 h-2 bg-pink-500 rounded-full mt-2 flex-shrink-0"></div>
+                            <span className="text-gray-600">{feature}</span>
+                          </li>
+                        ))}
+                      </ul>
                     </div>
-                    <div>
-                      <dt className="text-sm font-medium text-gray-500">
-                        {language === "th" ? "การดูแล" : "Care Instructions"}
-                      </dt>
-                      <dd className="text-gray-900">{product.specifications.care[language]}</dd>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="reviews" className="mt-6">
+              <Card>
+                <CardContent className="p-6">
+                  <div className="text-center py-8">
+                    <div className="text-4xl mb-4">⭐</div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                      {language === "th" ? "รีวิวจากลูกค้า" : "Customer Reviews"}
+                    </h3>
+                    <p className="text-gray-600 mb-4">
+                      {language === "th"
+                        ? `คะแนนเฉลี่ย ${product.rating}/5 จาก ${product.reviews} รีวิว`
+                        : `Average rating ${product.rating}/5 from ${product.reviews} reviews`}
+                    </p>
+                    <p className="text-gray-500 text-sm">
+                      {language === "th"
+                        ? "รีวิวจะแสดงหลังจากลูกค้าได้รับสินค้าแล้ว"
+                        : "Reviews will be displayed after customers receive their products"}
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
+        </div>
+
+        {/* Related Products */}
+        {relatedProducts.length > 0 && (
+          <div className="mt-16">
+            <h2 className="text-2xl font-bold text-gray-900 mb-8">
+              {language === "th" ? "สินค้าที่เกี่ยวข้อง" : "Related Products"}
+            </h2>
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {relatedProducts.map((relatedProduct) => (
+                <Card key={relatedProduct.id} className="group hover:shadow-lg transition-shadow">
+                  <CardContent className="p-0">
+                    <div className="aspect-square bg-gray-100 rounded-t-lg overflow-hidden">
+                      <img
+                        src={relatedProduct.images[0] || "/placeholder.svg"}
+                        alt={language === "th" ? relatedProduct.name : relatedProduct.nameEn}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
                     </div>
-                    <div>
-                      <dt className="text-sm font-medium text-gray-500">{language === "th" ? "แหล่งผลิต" : "Origin"}</dt>
-                      <dd className="text-gray-900">{product.specifications.origin[language]}</dd>
+                    <div className="p-4">
+                      <h3 className="font-semibold text-gray-900 line-clamp-2 mb-2">
+                        {language === "th" ? relatedProduct.name : relatedProduct.nameEn}
+                      </h3>
+                      <div className="flex items-center space-x-1 mb-2">
+                        <div className="flex">
+                          {[...Array(5)].map((_, i) => (
+                            <Star
+                              key={i}
+                              className={`w-3 h-3 ${
+                                i < Math.floor(relatedProduct.rating) ? "text-yellow-400 fill-current" : "text-gray-300"
+                              }`}
+                            />
+                          ))}
+                        </div>
+                        <span className="text-xs text-gray-600">({relatedProduct.reviews})</span>
+                      </div>
+                      <p className="text-sm font-bold text-pink-600">
+                        {relatedProduct.type === "custom"
+                          ? `${formatPrice(relatedProduct.priceRange!.min)} - ${formatPrice(relatedProduct.priceRange!.max)}`
+                          : formatPrice(relatedProduct.price!)}
+                      </p>
+                      <Link href={`/products/${relatedProduct.id}`}>
+                        <Button
+                          size="sm"
+                          className="w-full mt-3 bg-gradient-to-r from-pink-500 to-rose-600 hover:from-pink-600 hover:to-rose-700 text-white"
+                        >
+                          {language === "th" ? "ดูรายละเอียด" : "View Details"}
+                        </Button>
+                      </Link>
                     </div>
-                    <div>
-                      <dt className="text-sm font-medium text-gray-500">
-                        {language === "th" ? "การรับประกัน" : "Warranty"}
-                      </dt>
-                      <dd className="text-gray-900">{product.specifications.warranty[language]}</dd>
-                    </div>
-                  </dl>
-                </div>
-              </div>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
           </div>
-        </div>
+        )}
 
         {/* Contact Section */}
         <div className="mt-12 bg-gradient-to-r from-pink-600 to-rose-700 rounded-lg p-8 text-white text-center">
@@ -383,14 +484,7 @@ export default function ProductDetailPage() {
               ? "ทีมผู้เชี่ยวชาญพร้อมให้คำแนะนำเรื่องการเลือกผ้าคลุมโซฟาที่เหมาะสม"
               : "Our expert team is ready to help you choose the perfect sofa cover"}
           </p>
-          <Button
-            onClick={() => {
-              const message = `สวัสดีครับ/ค่ะ! ผมสนใจสินค้า "${product.name}" ช่วยให้คำแนะนำเพิ่มเติมได้ไหมครับ/ค่ะ?`
-              const facebookUrl = `https://m.me/your-facebook-page?text=${encodeURIComponent(message)}`
-              window.open(facebookUrl, "_blank")
-            }}
-            className="bg-white text-pink-600 hover:bg-gray-100"
-          >
+          <Button onClick={handleGetQuote} className="bg-white text-pink-600 hover:bg-gray-100">
             <MessageCircle className="w-5 h-5 mr-2" />
             {language === "th" ? "แชทใน Facebook" : "Chat on Facebook"}
           </Button>

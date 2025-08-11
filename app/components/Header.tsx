@@ -1,17 +1,30 @@
 "use client"
 
+import type React from "react"
+
 import { useState } from "react"
 import Link from "next/link"
-import { Menu, X, ShoppingCart, User, Search, Globe } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { Menu, X, ShoppingCart, User, Search, Globe, LogOut, Settings } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu"
 import { useLanguage } from "../contexts/LanguageContext"
 import { useCart } from "../contexts/CartContext"
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [isSearchOpen, setIsSearchOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState("")
   const { language, setLanguage } = useLanguage()
   const { items } = useCart()
+  const router = useRouter()
 
   const navigation = [
     {
@@ -50,6 +63,24 @@ export default function Header() {
 
   const cartItemCount = items.reduce((total, item) => total + item.quantity, 0)
 
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (searchQuery.trim()) {
+      router.push(`/products?search=${encodeURIComponent(searchQuery.trim())}`)
+      setSearchQuery("")
+      setIsSearchOpen(false)
+    }
+  }
+
+  const isLoggedIn = typeof window !== "undefined" && localStorage.getItem("user_token")
+
+  const handleLogout = () => {
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("user_token")
+      router.push("/")
+    }
+  }
+
   return (
     <header className="bg-white shadow-sm border-b sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -82,9 +113,30 @@ export default function Header() {
           {/* Right side actions */}
           <div className="flex items-center space-x-4">
             {/* Search */}
-            <Button variant="ghost" size="sm" className="hidden sm:flex">
-              <Search className="w-4 h-4" />
-            </Button>
+            <div className="relative">
+              {isSearchOpen ? (
+                <form onSubmit={handleSearch} className="flex items-center">
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder={language === "en" ? "Search products..." : "ค้นหาสินค้า..."}
+                    className="w-48 px-3 py-1 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
+                    autoFocus
+                    onBlur={() => {
+                      setTimeout(() => setIsSearchOpen(false), 200)
+                    }}
+                  />
+                  <Button type="submit" variant="ghost" size="sm" className="ml-1">
+                    <Search className="w-4 h-4" />
+                  </Button>
+                </form>
+              ) : (
+                <Button variant="ghost" size="sm" className="hidden sm:flex" onClick={() => setIsSearchOpen(true)}>
+                  <Search className="w-4 h-4" />
+                </Button>
+              )}
+            </div>
 
             {/* Language Toggle */}
             <Button variant="ghost" size="sm" onClick={toggleLanguage} className="flex items-center space-x-1">
@@ -105,9 +157,57 @@ export default function Header() {
             </Link>
 
             {/* User Account */}
-            <Button variant="ghost" size="sm">
-              <User className="w-4 h-4" />
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm">
+                  <User className="w-4 h-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                {isLoggedIn ? (
+                  <>
+                    <DropdownMenuItem asChild>
+                      <Link href="/profile" className="flex items-center">
+                        <User className="w-4 h-4 mr-2" />
+                        {language === "en" ? "Profile" : "โปรไฟล์"}
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/orders" className="flex items-center">
+                        <ShoppingCart className="w-4 h-4 mr-2" />
+                        {language === "en" ? "My Orders" : "คำสั่งซื้อของฉัน"}
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/settings" className="flex items-center">
+                        <Settings className="w-4 h-4 mr-2" />
+                        {language === "en" ? "Settings" : "ตั้งค่า"}
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={handleLogout} className="text-red-600">
+                      <LogOut className="w-4 h-4 mr-2" />
+                      {language === "en" ? "Logout" : "ออกจากระบบ"}
+                    </DropdownMenuItem>
+                  </>
+                ) : (
+                  <>
+                    <DropdownMenuItem asChild>
+                      <Link href="/login" className="flex items-center">
+                        <User className="w-4 h-4 mr-2" />
+                        {language === "en" ? "Login" : "เข้าสู่ระบบ"}
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/register" className="flex items-center">
+                        <User className="w-4 h-4 mr-2" />
+                        {language === "en" ? "Register" : "สมัครสมาชิก"}
+                      </Link>
+                    </DropdownMenuItem>
+                  </>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
 
             {/* Mobile menu button */}
             <Button variant="ghost" size="sm" className="md:hidden" onClick={() => setIsMenuOpen(!isMenuOpen)}>
@@ -134,14 +234,18 @@ export default function Header() {
 
             {/* Mobile Search */}
             <div className="mt-4 px-3">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder={language === "en" ? "Search products..." : "ค้นหาสินค้า..."}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                />
-              </div>
+              <form onSubmit={handleSearch}>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder={language === "en" ? "Search products..." : "ค้นหาสินค้า..."}
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                  />
+                </div>
+              </form>
             </div>
           </div>
         )}
