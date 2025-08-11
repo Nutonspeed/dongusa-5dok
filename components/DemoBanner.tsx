@@ -1,32 +1,50 @@
 "use client"
 
 import { useState } from "react"
-import { Alert, AlertDescription } from "@/components/ui/alert"
+import { X, Info, Settings } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { X, Info } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
+import Link from "next/link"
 
-export default function DemoBanner() {
+export function DemoBanner() {
   const [isVisible, setIsVisible] = useState(true)
 
   if (!isVisible) return null
 
   return (
-    <Alert className="rounded-none border-x-0 border-t-0 bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
-      <Info className="h-4 w-4 text-blue-600" />
-      <AlertDescription className="flex items-center justify-between w-full">
-        <span className="text-blue-800">
-          🚀 <strong>Demo Mode:</strong> นี่คือเว็บไซต์ทดลอง ข้อมูลทั้งหมดเป็นข้อมูลจำลอง |<strong> Admin:</strong>{" "}
-          admin@sofacover.com / admin123
-        </span>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => setIsVisible(false)}
-          className="text-blue-600 hover:text-blue-800 hover:bg-blue-100 ml-4"
-        >
-          <X className="h-4 w-4" />
-        </Button>
-      </AlertDescription>
-    </Alert>
+    <div className="bg-burgundy-gradient text-white py-3 px-4 relative">
+      <div className="max-w-7xl mx-auto flex items-center justify-between">
+        <div className="flex items-center space-x-3">
+          <Info className="w-5 h-5 flex-shrink-0" />
+          <div className="flex items-center space-x-2 text-sm">
+            <Badge variant="secondary" className="bg-white/20 text-white border-white/30">
+              DEMO
+            </Badge>
+            <span className="hidden sm:inline">
+              This is a demonstration website. All services are simulated for showcase purposes.
+            </span>
+            <span className="sm:hidden">Demo website - simulated services</span>
+          </div>
+        </div>
+
+        <div className="flex items-center space-x-2">
+          <Link href="/admin/demo">
+            <Button variant="ghost" size="sm" className="text-white hover:bg-white/20 text-xs px-3 py-1">
+              <Settings className="w-4 h-4 mr-1" />
+              <span className="hidden sm:inline">Demo Controls</span>
+              <span className="sm:hidden">Controls</span>
+            </Button>
+          </Link>
+
+          <button
+            onClick={() => setIsVisible(false)}
+            className="text-white hover:bg-white/20 rounded-full p-1 transition-colors"
+            aria-label="Close banner"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+    </div>
   )
 }

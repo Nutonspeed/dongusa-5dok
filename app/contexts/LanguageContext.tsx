@@ -1,9 +1,9 @@
 "use client"
 
 import type React from "react"
-import { createContext, useContext, useEffect, useState } from "react"
+import { createContext, useContext, useState, useEffect } from "react"
 
-type Language = "th" | "en"
+type Language = "en" | "th"
 
 interface LanguageContextType {
   language: Language
@@ -12,121 +12,159 @@ interface LanguageContextType {
 }
 
 const translations = {
-  th: {
-    // Navigation
-    "nav.home": "หน้าหลัก",
-    "nav.products": "สินค้า",
-    "nav.fabric-gallery": "แกลเลอรี่ผ้า",
-    "nav.custom-covers": "สั่งทำพิเศษ",
-    "nav.about": "เกี่ยวกับเรา",
-    "nav.contact": "ติดต่อ",
-    "nav.cart": "ตะกร้า",
-    "nav.login": "เข้าสู่ระบบ",
-    "nav.logout": "ออกจากระบบ",
-    "nav.profile": "โปรไฟล์",
-    "nav.admin": "จัดการระบบ",
-
-    // Hero Section
-    "hero.title": "ผ้าคลุมโซฟาคุณภาพสูง",
-    "hero.subtitle": "สั่งทำตามขนาด ผ้ากันน้ำ กันคราบ ดูแลง่าย",
-    "hero.cta": "เลือกซื้อเลย",
-    "hero.learn-more": "เรียนรู้เพิ่มเติม",
-
-    // Products
-    "products.title": "สินค้าแนะนำ",
-    "products.view-all": "ดูทั้งหมด",
-    "products.add-to-cart": "เพิ่มลงตะกร้า",
-    "products.price": "ราคา",
-    "products.baht": "บาท",
-
-    // Why Choose Us
-    "why.title": "ทำไมต้องเลือกเรา",
-    "why.quality.title": "คุณภาพสูง",
-    "why.quality.desc": "ผ้าคุณภาพพรีเมียม ทนทาน กันน้ำ กันคราบ",
-    "why.custom.title": "สั่งทำตามขนาด",
-    "why.custom.desc": "วัดขนาดและสั่งทำตามโซฟาของคุณ",
-    "why.delivery.title": "จัดส่งฟรี",
-    "why.delivery.desc": "จัดส่งฟรีทั่วประเทศ รับประกันคุณภาพ",
-    "why.service.title": "บริการหลังการขาย",
-    "why.service.desc": "ให้คำปรึกษาและดูแลหลังการขาย",
-
-    // Footer
-    "footer.company": "บริษัท",
-    "footer.products": "สินค้า",
-    "footer.support": "ช่วยเหลือ",
-    "footer.contact": "ติดต่อเรา",
-    "footer.rights": "สงวนลิขสิทธิ์",
-
-    // Common
-    "common.loading": "กำลังโหลด...",
-    "common.error": "เกิดข้อผิดพลาด",
-    "common.success": "สำเร็จ",
-    "common.cancel": "ยกเลิก",
-    "common.confirm": "ยืนยัน",
-    "common.save": "บันทึก",
-    "common.edit": "แก้ไข",
-    "common.delete": "ลบ",
-    "common.search": "ค้นหา",
-    "common.filter": "กรอง",
-    "common.sort": "เรียง",
-  },
   en: {
     // Navigation
-    "nav.home": "Home",
-    "nav.products": "Products",
-    "nav.fabric-gallery": "Fabric Gallery",
-    "nav.custom-covers": "Custom Covers",
-    "nav.about": "About",
-    "nav.contact": "Contact",
-    "nav.cart": "Cart",
-    "nav.login": "Login",
-    "nav.logout": "Logout",
-    "nav.profile": "Profile",
-    "nav.admin": "Admin",
+    home: "Home",
+    products: "Products",
+    about: "About",
+    contact: "Contact",
+    cart: "Cart",
 
     // Hero Section
-    "hero.title": "Premium Sofa Covers",
-    "hero.subtitle": "Custom-made, waterproof, stain-resistant, easy care",
-    "hero.cta": "Shop Now",
-    "hero.learn-more": "Learn More",
+    heroTitle: "Transform Your Living Space",
+    heroSubtitle: "Premium sofa covers that protect and beautify your furniture",
+    shopNow: "Shop Now",
+    customOrder: "Custom Order",
 
-    // Products
-    "products.title": "Featured Products",
-    "products.view-all": "View All",
-    "products.add-to-cart": "Add to Cart",
-    "products.price": "Price",
-    "products.baht": "THB",
+    // Featured Products
+    featuredProductsTitle: "Featured Products",
+    featuredProductsSubtitle: "Discover our most popular sofa covers",
+    addToCart: "Add to Cart",
+    viewAllProducts: "View All Products",
+
+    // Fabric Collections
+    fabricCollectionsTitle: "Fabric Collections",
+    fabricCollectionsSubtitle: "Explore our curated collections of premium fabrics",
+    searchCollections: "Search collections...",
+    patternsAvailable: "patterns available",
+    viewAllPatterns: "View All Patterns",
+    getQuoteOnFacebook: "Get Quote",
 
     // Why Choose Us
-    "why.title": "Why Choose Us",
-    "why.quality.title": "High Quality",
-    "why.quality.desc": "Premium fabric, durable, waterproof, stain-resistant",
-    "why.custom.title": "Custom Made",
-    "why.custom.desc": "Measured and made to fit your sofa perfectly",
-    "why.delivery.title": "Free Delivery",
-    "why.delivery.desc": "Free nationwide delivery with quality guarantee",
-    "why.service.title": "After-sales Service",
-    "why.service.desc": "Consultation and after-sales support",
+    whyChooseUsTitle: "Why Choose SofaCover Pro?",
+    whyChooseUsSubtitle: "We're committed to providing the highest quality sofa covers",
 
-    // Footer
-    "footer.company": "Company",
-    "footer.products": "Products",
-    "footer.support": "Support",
-    "footer.contact": "Contact Us",
-    "footer.rights": "All rights reserved",
+    // Custom Cover Section
+    customCoverTitle: "Get Your Perfect Custom Cover",
+    customCoverSubtitle: "Follow our simple 3-step process",
 
     // Common
-    "common.loading": "Loading...",
-    "common.error": "Error occurred",
-    "common.success": "Success",
-    "common.cancel": "Cancel",
-    "common.confirm": "Confirm",
-    "common.save": "Save",
-    "common.edit": "Edit",
-    "common.delete": "Delete",
-    "common.search": "Search",
-    "common.filter": "Filter",
-    "common.sort": "Sort",
+    loading: "Loading...",
+    error: "Error",
+    success: "Success",
+    cancel: "Cancel",
+    save: "Save",
+    edit: "Edit",
+    delete: "Delete",
+    search: "Search",
+    filter: "Filter",
+    sort: "Sort",
+    price: "Price",
+    name: "Name",
+    category: "Category",
+    description: "Description",
+    quantity: "Quantity",
+    total: "Total",
+    subtotal: "Subtotal",
+    shipping: "Shipping",
+    tax: "Tax",
+    checkout: "Checkout",
+    continueShopping: "Continue Shopping",
+
+    // Product Details
+    productDetails: "Product Details",
+    specifications: "Specifications",
+    reviews: "Reviews",
+    relatedProducts: "Related Products",
+    inStock: "In Stock",
+    outOfStock: "Out of Stock",
+    addToWishlist: "Add to Wishlist",
+    shareProduct: "Share Product",
+
+    // Footer
+    companyInfo: "Company Information",
+    customerService: "Customer Service",
+    followUs: "Follow Us",
+    newsletter: "Newsletter",
+    subscribeNewsletter: "Subscribe to our newsletter",
+    allRightsReserved: "All rights reserved",
+  },
+  th: {
+    // Navigation
+    home: "หน้าแรก",
+    products: "สินค้า",
+    about: "เกี่ยวกับเรา",
+    contact: "ติดต่อ",
+    cart: "ตะกร้า",
+
+    // Hero Section
+    heroTitle: "เปลี่ยนโฉมพื้นที่นั่งเล่น",
+    heroSubtitle: "ผ้าคลุมโซฟาพรีเมียมที่ปกป้องและเพิ่มความสวยงาม",
+    shopNow: "ช้อปเลย",
+    customOrder: "สั่งทำพิเศษ",
+
+    // Featured Products
+    featuredProductsTitle: "สินค้าแนะนำ",
+    featuredProductsSubtitle: "ค้นพบผ้าคลุมโซฟายอดนิยมของเรา",
+    addToCart: "เพิ่มลงตะกร้า",
+    viewAllProducts: "ดูสินค้าทั้งหมด",
+
+    // Fabric Collections
+    fabricCollectionsTitle: "คอลเลกชันผ้า",
+    fabricCollectionsSubtitle: "สำรวจคอลเลกชันผ้าพรีเมียมที่คัดสรรมาแล้ว",
+    searchCollections: "ค้นหาคอลเลกชัน...",
+    patternsAvailable: "ลายที่มีให้เลือก",
+    viewAllPatterns: "ดูลายทั้งหมด",
+    getQuoteOnFacebook: "รับใบเสนอราคา",
+
+    // Why Choose Us
+    whyChooseUsTitle: "ทำไมต้องเลือก โซฟาคัฟเวอร์ โปร?",
+    whyChooseUsSubtitle: "เรามุ่งมั่นที่จะให้ผ้าคลุมโซฟาคุณภาพสูงสุด",
+
+    // Custom Cover Section
+    customCoverTitle: "รับผ้าคลุมตามสั่งที่สมบูรณ์แบบ",
+    customCoverSubtitle: "ทำตามขั้นตอนง่ายๆ 3 ขั้นตอน",
+
+    // Common
+    loading: "กำลังโหลด...",
+    error: "ข้อผิดพลาด",
+    success: "สำเร็จ",
+    cancel: "ยกเลิก",
+    save: "บันทึก",
+    edit: "แก้ไข",
+    delete: "ลบ",
+    search: "ค้นหา",
+    filter: "กรอง",
+    sort: "เรียง",
+    price: "ราคา",
+    name: "ชื่อ",
+    category: "หมวดหมู่",
+    description: "รายละเอียด",
+    quantity: "จำนวน",
+    total: "รวม",
+    subtotal: "รวมย่อย",
+    shipping: "ค่าจัดส่ง",
+    tax: "ภาษี",
+    checkout: "ชำระเงิน",
+    continueShopping: "ช้อปต่อ",
+
+    // Product Details
+    productDetails: "รายละเอียดสินค้า",
+    specifications: "ข้อมูลจำเพาะ",
+    reviews: "รีวิว",
+    relatedProducts: "สินค้าที่เกี่ยวข้อง",
+    inStock: "มีสินค้า",
+    outOfStock: "สินค้าหมด",
+    addToWishlist: "เพิ่มในรายการโปรด",
+    shareProduct: "แชร์สินค้า",
+
+    // Footer
+    companyInfo: "ข้อมูลบริษัท",
+    customerService: "บริการลูกค้า",
+    followUs: "ติดตามเรา",
+    newsletter: "จดหมายข่าว",
+    subscribeNewsletter: "สมัครรับจดหมายข่าว",
+    allRightsReserved: "สงวนลิขสิทธิ์",
   },
 }
 
@@ -137,7 +175,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const savedLanguage = localStorage.getItem("language") as Language
-    if (savedLanguage && (savedLanguage === "th" || savedLanguage === "en")) {
+    if (savedLanguage && (savedLanguage === "en" || savedLanguage === "th")) {
       setLanguage(savedLanguage)
     }
   }, [])
@@ -151,13 +189,11 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     return translations[language][key as keyof (typeof translations)[typeof language]] || key
   }
 
-  const value: LanguageContextType = {
-    language,
-    setLanguage: handleSetLanguage,
-    t,
-  }
-
-  return <LanguageContext.Provider value={value}>{children}</LanguageContext.Provider>
+  return (
+    <LanguageContext.Provider value={{ language, setLanguage: handleSetLanguage, t }}>
+      {children}
+    </LanguageContext.Provider>
+  )
 }
 
 export function useLanguage() {

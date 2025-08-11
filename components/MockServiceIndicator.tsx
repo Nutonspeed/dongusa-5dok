@@ -1,130 +1,129 @@
 "use client"
 
-import React, { useState, useEffect, useCallback, useMemo } from "react"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
+import type React from "react"
+
+import { useState, useEffect } from "react"
+import { Database, Mail, Upload, Wifi, WifiOff, AlertCircle } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
-import { Database, Mail, Upload, Activity, ChevronDown, ChevronUp } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
 
 interface ServiceStatus {
-  database: "mock" | "real"
-  email: "mock" | "real"
-  upload: "mock" | "real"
+  name: string
+  status: "connected" | "mock" | "error"
+  icon: React.ElementType
+  description: string
 }
 
-const MockServiceIndicator = React.memo(() => {
-  const [isExpanded, setIsExpanded] = useState(false)
-  const [serviceStatus, setServiceStatus] = useState<ServiceStatus>({
-    database: "mock",
-    email: "mock",
-    upload: "mock",
-  })
-  const [isLoading, setIsLoading] = useState(false)
+export function MockServiceIndicator() {
+  const [isVisible, setIsVisible] = useState(false)
+  const [services, setServices] = useState<ServiceStatus[]>([
+    {
+      name: "Database",
+      status: "mock",
+      icon: Database,
+      description: "Using mock data for demonstration",
+    },
+    {
+      name: "Email Service",
+      status: "mock",
+      icon: Mail,
+      description: "Email notifications simulated",
+    },
+    {
+      name: "File Upload",
+      status: "mock",
+      icon: Upload,
+      description: "File uploads simulated locally",
+    },
+  ])
 
-  const toggleExpanded = useCallback(() => {
-    setIsExpanded((prev) => !prev)
+  // Toggle visibility with keyboard shortcut
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      if (e.ctrlKey && e.shiftKey && e.key === "D") {
+        setIsVisible(!isVisible)
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyPress)
+    return () => window.removeEventListener("keydown", handleKeyPress)
+  }, [isVisible])
+
+  // Auto-show in development
+  useEffect(() => {
+    if (process.env.NODE_ENV === "development") {
+      const timer = setTimeout(() => setIsVisible(true), 2000)
+      return () => clearTimeout(timer)
+    }
   }, [])
 
-  const checkServiceStatus = useCallback(async () => {
-    setIsLoading(true)
-    try {
-      const response = await fetch("/api/system/status")
-      if (response.ok) {
-        const data = await response.json()
-        setServiceStatus(data.services || serviceStatus)
-      }
-    } catch (error) {
-      console.error("Failed to check service status:", error)
-    } finally {
-      setIsLoading(false)
-    }
-  }, [serviceStatus])
-
-  // Check service status on mount
-  useEffect(() => {
-    checkServiceStatus()
-  }, [checkServiceStatus])
-
-  // Memoize service indicators
-  const serviceIndicators = useMemo(
-    () => [
-      {
-        name: "ฐานข้อมูล",
-        icon: Database,
-        status: serviceStatus.database,
-        color: serviceStatus.database === "mock" ? "bg-yellow-500" : "bg-green-500",
-      },
-      {
-        name: "อีเมล",
-        icon: Mail,
-        status: serviceStatus.email,
-        color: serviceStatus.email === "mock" ? "bg-yellow-500" : "bg-green-500",
-      },
-      {
-        name: "อัปโหลด",
-        icon: Upload,
-        status: serviceStatus.upload,
-        color: serviceStatus.upload === "mock" ? "bg-yellow-500" : "bg-green-500",
-      },
-    ],
-    [serviceStatus],
-  )
-
-  // Don't show in production
-  if (process.env.NODE_ENV === "production") {
-    return null
+  if (!isVisible) {
+    return (
+      <div className="fixed bottom-4 right-4 z-50">
+        <button
+          onClick={() => setIsVisible(true)}
+          className="bg-gray-800 text-white p-2 rounded-full shadow-lg hover:bg-gray-700 transition-colors"
+          title="Show service status (Ctrl+Shift+D)"
+        >
+          <AlertCircle className="w-5 h-5" />
+        </button>
+      </div>
+    )
   }
 
   return (
-    <div className="fixed bottom-4 right-4 z-50">
-      <Card className="shadow-lg border-2 border-gray-200 bg-white">
-        <CardContent className="p-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <Activity className="w-4 h-4 text-gray-600" />
-              <span className="text-sm font-medium text-gray-700">สถานะระบบ</span>
-              <Badge variant="outline" className="text-xs">
-                DEV
-              </Badge>
-            </div>
-            <Button variant="ghost" size="sm" onClick={toggleExpanded} className="p-1 h-6 w-6" disabled={isLoading}>
-              {isExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-            </Button>
+    <div className="fixed bottom-4 right-4 z-50 max-w-sm">
+      <Card className="bg-gray-900 text-white border-gray-700 shadow-2xl">
+        <CardContent className="p-4">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-sm font-semibold">Service Status</h3>
+            <button onClick={() => setIsVisible(false)} className="text-gray-400 hover:text-white transition-colors">
+              ×
+            </button>
           </div>
 
-          {isExpanded && (
-            <div className="mt-3 space-y-2 border-t pt-3">
-              {serviceIndicators.map((service) => (
-                <div key={service.name} className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <service.icon className="w-3 h-3 text-gray-500" />
-                    <span className="text-xs text-gray-600">{service.name}</span>
-                  </div>
-                  <div className="flex items-center space-x-1">
-                    <div className={`w-2 h-2 rounded-full ${service.color}`} />
-                    <span className="text-xs text-gray-500">{service.status === "mock" ? "จำลอง" : "จริง"}</span>
-                  </div>
+          <div className="space-y-2">
+            {services.map((service) => (
+              <div key={service.name} className="flex items-center space-x-3">
+                <div className="flex-shrink-0">
+                  {service.status === "connected" ? (
+                    <Wifi className="w-4 h-4 text-green-400" />
+                  ) : service.status === "mock" ? (
+                    <service.icon className="w-4 h-4 text-yellow-400" />
+                  ) : (
+                    <WifiOff className="w-4 h-4 text-red-400" />
+                  )}
                 </div>
-              ))}
-              <div className="pt-2 border-t">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={checkServiceStatus}
-                  disabled={isLoading}
-                  className="w-full text-xs h-6 bg-transparent"
-                >
-                  {isLoading ? "กำลังตรวจสอบ..." : "รีเฟรช"}
-                </Button>
+
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center space-x-2">
+                    <span className="text-sm font-medium">{service.name}</span>
+                    <Badge
+                      variant="outline"
+                      className={`text-xs ${
+                        service.status === "connected"
+                          ? "border-green-400 text-green-400"
+                          : service.status === "mock"
+                            ? "border-yellow-400 text-yellow-400"
+                            : "border-red-400 text-red-400"
+                      }`}
+                    >
+                      {service.status.toUpperCase()}
+                    </Badge>
+                  </div>
+                  <p className="text-xs text-gray-400 truncate">{service.description}</p>
+                </div>
               </div>
-            </div>
-          )}
+            ))}
+          </div>
+
+          <div className="mt-3 pt-3 border-t border-gray-700">
+            <p className="text-xs text-gray-400">
+              Press <kbd className="bg-gray-700 px-1 rounded">Ctrl+Shift+D</kbd> to toggle
+            </p>
+          </div>
         </CardContent>
       </Card>
     </div>
   )
-})
-
-MockServiceIndicator.displayName = "MockServiceIndicator"
-
-export default MockServiceIndicator
+}

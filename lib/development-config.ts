@@ -1,258 +1,314 @@
-// Enhanced development configuration with error prevention
+// Development Configuration for Mock Services
 import { mockDatabaseService } from "./mock-database"
 import { mockEmailService } from "./mock-email"
+import { mockUploadService } from "./mock-upload"
 
 export const isDevelopment = process.env.NODE_ENV === "development"
 export const isDemoMode = process.env.NEXT_PUBLIC_DEMO_MODE === "true"
 export const isProduction = process.env.NODE_ENV === "production"
 
-// Error tracking configuration
-export const errorConfig = {
-  enableConsoleLogging: isDevelopment,
-  enableErrorBoundaries: true,
-  enablePerformanceMonitoring: isDevelopment,
-  maxErrorRetries: 3,
-  errorCooldownMs: 5000,
-}
-
-// Performance monitoring
-export const performanceConfig = {
-  enableMetrics: isDevelopment,
-  slowOperationThreshold: 1000, // ms
-  memoryLeakDetection: isDevelopment,
-  renderTimeTracking: isDevelopment,
-}
-
-// Safe operation wrapper
-export class SafeOperationManager {
-  private static errorCounts = new Map<string, number>()
-  private static lastErrorTime = new Map<string, number>()
-
-  static async execute<T>(
-    operationName: string,
-    operation: () => Promise<T>,
-    fallback: T,
-    options?: {
-      maxRetries?: number
-      cooldownMs?: number
-      onError?: (error: Error) => void
-    },
-  ): Promise<T> {
-    const {
-      maxRetries = errorConfig.maxErrorRetries,
-      cooldownMs = errorConfig.errorCooldownMs,
-      onError,
-    } = options || {}
-
-    const errorCount = this.errorCounts.get(operationName) || 0
-    const lastError = this.lastErrorTime.get(operationName) || 0
-    const now = Date.now()
-
-    // Check if we're in cooldown period
-    if (errorCount >= maxRetries && now - lastError < cooldownMs) {
-      console.warn(`Operation ${operationName} is in cooldown, returning fallback`)
-      return fallback
-    }
-
-    // Reset error count if cooldown period has passed
-    if (now - lastError >= cooldownMs) {
-      this.errorCounts.set(operationName, 0)
-    }
-
-    try {
-      const result = await operation()
-      // Reset error count on success
-      this.errorCounts.set(operationName, 0)
-      return result
-    } catch (error) {
-      const newErrorCount = errorCount + 1
-      this.errorCounts.set(operationName, newErrorCount)
-      this.lastErrorTime.set(operationName, now)
-
-      console.error(`Operation ${operationName} failed (attempt ${newErrorCount}):`, error)
-
-      if (onError) {
-        try {
-          onError(error as Error)
-        } catch (callbackError) {
-          console.error("Error callback failed:", callbackError)
-        }
-      }
-
-      return fallback
-    }
-  }
-
-  static getErrorStats() {
-    return {
-      errorCounts: Object.fromEntries(this.errorCounts),
-      lastErrorTimes: Object.fromEntries(this.lastErrorTime),
-    }
-  }
-
-  static resetErrorStats() {
-    this.errorCounts.clear()
-    this.lastErrorTime.clear()
-  }
-}
-
-// Development utilities with error prevention
-export const devUtils = {
-  // Safe data generation
-  async generateMockData() {
-    return SafeOperationManager.execute(
-      "generateMockData",
-      async () => {
-        await mockDatabaseService.seedSampleData()
-        await mockEmailService.sendEmail("test@example.com", "Test Email", "Test content")
-        return true
-      },
-      false,
-      {
-        onError: (error) => console.warn("Mock data generation failed:", error),
-      },
-    )
-  },
-
-  // Safe system status check
-  async getSystemStatus() {
-    return SafeOperationManager.execute(
-      "getSystemStatus",
-      async () => {
-        const [products, customers, orders] = await Promise.all([
-          mockDatabaseService.getProducts(),
-          mockDatabaseService.getCustomers(),
-          mockDatabaseService.getOrders(),
-        ])
-
-        return {
-          database: {
-            products: products.length,
-            customers: customers.length,
-            orders: orders.length,
-          },
-          timestamp: new Date().toISOString(),
-          status: "healthy",
-        }
-      },
-      {
-        database: { products: 0, customers: 0, orders: 0 },
-        timestamp: new Date().toISOString(),
-        status: "error",
-      },
-    )
-  },
-
-  // Performance monitoring
-  performance: {
-    timers: new Map<string, number>(),
-
-    start(label: string) {
-      if (!performanceConfig.enableMetrics) return
-      this.timers.set(label, performance.now())
-    },
-
-    end(label: string): number {
-      if (!performanceConfig.enableMetrics) return 0
-
-      const startTime = this.timers.get(label)
-      if (!startTime) return 0
-
-      const duration = performance.now() - startTime
-      this.timers.delete(label)
-
-      if (duration > performanceConfig.slowOperationThreshold) {
-        console.warn(`⚠️ Slow operation detected: ${label} took ${duration.toFixed(2)}ms`)
-      } else if (performanceConfig.renderTimeTracking) {
-        console.log(`⏱️ ${label}: ${duration.toFixed(2)}ms`)
-      }
-
-      return duration
-    },
-  },
-
-  // Memory leak detection
-  memoryMonitor: {
-    checkInterval: null as NodeJS.Timeout | null,
-
-    start() {
-      if (!performanceConfig.memoryLeakDetection || typeof window === "undefined") return
-
-      this.checkInterval = setInterval(() => {
-        if (performance.memory) {
-          const { usedJSHeapSize, totalJSHeapSize, jsHeapSizeLimit } = performance.memory
-          const usagePercent = (usedJSHeapSize / jsHeapSizeLimit) * 100
-
-          if (usagePercent > 80) {
-            console.warn(`🚨 High memory usage detected: ${usagePercent.toFixed(2)}%`)
-          }
-        }
-      }, 30000) // Check every 30 seconds
-    },
-
-    stop() {
-      if (this.checkInterval) {
-        clearInterval(this.checkInterval)
-        this.checkInterval = null
-      }
-    },
-  },
-}
-
-// Initialize monitoring in development
-if (isDevelopment && typeof window !== "undefined") {
-  devUtils.memoryMonitor.start()
-
-  // Cleanup on page unload
-  window.addEventListener("beforeunload", () => {
-    devUtils.memoryMonitor.stop()
-  })
-}
-
-// Export safe configuration
 export const developmentConfig = {
+  // Demo mode settings
   demo: {
     enabled: isDemoMode,
-    autoLogin: false, // Disabled to prevent auto-login loops
-    showBanner: isDemoMode,
+    autoLogin: true,
+    showBanner: true,
     resetDataInterval: 24 * 60 * 60 * 1000, // 24 hours
-    showIndicators: isDemoMode,
+    showIndicators: true,
   },
 
+  // Service configurations
   services: {
     database: {
       useMock: isDevelopment || isDemoMode,
       autoSeed: true,
       simulateLatency: true,
-      latency: { min: 100, max: 500 },
-      errorRate: 0.01, // Reduced error rate
+      latency: {
+        min: 100,
+        max: 500,
+      },
+      errorRate: 0.02, // 2% error rate
     },
     email: {
       useMock: isDevelopment || isDemoMode,
       saveHistory: true,
-      logToConsole: isDevelopment,
-      successRate: 0.98, // Increased success rate
+      logToConsole: true,
+      successRate: 0.95, // 95% success rate
     },
     upload: {
       useMock: isDevelopment || isDemoMode,
       simulateProgress: true,
       maxFileSize: 10 * 1024 * 1024, // 10MB
       allowedTypes: ["image/jpeg", "image/png", "image/webp", "application/pdf"],
-      successRate: 0.99, // Increased success rate
+      successRate: 0.98, // 98% success rate
     },
   },
 
+  // Sample data configuration
+  sampleData: {
+    products: {
+      count: 20,
+      categories: ["covers", "accessories"],
+      priceRange: [290, 2990],
+    },
+    customers: {
+      count: 50,
+      orderRange: [1, 10],
+      spentRange: [500, 15000],
+    },
+    orders: {
+      count: 100,
+      statusDistribution: {
+        pending: 0.2,
+        production: 0.3,
+        shipped: 0.25,
+        completed: 0.2,
+        cancelled: 0.05,
+      },
+    },
+  },
+
+  // Development tools
   tools: {
     showDebugInfo: isDevelopment,
     showMockBadges: isDemoMode,
-    enableConsoleLogging: isDevelopment,
-    showPerformanceMetrics: isDevelopment,
+    enableConsoleLogging: true,
+    showPerformanceMetrics: false,
   },
 
+  // Admin credentials for demo
   adminCredentials: {
     email: "admin@sofacover.com",
-    password: "admin123",
+    password: "demo123456",
     name: "ผู้ดูแลระบบ",
     role: "admin",
   },
+}
+
+// Development utilities
+export const devUtils = {
+  // Check if running in development mode
+  isDevelopment(): boolean {
+    return isDevelopment
+  },
+
+  // Check if demo mode is enabled
+  isDemoMode(): boolean {
+    return isDemoMode
+  },
+
+  // Get service status
+  getServiceStatus() {
+    return {
+      database: developmentConfig.services.database.useMock ? "mock" : "real",
+      email: developmentConfig.services.email.useMock ? "mock" : "real",
+      upload: developmentConfig.services.upload.useMock ? "mock" : "real",
+    }
+  },
+
+  // Format file size
+  formatFileSize(bytes: number): string {
+    if (bytes === 0) return "0 B"
+
+    const k = 1024
+    const sizes = ["B", "KB", "MB", "GB"]
+    const i = Math.floor(Math.log(bytes) / Math.log(k))
+
+    return `${Number.parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`
+  },
+
+  // Format number with Thai locale
+  formatNumber(num: number): string {
+    return num.toLocaleString("th-TH")
+  },
+
+  // Format currency
+  formatCurrency(amount: number): string {
+    return `${amount.toLocaleString("th-TH")} บาท`
+  },
+
+  // Generate random data
+  generateRandomData: {
+    // Generate random Thai name
+    randomThaiName(): string {
+      const firstNames = ["สมชาย", "มาลี", "วิชัย", "สุดา", "ประยุทธ", "นิรันดร", "สมหญิง", "บุญมี", "ชาญ", "วิมล"]
+      const lastNames = ["ใจดี", "สวยงาม", "รวยมาก", "มั่งมี", "เจริญ", "สุขใส", "ดีใจ", "มีสุข", "รุ่งเรือง", "เฟื่องฟู"]
+
+      const firstName = firstNames[Math.floor(Math.random() * firstNames.length)]
+      const lastName = lastNames[Math.floor(Math.random() * lastNames.length)]
+
+      return `คุณ${firstName} ${lastName}`
+    },
+
+    // Generate random email
+    randomEmail(): string {
+      const domains = ["gmail.com", "hotmail.com", "yahoo.com", "email.com", "mail.com"]
+      const username = Math.random().toString(36).substring(2, 10)
+      const domain = domains[Math.floor(Math.random() * domains.length)]
+
+      return `${username}@${domain}`
+    },
+
+    // Generate random phone number
+    randomPhone(): string {
+      const prefixes = ["081", "082", "083", "084", "085", "086", "087", "088", "089"]
+      const prefix = prefixes[Math.floor(Math.random() * prefixes.length)]
+      const number = Math.floor(Math.random() * 9000000) + 1000000
+
+      return `${prefix}-${number.toString().substring(0, 3)}-${number.toString().substring(3)}`
+    },
+
+    // Generate random address
+    randomAddress(): string {
+      const streets = ["สุขุมวิท", "พหลโยธิน", "รัชดาภิเษก", "วิภาวดี", "รามคำแหง", "ลาดพร้าว", "งามวงศ์วาน", "บางนา-ตราด"]
+      const districts = ["คลองเตย", "ลาดยาว", "ห้วยขวาง", "บางนา", "วัฒนา", "สาทร", "ปทุมวัน", "ราชเทวี"]
+      const provinces = ["กรุงเทพฯ", "นนทบุรี", "ปทุมธานี", "สมุทรปราการ"]
+
+      const houseNumber = Math.floor(Math.random() * 999) + 1
+      const street = streets[Math.floor(Math.random() * streets.length)]
+      const district = districts[Math.floor(Math.random() * districts.length)]
+      const province = provinces[Math.floor(Math.random() * provinces.length)]
+      const zipCode = Math.floor(Math.random() * 90000) + 10000
+
+      return `${houseNumber} ถ.${street} แขวง${district} เขต${district} ${province} ${zipCode}`
+    },
+
+    // Generate random date within range
+    randomDate(daysBack = 30): string {
+      const date = new Date()
+      date.setDate(date.getDate() - Math.floor(Math.random() * daysBack))
+      return date.toISOString()
+    },
+  },
+
+  // Reset demo data
+  async resetDemoData() {
+    // Reset all mock services
+    await mockDatabaseService.clearAllData()
+    await mockEmailService.clearEmailHistory()
+    await mockUploadService.clearAllFiles()
+
+    // Reseed with fresh data
+    await this.generateMockData()
+
+    console.log("Demo data reset successfully")
+  },
+
+  // Generate mock data
+  async generateMockData() {
+    if (!isDevelopment) return
+
+    // Generate additional mock data for development
+    await mockDatabaseService.seedSampleData()
+
+    // Send some test emails
+    await mockEmailService.sendEmail("test@example.com", "Test Email", "This is a test email")
+    await mockEmailService.sendEmail("admin@example.com", "Admin Notification", "Admin test email")
+
+    console.log("Mock data generated successfully")
+  },
+
+  // Log system info
+  logSystemInfo(): void {
+    if (!this.isDevelopment()) return
+
+    console.group("🔧 [DEV UTILS] System Information")
+    console.log("Environment:", process.env.NODE_ENV)
+    console.log("Demo Mode:", this.isDemoMode())
+    console.log("Services:", this.getServiceStatus())
+    console.log("Config:", developmentConfig)
+    console.groupEnd()
+  },
+
+  // Performance monitoring
+  performance: {
+    timers: new Map<string, number>(),
+
+    start(label: string): void {
+      if (!developmentConfig.tools.showPerformanceMetrics) return
+      this.timers.set(label, performance.now())
+    },
+
+    end(label: string): number {
+      if (!developmentConfig.tools.showPerformanceMetrics) return 0
+
+      const startTime = this.timers.get(label)
+      if (!startTime) return 0
+
+      const duration = performance.now() - startTime
+      console.log(`⏱️ [PERF] ${label}: ${duration.toFixed(2)}ms`)
+      this.timers.delete(label)
+
+      return duration
+    },
+  },
+
+  // Get system status
+  async getSystemStatus() {
+    const [products, customers, orders, analytics] = await Promise.all([
+      mockDatabaseService.getProducts(),
+      mockDatabaseService.getCustomers(),
+      mockDatabaseService.getOrders(),
+      mockDatabaseService.getAnalytics(),
+    ])
+
+    const [emailStats, uploadStats] = await Promise.all([
+      mockEmailService.getEmailStatistics(),
+      mockUploadService.getUploadStatistics(),
+    ])
+
+    return {
+      database: {
+        products: products.length,
+        customers: customers.length,
+        orders: orders.length,
+        revenue: analytics.totalRevenue,
+      },
+      email: emailStats,
+      upload: uploadStats,
+      environment: process.env.NODE_ENV,
+      timestamp: new Date().toISOString(),
+    }
+  },
+}
+
+// Auto-reset data in demo mode
+if (typeof window !== "undefined" && developmentConfig.demo.enabled) {
+  // Set up auto-reset interval
+  setInterval(async () => {
+    try {
+      await devUtils.resetDemoData()
+      console.log("🔄 [AUTO RESET] ข้อมูลสาธิตถูกรีเซ็ตอัตโนมัติ")
+    } catch (error) {
+      console.error("❌ [AUTO RESET] รีเซ็ตอัตโนมัติล้มเหลว:", error)
+    }
+  }, developmentConfig.demo.resetDataInterval)
+}
+
+// Log system info on startup
+if (typeof window === "undefined") {
+  devUtils.logSystemInfo()
+}
+
+// Admin settings
+export const adminSettings = {
+  demoCredentials: {
+    email: "admin@sofacover.com",
+    password: "demo123456",
+  },
+  sessionTimeout: 30 * 60 * 1000, // 30 minutes
+  maxLoginAttempts: 5,
+}
+
+// Performance monitoring
+export const performanceMonitoring = {
+  enabled: isDevelopment,
+  logQueries: true,
+  logUploads: true,
+  logEmails: true,
+}
+
+// Initialize mock data in development
+if (isDevelopment && typeof window === "undefined") {
+  devUtils.generateMockData().catch(console.error)
 }

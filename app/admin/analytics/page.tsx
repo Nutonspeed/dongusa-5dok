@@ -1,5 +1,4 @@
 "use client"
-
 import { useState } from "react"
 import {
   BarChart,
@@ -16,7 +15,17 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts"
-import { TrendingUp, TrendingDown, DollarSign, ShoppingCart, Users, Package, Download, Eye } from "lucide-react"
+import {
+  TrendingUp,
+  TrendingDown,
+  DollarSign,
+  ShoppingCart,
+  Users,
+  Package,
+  Download,
+  BarChart3,
+  Eye,
+} from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -38,9 +47,9 @@ const salesData = [
 ]
 
 const productCategoryData = [
-  { name: "ผ้าคลุมโซฟา", value: 65, color: "#8884d8" },
-  { name: "อุปกรณ์เสริม", value: 25, color: "#82ca9d" },
-  { name: "น้ำยาทำความสะอาด", value: 10, color: "#ffc658" },
+  { name: "ผ้าคลุมโซฟา", value: 65, color: "hsl(345, 85%, 35%)" },
+  { name: "อุปกรณ์เสริม", value: 25, color: "hsl(345, 75%, 45%)" },
+  { name: "น้ำยาทำความสะอาด", value: 10, color: "hsl(345, 65%, 55%)" },
 ]
 
 const customerSegmentData = [
@@ -131,7 +140,7 @@ export default function AnalyticsPage() {
   const averageOrderValue = totalRevenue / totalOrders
 
   const tabs = [
-    { id: "overview", name: "ภาพรวม", icon: BarChart },
+    { id: "overview", name: "ภาพรวม", icon: BarChart3 },
     { id: "sales", name: "ยอดขาย", icon: DollarSign },
     { id: "products", name: "สินค้า", icon: Package },
     { id: "customers", name: "ลูกค้า", icon: Users },
@@ -149,7 +158,7 @@ export default function AnalyticsPage() {
           <select
             value={selectedTimeRange}
             onChange={(e) => setSelectedTimeRange(e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
           >
             {timeRanges.map((range) => (
               <option key={range.id} value={range.id}>
@@ -157,7 +166,7 @@ export default function AnalyticsPage() {
               </option>
             ))}
           </select>
-          <Button variant="outline">
+          <Button variant="outline" className="border-primary text-primary hover:bg-accent bg-transparent">
             <Download className="w-4 h-4 mr-2" />
             ส่งออกรายงาน
           </Button>
@@ -173,7 +182,7 @@ export default function AnalyticsPage() {
               onClick={() => setActiveTab(tab.id)}
               className={`flex items-center space-x-2 py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
                 activeTab === tab.id
-                  ? "border-pink-500 text-pink-600"
+                  ? "border-primary text-primary"
                   : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
               }`}
             >
@@ -189,7 +198,7 @@ export default function AnalyticsPage() {
         <div className="space-y-6">
           {/* Key Metrics */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <Card>
+            <Card className="burgundy-shadow">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
@@ -208,26 +217,26 @@ export default function AnalyticsPage() {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="burgundy-shadow">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-gray-600">คำสั่งซื้อ</p>
                     <p className="text-3xl font-bold text-gray-900">{formatNumber(totalOrders)}</p>
                     <div className="flex items-center mt-2">
-                      <TrendingUp className="w-4 h-4 text-blue-600 mr-1" />
-                      <span className="text-sm font-medium text-blue-600">+8.2%</span>
+                      <TrendingUp className="w-4 h-4 text-primary mr-1" />
+                      <span className="text-sm font-medium text-primary">+8.2%</span>
                       <span className="text-sm text-gray-500 ml-1">จากเดือนที่แล้ว</span>
                     </div>
                   </div>
-                  <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                    <ShoppingCart className="w-6 h-6 text-blue-600" />
+                  <div className="w-12 h-12 bg-accent rounded-lg flex items-center justify-center">
+                    <ShoppingCart className="w-6 h-6 text-primary" />
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="burgundy-shadow">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
@@ -246,7 +255,7 @@ export default function AnalyticsPage() {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="burgundy-shadow">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
@@ -269,9 +278,9 @@ export default function AnalyticsPage() {
           {/* Charts Row */}
           <div className="grid lg:grid-cols-2 gap-6">
             {/* Revenue Chart */}
-            <Card>
+            <Card className="burgundy-shadow">
               <CardHeader>
-                <CardTitle>รายได้รายเดือน</CardTitle>
+                <CardTitle className="text-primary">รายได้รายเดือน</CardTitle>
               </CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={300}>
@@ -286,7 +295,7 @@ export default function AnalyticsPage() {
                       ]}
                     />
                     <Legend />
-                    <Line type="monotone" dataKey="revenue" stroke="#8884d8" name="รายได้" strokeWidth={2} />
+                    <Line type="monotone" dataKey="revenue" stroke="hsl(345, 85%, 35%)" name="รายได้" strokeWidth={2} />
                     <Line type="monotone" dataKey="orders" stroke="#82ca9d" name="คำสั่งซื้อ" strokeWidth={2} />
                   </LineChart>
                 </ResponsiveContainer>
@@ -294,9 +303,9 @@ export default function AnalyticsPage() {
             </Card>
 
             {/* Product Categories */}
-            <Card>
+            <Card className="burgundy-shadow">
               <CardHeader>
-                <CardTitle>สัดส่วนหมวดหมู่สินค้า</CardTitle>
+                <CardTitle className="text-primary">สัดส่วนหมวดหมู่สินค้า</CardTitle>
               </CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={300}>
@@ -323,7 +332,7 @@ export default function AnalyticsPage() {
           </div>
 
           {/* Daily Sales */}
-          <Card>
+          <Card className="burgundy-shadow">
             <CardHeader>
               <CardTitle>ยอดขายรายวัน (7 วันล่าสุด)</CardTitle>
             </CardHeader>
@@ -354,7 +363,7 @@ export default function AnalyticsPage() {
         <div className="space-y-6">
           {/* Sales Metrics */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Card>
+            <Card className="burgundy-shadow">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
@@ -367,20 +376,20 @@ export default function AnalyticsPage() {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="burgundy-shadow">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-gray-600">ยอดขายเดือนนี้</p>
                     <p className="text-2xl font-bold text-gray-900">฿456,780</p>
-                    <p className="text-sm text-blue-600 mt-1">67% ของเป้าหมาย</p>
+                    <p className="text-sm text-primary mt-1">67% ของเป้าหมาย</p>
                   </div>
-                  <DollarSign className="w-8 h-8 text-blue-600" />
+                  <DollarSign className="w-8 h-8 text-primary" />
                 </div>
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="burgundy-shadow">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
@@ -395,9 +404,9 @@ export default function AnalyticsPage() {
           </div>
 
           {/* Sales Chart */}
-          <Card>
+          <Card className="burgundy-shadow">
             <CardHeader>
-              <CardTitle>แนวโน้มยอดขาย</CardTitle>
+              <CardTitle className="text-primary">แนวโน้มยอดขาย</CardTitle>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={400}>
@@ -407,7 +416,7 @@ export default function AnalyticsPage() {
                   <YAxis />
                   <Tooltip formatter={(value: any) => [formatPrice(value), "รายได้"]} />
                   <Legend />
-                  <Line type="monotone" dataKey="revenue" stroke="#8884d8" strokeWidth={3} />
+                  <Line type="monotone" dataKey="revenue" stroke="hsl(345, 85%, 35%)" strokeWidth={3} />
                 </LineChart>
               </ResponsiveContainer>
             </CardContent>
@@ -415,9 +424,9 @@ export default function AnalyticsPage() {
 
           {/* Sales by Channel */}
           <div className="grid lg:grid-cols-2 gap-6">
-            <Card>
+            <Card className="burgundy-shadow">
               <CardHeader>
-                <CardTitle>ช่องทางการขาย</CardTitle>
+                <CardTitle className="text-primary">ช่องทางการขาย</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
@@ -427,7 +436,7 @@ export default function AnalyticsPage() {
                       <p className="text-sm text-gray-600">ขายผ่านเว็บไซต์หลัก</p>
                     </div>
                     <div className="text-right">
-                      <p className="font-bold text-pink-600">฿345,600</p>
+                      <p className="font-bold text-primary">฿345,600</p>
                       <p className="text-sm text-gray-500">75.6%</p>
                     </div>
                   </div>
@@ -437,7 +446,7 @@ export default function AnalyticsPage() {
                       <p className="text-sm text-gray-600">ขายผ่าน Facebook Page</p>
                     </div>
                     <div className="text-right">
-                      <p className="font-bold text-pink-600">฿89,200</p>
+                      <p className="font-bold text-primary">฿89,200</p>
                       <p className="text-sm text-gray-500">19.5%</p>
                     </div>
                   </div>
@@ -447,7 +456,7 @@ export default function AnalyticsPage() {
                       <p className="text-sm text-gray-600">ขายผ่าน LINE Official</p>
                     </div>
                     <div className="text-right">
-                      <p className="font-bold text-pink-600">฿22,400</p>
+                      <p className="font-bold text-primary">฿22,400</p>
                       <p className="text-sm text-gray-500">4.9%</p>
                     </div>
                   </div>
@@ -455,9 +464,9 @@ export default function AnalyticsPage() {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="burgundy-shadow">
               <CardHeader>
-                <CardTitle>วิธีการชำระเงิน</CardTitle>
+                <CardTitle className="text-primary">วิธีการชำระเงิน</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
@@ -467,7 +476,7 @@ export default function AnalyticsPage() {
                       <p className="text-sm text-gray-600">โอนผ่านธนาคาร</p>
                     </div>
                     <div className="text-right">
-                      <p className="font-bold text-blue-600">234 คำสั่ง</p>
+                      <p className="font-bold text-primary">234 คำสั่ง</p>
                       <p className="text-sm text-gray-500">68.2%</p>
                     </div>
                   </div>
@@ -477,7 +486,7 @@ export default function AnalyticsPage() {
                       <p className="text-sm text-gray-600">ชำระผ่าน QR Code</p>
                     </div>
                     <div className="text-right">
-                      <p className="font-bold text-blue-600">89 คำสั่ง</p>
+                      <p className="font-bold text-primary">89 คำสั่ง</p>
                       <p className="text-sm text-gray-500">25.9%</p>
                     </div>
                   </div>
@@ -487,7 +496,7 @@ export default function AnalyticsPage() {
                       <p className="text-sm text-gray-600">ชำระเมื่อได้รับสินค้า</p>
                     </div>
                     <div className="text-right">
-                      <p className="font-bold text-blue-600">20 คำสั่ง</p>
+                      <p className="font-bold text-primary">20 คำสั่ง</p>
                       <p className="text-sm text-gray-500">5.9%</p>
                     </div>
                   </div>
@@ -667,7 +676,7 @@ export default function AnalyticsPage() {
                       <p className="text-sm text-gray-600">ค้นหาผ่าน Google</p>
                     </div>
                     <div className="text-right">
-                      <p className="font-bold text-blue-600">45 คน</p>
+                      <p className="font-bold text-primary">45 คน</p>
                       <p className="text-sm text-gray-500">38.5%</p>
                     </div>
                   </div>
@@ -677,7 +686,7 @@ export default function AnalyticsPage() {
                       <p className="text-sm text-gray-600">โฆษณาใน Facebook</p>
                     </div>
                     <div className="text-right">
-                      <p className="font-bold text-blue-600">32 คน</p>
+                      <p className="font-bold text-primary">32 คน</p>
                       <p className="text-sm text-gray-500">27.4%</p>
                     </div>
                   </div>
@@ -687,7 +696,7 @@ export default function AnalyticsPage() {
                       <p className="text-sm text-gray-600">Word of mouth</p>
                     </div>
                     <div className="text-right">
-                      <p className="font-bold text-blue-600">28 คน</p>
+                      <p className="font-bold text-primary">28 คน</p>
                       <p className="text-sm text-gray-500">23.9%</p>
                     </div>
                   </div>
@@ -697,7 +706,7 @@ export default function AnalyticsPage() {
                       <p className="text-sm text-gray-600">ช่องทางอื่น</p>
                     </div>
                     <div className="text-right">
-                      <p className="font-bold text-blue-600">12 คน</p>
+                      <p className="font-bold text-primary">12 คน</p>
                       <p className="text-sm text-gray-500">10.2%</p>
                     </div>
                   </div>

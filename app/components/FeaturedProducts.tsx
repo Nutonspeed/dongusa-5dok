@@ -1,221 +1,285 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import Link from "next/link"
+import { Star, Heart, ShoppingCart, Eye, ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Skeleton } from "@/components/ui/skeleton"
-import { ShoppingCart, Star, ArrowRight } from "lucide-react"
-import { useCart } from "../contexts/CartContext"
 import { useLanguage } from "../contexts/LanguageContext"
+import { useCart } from "../contexts/CartContext"
 
 interface Product {
   id: string
-  name: string
+  name: {
+    en: string
+    th: string
+  }
+  description: {
+    en: string
+    th: string
+  }
   price: number
   originalPrice?: number
   image: string
   rating: number
-  reviews: number
+  reviewCount: number
   category: string
   isNew?: boolean
-  isBestSeller?: boolean
+  isBestseller?: boolean
+  colors: string[]
 }
 
 const featuredProducts: Product[] = [
   {
     id: "1",
-    name: "ผ้าคลุมโซฟา 3 ที่นั่ง - Classic Elegant",
+    name: {
+      en: "Modern Minimalist Sofa Cover",
+      th: "ผ้าคลุมโซฟาสไตล์มินิมอล",
+    },
+    description: {
+      en: "Clean lines and contemporary design for modern living spaces",
+      th: "เส้นสายเรียบง่ายและการออกแบบร่วมสมัยสำหรับพื้นที่นั่งเล่นสมัยใหม่",
+    },
     price: 2490,
     originalPrice: 3200,
-    image: "/classic-elegant-fabric-pattern-1.png",
+    image: "/modern-minimalist-fabric-pattern-1.png",
     rating: 4.8,
-    reviews: 156,
-    category: "3-seater",
-    isBestSeller: true,
+    reviewCount: 324,
+    category: "Modern",
+    isBestseller: true,
+    colors: ["#F5F5F5", "#E8E8E8", "#D3D3D3"],
   },
   {
     id: "2",
-    name: "ผ้าคลุมโซฟา L-Shape - Modern Minimalist",
-    price: 3990,
-    originalPrice: 4800,
-    image: "/modern-minimalist-fabric-pattern-1.png",
+    name: {
+      en: "Classic Elegant Sofa Cover",
+      th: "ผ้าคลุมโซฟาสไตล์คลาสสิก",
+    },
+    description: {
+      en: "Timeless elegance with premium fabric and sophisticated patterns",
+      th: "ความหรูหราเหนือกาลเวลาด้วยผ้าพรีเมียมและลายที่ซับซ้อน",
+    },
+    price: 3290,
+    image: "/classic-elegant-fabric-pattern-1.png",
     rating: 4.9,
-    reviews: 89,
-    category: "l-shape",
+    reviewCount: 189,
+    category: "Classic",
     isNew: true,
+    colors: ["#8B4513", "#A0522D", "#CD853F"],
   },
   {
     id: "3",
-    name: "ผ้าคลุมโซฟา 2 ที่นั่ง - Bohemian Chic",
-    price: 1990,
-    originalPrice: 2500,
+    name: {
+      en: "Bohemian Chic Sofa Cover",
+      th: "ผ้าคลุมโซฟาสไตล์โบฮีเมียน",
+    },
+    description: {
+      en: "Vibrant patterns and textures for a free-spirited living space",
+      th: "ลายและเนื้อผ้าที่มีชีวิตชีวาสำหรับพื้นที่นั่งเล่นที่เป็นอิสระ",
+    },
+    price: 2890,
+    originalPrice: 3500,
     image: "/bohemian-chic-fabric-pattern-1.png",
     rating: 4.7,
-    reviews: 203,
-    category: "2-seater",
+    reviewCount: 267,
+    category: "Bohemian",
+    colors: ["#8B0000", "#FF6347", "#FFD700"],
   },
   {
     id: "4",
-    name: "ผ้าคลุมโซฟา Premium - Luxury Collection",
-    price: 4990,
-    originalPrice: 6200,
-    image: "/classic-elegant-fabric-pattern-2.png",
-    rating: 5.0,
-    reviews: 45,
-    category: "premium",
+    name: {
+      en: "Luxury Velvet Sofa Cover",
+      th: "ผ้าคลุมโซฟากำมะหยี่หรู",
+    },
+    description: {
+      en: "Premium velvet material with rich colors and luxurious feel",
+      th: "วัสดุกำมะหยี่พรีเมียมด้วยสีที่เข้มข้นและความรู้สึกหรูหรา",
+    },
+    price: 4290,
+    image: "/modern-minimalist-fabric-pattern-2.png",
+    rating: 4.9,
+    reviewCount: 156,
+    category: "Luxury",
     isNew: true,
-    isBestSeller: true,
+    isBestseller: true,
+    colors: ["#4B0082", "#800080", "#9370DB"],
   },
 ]
 
 export default function FeaturedProducts() {
-  const [isLoading, setIsLoading] = useState(true)
+  const { language } = useLanguage()
   const { addItem } = useCart()
-  const { t } = useLanguage()
+  const [favorites, setFavorites] = useState<string[]>([])
 
-  useEffect(() => {
-    // Simulate loading
-    const timer = setTimeout(() => setIsLoading(false), 1000)
-    return () => clearTimeout(timer)
-  }, [])
+  const toggleFavorite = (productId: string) => {
+    setFavorites((prev) => (prev.includes(productId) ? prev.filter((id) => id !== productId) : [...prev, productId]))
+  }
 
   const handleAddToCart = (product: Product) => {
     addItem({
       id: product.id,
-      name: product.name,
+      name: product.name[language],
       price: product.price,
       image: product.image,
+      quantity: 1,
     })
   }
 
-  if (isLoading) {
-    return (
-      <section className="py-16 bg-white">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <Skeleton className="h-8 w-64 mx-auto mb-4" />
-            <Skeleton className="h-4 w-96 mx-auto" />
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <Card key={i} className="overflow-hidden">
-                <Skeleton className="h-48 w-full" />
-                <CardContent className="p-4">
-                  <Skeleton className="h-4 w-full mb-2" />
-                  <Skeleton className="h-4 w-3/4 mb-4" />
-                  <Skeleton className="h-6 w-20" />
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-    )
+  const formatPrice = (price: number) => {
+    return new Intl.NumberFormat("th-TH", {
+      style: "currency",
+      currency: "THB",
+      minimumFractionDigits: 0,
+    }).format(price)
   }
 
   return (
     <section className="py-16 bg-white">
-      <div className="container mx-auto px-4">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="text-center mb-12">
-          <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">{t("products.title")}</h2>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            ผ้าคลุมโซฟาคุณภาพสูงที่ได้รับความนิยมมากที่สุด ราคาพิเศษสำหรับลูกค้าออนไลน์
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+            {language === "en" ? "Featured Products" : "สินค้าแนะนำ"}
+          </h2>
+          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+            {language === "en"
+              ? "Discover our most popular sofa covers, carefully selected for their quality, style, and customer satisfaction."
+              : "ค้นพบผ้าคลุมโซฟายอดนิยมของเรา ที่คัดสรรมาอย่างพิถีพิถันด้วยคุณภาพ สไตล์ และความพึงพอใจของลูกค้า"}
           </p>
         </div>
 
         {/* Products Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
           {featuredProducts.map((product) => (
-            <Card key={product.id} className="group overflow-hidden hover:shadow-lg transition-all duration-300">
-              <CardHeader className="p-0 relative">
-                <div className="aspect-square overflow-hidden">
-                  <img
-                    src={product.image || "/placeholder.svg"}
-                    alt={product.name}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
-                </div>
+            <Card
+              key={product.id}
+              className="group hover:shadow-xl transition-all duration-300 overflow-hidden burgundy-shadow"
+            >
+              <div className="relative">
+                <img
+                  src={product.image || "/placeholder.svg"}
+                  alt={product.name[language]}
+                  className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300"
+                />
+
                 {/* Badges */}
                 <div className="absolute top-3 left-3 flex flex-col gap-2">
-                  {product.isNew && <Badge className="bg-green-500 hover:bg-green-600 text-white">ใหม่</Badge>}
-                  {product.isBestSeller && <Badge className="bg-orange-500 hover:bg-orange-600 text-white">ขายดี</Badge>}
-                </div>
-                {/* Discount Badge */}
-                {product.originalPrice && (
-                  <div className="absolute top-3 right-3">
-                    <Badge variant="destructive">
-                      -{Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)}%
+                  {product.isNew && (
+                    <Badge className="bg-green-500 text-white">{language === "en" ? "New" : "ใหม่"}</Badge>
+                  )}
+                  {product.isBestseller && (
+                    <Badge className="bg-primary text-white">{language === "en" ? "Bestseller" : "ขายดี"}</Badge>
+                  )}
+                  {product.originalPrice && (
+                    <Badge className="bg-orange-500 text-white">
+                      {Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)}% OFF
                     </Badge>
-                  </div>
-                )}
-              </CardHeader>
+                  )}
+                </div>
 
-              <CardContent className="p-4">
-                <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2 group-hover:text-pink-600 transition-colors">
-                  {product.name}
-                </h3>
+                {/* Action Buttons */}
+                <div className="absolute top-3 right-3 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    className="w-10 h-10 p-0 bg-white/90 hover:bg-white"
+                    onClick={() => toggleFavorite(product.id)}
+                  >
+                    <Heart
+                      className={`w-4 h-4 ${
+                        favorites.includes(product.id) ? "fill-primary text-primary" : "text-gray-600"
+                      }`}
+                    />
+                  </Button>
+
+                  <Link href={`/products/${product.id}`}>
+                    <Button size="sm" variant="secondary" className="w-10 h-10 p-0 bg-white/90 hover:bg-white">
+                      <Eye className="w-4 h-4 text-gray-600" />
+                    </Button>
+                  </Link>
+                </div>
+
+                {/* Quick Add to Cart */}
+                <div className="absolute bottom-3 left-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <Button
+                    onClick={() => handleAddToCart(product)}
+                    className="w-full bg-primary hover:bg-primary/90 text-white"
+                    size="sm"
+                  >
+                    <ShoppingCart className="w-4 h-4 mr-2" />
+                    {language === "en" ? "Add to Cart" : "เพิ่มลงตะกร้า"}
+                  </Button>
+                </div>
+              </div>
+
+              <CardContent className="p-6">
+                {/* Category */}
+                <div className="text-sm text-primary font-medium mb-2">{product.category}</div>
+
+                {/* Product Name */}
+                <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-2">{product.name[language]}</h3>
+
+                {/* Description */}
+                <p className="text-gray-600 text-sm mb-4 line-clamp-2">{product.description[language]}</p>
 
                 {/* Rating */}
-                <div className="flex items-center gap-2 mb-3">
+                <div className="flex items-center space-x-2 mb-4">
                   <div className="flex items-center">
-                    {Array.from({ length: 5 }).map((_, i) => (
+                    {[...Array(5)].map((_, i) => (
                       <Star
                         key={i}
                         className={`w-4 h-4 ${
-                          i < Math.floor(product.rating) ? "text-yellow-400 fill-current" : "text-gray-300"
+                          i < Math.floor(product.rating) ? "fill-yellow-400 text-yellow-400" : "text-gray-300"
                         }`}
                       />
                     ))}
                   </div>
                   <span className="text-sm text-gray-600">
-                    {product.rating} ({product.reviews})
+                    {product.rating} ({product.reviewCount})
                   </span>
                 </div>
 
+                {/* Colors */}
+                <div className="flex items-center space-x-2 mb-4">
+                  <span className="text-sm text-gray-600">{language === "en" ? "Colors:" : "สี:"}</span>
+                  <div className="flex space-x-1">
+                    {product.colors.map((color, index) => (
+                      <div
+                        key={index}
+                        className="w-4 h-4 rounded-full border border-gray-300"
+                        style={{ backgroundColor: color }}
+                      />
+                    ))}
+                  </div>
+                </div>
+
                 {/* Price */}
-                <div className="flex items-center gap-2 mb-4">
-                  <span className="text-xl font-bold text-pink-600">฿{product.price.toLocaleString()}</span>
-                  {product.originalPrice && (
-                    <span className="text-sm text-gray-500 line-through">
-                      ฿{product.originalPrice.toLocaleString()}
-                    </span>
-                  )}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <span className="text-xl font-bold text-gray-900">{formatPrice(product.price)}</span>
+                    {product.originalPrice && (
+                      <span className="text-sm text-gray-500 line-through">{formatPrice(product.originalPrice)}</span>
+                    )}
+                  </div>
                 </div>
               </CardContent>
-
-              <CardFooter className="p-4 pt-0 flex gap-2">
-                <Button variant="outline" size="sm" className="flex-1 bg-transparent" asChild>
-                  <Link href={`/products/${product.id}`}>ดูรายละเอียด</Link>
-                </Button>
-                <Button
-                  size="sm"
-                  className="flex-1 bg-pink-600 hover:bg-pink-700"
-                  onClick={() => handleAddToCart(product)}
-                >
-                  <ShoppingCart className="w-4 h-4 mr-1" />
-                  เพิ่มลงตะกร้า
-                </Button>
-              </CardFooter>
             </Card>
           ))}
         </div>
 
         {/* View All Button */}
         <div className="text-center">
-          <Button
-            asChild
-            size="lg"
-            variant="outline"
-            className="border-pink-200 text-pink-600 hover:bg-pink-50 bg-transparent"
-          >
-            <Link href="/products">
-              {t("products.view-all")}
+          <Link href="/products">
+            <Button
+              size="lg"
+              variant="outline"
+              className="px-8 py-4 bg-transparent border-primary text-primary hover:bg-accent"
+            >
+              {language === "en" ? "View All Products" : "ดูสินค้าทั้งหมด"}
               <ArrowRight className="ml-2 w-5 h-5" />
-            </Link>
-          </Button>
+            </Button>
+          </Link>
         </div>
       </div>
     </section>

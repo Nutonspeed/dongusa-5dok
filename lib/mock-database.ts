@@ -1,196 +1,234 @@
-import { Product } from './types/product'; // Import Product type
-
-const mockProducts: Product[] = [
-  {
-    id: 'sofa-cover-1',
-    name: 'ผ้าคลุมโซฟาโมเดิร์นสีเทา',
-    description: 'ผ้าคลุมโซฟาดีไซน์โมเดิร์นสีเทาเข้ม ผลิตจากผ้าคุณภาพสูง กันน้ำ กันคราบ ทำความสะอาดง่าย เหมาะสำหรับโซฟาทุกขนาด',
-    price: 1299.00,
-    currency: 'THB',
-    imageUrl: '/modern-living-room-sofa-covers.png',
-    images: [
-      '/modern-living-room-sofa-covers.png',
-      '/abstract-fabric-pattern.png',
-      '/geometric-pillow.png',
-    ],
-    colors: [
-      { name: 'เทาเข้ม', hex: '#333333' },
-      { name: 'เบจ', hex: '#F5F5DC' },
-      { name: 'น้ำเงิน', hex: '#000080' },
-    ],
-    sizes: ['S', 'M', 'L', 'XL'],
-    category: 'โซฟา',
-    material: 'โพลีเอสเตอร์ผสมคอตตอน',
-    features: ['กันน้ำ', 'กันคราบ', 'ซักเครื่องได้', 'ติดตั้งง่าย'],
-    relatedProducts: ['sofa-cover-2', 'sofa-cover-3'],
-    stock: 50,
-    rating: 4.8,
-    reviews: 125,
-  },
-  {
-    id: 'sofa-cover-2',
-    name: 'ผ้าคลุมโซฟาลายคลาสสิก',
-    description: 'ผ้าคลุมโซฟาลายดอกไม้คลาสสิก เพิ่มความหรูหราให้กับห้องนั่งเล่นของคุณ เนื้อผ้านุ่มสบาย ระบายอากาศได้ดี',
-    price: 1599.00,
-    currency: 'THB',
-    imageUrl: '/classic-elegant-fabric-pattern-1.png',
-    images: [
-      '/classic-elegant-fabric-pattern-1.png',
-      '/classic-elegant-fabric-pattern-2.png',
-      '/classic-elegant-fabric-pattern-3.png',
-      '/classic-elegant-fabric-pattern-4.png',
-    ],
-    colors: [
-      { name: 'ครีม', hex: '#FFFDD0' },
-      { name: 'เขียวมิ้นท์', hex: '#98FF98' },
-      { name: 'ชมพูอ่อน', hex: '#FFB6C1' },
-    ],
-    sizes: ['M', 'L'],
-    category: 'โซฟา',
-    material: 'ผ้าฝ้าย 100%',
-    features: ['ระบายอากาศ', 'นุ่มสบาย', 'ดีไซน์คลาสสิก'],
-    relatedProducts: ['sofa-cover-1', 'sofa-cover-4'],
-    stock: 30,
-    rating: 4.5,
-    reviews: 80,
-  },
-  {
-    id: 'sofa-cover-3',
-    name: 'ผ้าคลุมเก้าอี้ทานอาหารลายแพทเทิร์น',
-    description: 'ผ้าคลุมเก้าอี้ทานอาหารดีไซน์ทันสมัย ลายแพทเทิร์นเรขาคณิต สีสันสดใส เปลี่ยนโฉมห้องอาหารของคุณให้ดูมีชีวิตชีวา',
-    price: 399.00,
-    currency: 'THB',
-    imageUrl: '/patterned-dining-chair-cover.png',
-    images: [
-      '/patterned-dining-chair-cover.png',
-      '/modern-minimalist-fabric-pattern-1.png',
-      '/modern-minimalist-fabric-pattern-2.png',
-      '/modern-minimalist-fabric-pattern-3.png',
-    ],
-    colors: [
-      { name: 'หลากสี', hex: '#FFD700' },
-      { name: 'ฟ้า', hex: '#ADD8E6' },
-    ],
-    sizes: ['Free Size'],
-    category: 'เก้าอี้',
-    material: 'ผ้าสแปนเด็กซ์',
-    features: ['ยืดหยุ่นสูง', 'ติดตั้งง่าย', 'สีไม่ตก'],
-    relatedProducts: ['sofa-cover-1', 'sofa-cover-5'],
-    stock: 100,
-    rating: 4.7,
-    reviews: 200,
-  },
-  {
-    id: 'sofa-cover-4',
-    name: 'ผ้าคลุมโซฟาผ้าไหมเทียมสีทอง',
-    description: 'ผ้าคลุมโซฟาผ้าไหมเทียมสีทองหรูหรา ให้สัมผัสเรียบลื่นและเงางาม เหมาะสำหรับเพิ่มความโอ่อ่าให้กับห้องรับแขก',
-    price: 2500.00,
-    currency: 'THB',
-    imageUrl: '/gold-faux-silk.png',
-    images: [
-      '/gold-faux-silk.png',
-      '/bohemian-chic-fabric-pattern-1.png',
-    ],
-    colors: [
-      { name: 'ทอง', hex: '#FFD700' },
-      { name: 'เงิน', hex: '#C0C0C0' },
-    ],
-    sizes: ['L', 'XL'],
-    category: 'โซฟา',
-    material: 'ผ้าไหมเทียม',
-    features: ['หรูหรา', 'เงางาม', 'สัมผัสนุ่ม'],
-    relatedProducts: ['sofa-cover-2'],
-    stock: 15,
-    rating: 4.9,
-    reviews: 50,
-  },
-  {
-    id: 'sofa-cover-5',
-    name: 'ผ้าคลุมสตูลถักนิตติ้ง',
-    description: 'ผ้าคลุมสตูลถักนิตติ้งสไตล์มินิมอล สีเอิร์ธโทน ให้ความรู้สึกอบอุ่นและเป็นธรรมชาติ เหมาะสำหรับตกแต่งบ้านสไตล์สแกนดิเนเวียน',
-    price: 250.00,
-    currency: 'THB',
-    imageUrl: '/simple-knit-stool-cover.png',
-    images: [
-      '/simple-knit-stool-cover.png',
-    ],
-    colors: [
-      { name: 'เบจ', hex: '#F5F5DC' },
-      { name: 'เทาอ่อน', hex: '#D3D3D3' },
-    ],
-    sizes: ['Free Size'],
-    category: 'สตูล',
-    material: 'ผ้าฝ้ายถัก',
-    features: ['อบอุ่น', 'เป็นธรรมชาติ', 'ซักมือได้'],
-    relatedProducts: ['sofa-cover-3'],
-    stock: 80,
-    rating: 4.6,
-    reviews: 90,
-  },
-];
-
-export async function getMockProducts(
-  search?: string,
-  category?: string,
-  sortBy: 'price-asc' | 'price-desc' | 'name-asc' | 'name-desc' | 'rating-desc' = 'rating-desc'
-): Promise<Product[]> {
-  await new Promise((resolve) => setTimeout(resolve, 500)); // Simulate network delay
-
-  let filteredProducts = [...mockProducts];
-
-  if (search) {
-    const lowercasedSearch = search.toLowerCase();
-    filteredProducts = filteredProducts.filter(
-      (product) =>
-        product.name.toLowerCase().includes(lowercasedSearch) ||
-        product.description.toLowerCase().includes(lowercasedSearch) ||
-        product.category.toLowerCase().includes(lowercasedSearch)
-    );
+// Types
+export interface Product {
+  id: string
+  name: string
+  name_en: string
+  description: string
+  description_en: string
+  price: number
+  images: string[]
+  category: string
+  specifications: {
+    material: string
+    dimensions: string
+    colors: string[]
+    care_instructions: string
   }
+  stock: number
+  status: "active" | "inactive" | "out_of_stock"
+  sold_count: number
+  rating: number
+  reviews_count: number
+  created_at: string
+  updated_at: string
+}
 
-  if (category && category !== 'all') {
-    filteredProducts = filteredProducts.filter(
-      (product) => product.category.toLowerCase() === category.toLowerCase()
-    );
-  }
+export interface Customer {
+  id: string
+  name: string
+  email: string
+  phone: string
+  address: string
+  total_orders: number
+  total_spent: number
+  status: "active" | "inactive"
+  created_at: string
+  updated_at: string
+}
 
-  filteredProducts.sort((a, b) => {
-    switch (sortBy) {
-      case 'price-asc':
-        return a.price - b.price;
-      case 'price-desc':
-        return b.price - a.price;
-      case 'name-asc':
-        return a.name.localeCompare(b.name);
-      case 'name-desc':
-        return b.name.localeCompare(a.name);
-      case 'rating-desc':
-        return b.rating - a.rating;
-      default:
-        return 0;
+export interface Order {
+  id: string
+  customer_id: string
+  customer_name: string
+  customer_email: string
+  customer_phone: string
+  items: {
+    product_id: string
+    product_name: string
+    quantity: number
+    price: number
+    total: number
+  }[]
+  subtotal: number
+  shipping: number
+  tax: number
+  total: number
+  status: "pending" | "production" | "shipped" | "completed" | "cancelled"
+  shipping_address: string
+  notes?: string
+  created_at: string
+  updated_at: string
+}
+
+export interface Analytics {
+  totalRevenue: number
+  totalOrders: number
+  totalCustomers: number
+  totalProducts: number
+  averageOrderValue: number
+  topProducts: {
+    id: string
+    name: string
+    sold_count: number
+    revenue: number
+  }[]
+  recentOrders: Order[]
+  monthlyRevenue: {
+    month: string
+    revenue: number
+    orders: number
+  }[]
+}
+
+// Mock database service for development and build compatibility
+export interface MockProduct {
+  id: string
+  name: string
+  name_en: string
+  description: string
+  category: string
+  price: number
+  stock: number
+  status: string
+  created_at: string
+}
+
+export interface MockCustomer {
+  id: string
+  name: string
+  email: string
+  phone: string
+  total_orders: number
+  total_spent: number
+  status: string
+  created_at: string
+}
+
+export interface MockOrder {
+  id: string
+  customer_id: string
+  total: number
+  status: string
+  created_at: string
+}
+
+export interface MockAnalytics {
+  totalRevenue: number
+  totalOrders: number
+  totalCustomers: number
+  monthlyGrowth: number
+}
+
+class MockDatabaseService {
+  private products: MockProduct[] = []
+  private customers: MockCustomer[] = []
+  private orders: MockOrder[] = []
+
+  async getProducts(): Promise<MockProduct[]> {
+    if (this.products.length === 0) {
+      this.products = [
+        {
+          id: "1",
+          name: "ผ้าคลุมโซฟากำมะหยี่พรีเมียม",
+          name_en: "Premium Velvet Sofa Cover",
+          description: "ผ้าคลุมโซฟาคุณภาพสูง",
+          category: "covers",
+          price: 2890,
+          stock: 25,
+          status: "active",
+          created_at: new Date().toISOString(),
+        },
+        {
+          id: "2",
+          name: "หมอนอิงลายเดียวกัน",
+          name_en: "Matching Throw Pillows",
+          description: "หมอนอิงที่เข้าชุดกับผ้าคลุมโซฟา",
+          category: "accessories",
+          price: 350,
+          stock: 5,
+          status: "low_stock",
+          created_at: new Date().toISOString(),
+        },
+      ]
     }
-  });
-
-  return filteredProducts;
-}
-
-export async function getMockProductById(id: string): Promise<Product | undefined> {
-  await new Promise((resolve) => setTimeout(resolve, 300)); // Simulate network delay
-  return mockProducts.find((product) => product.id === id);
-}
-
-export async function getMockRelatedProducts(productId: string): Promise<Product[]> {
-  await new Promise((resolve) => setTimeout(resolve, 300)); // Simulate network delay
-  const product = mockProducts.find((p) => p.id === productId);
-  if (!product || !product.relatedProducts) {
-    return [];
+    return this.products
   }
-  return mockProducts.filter((p) => product.relatedProducts.includes(p.id));
+
+  async getCustomers(): Promise<MockCustomer[]> {
+    if (this.customers.length === 0) {
+      this.customers = [
+        {
+          id: "1",
+          name: "คุณสมชาย ใจดี",
+          email: "somchai@email.com",
+          phone: "081-234-5678",
+          total_orders: 5,
+          total_spent: 12450,
+          status: "active",
+          created_at: new Date().toISOString(),
+        },
+        {
+          id: "2",
+          name: "คุณสมหญิง รักสวย",
+          email: "somying@email.com",
+          phone: "082-345-6789",
+          total_orders: 3,
+          total_spent: 5670,
+          status: "active",
+          created_at: new Date().toISOString(),
+        },
+      ]
+    }
+    return this.customers
+  }
+
+  async getOrders(): Promise<MockOrder[]> {
+    if (this.orders.length === 0) {
+      this.orders = [
+        {
+          id: "ORD-001",
+          customer_id: "1",
+          total: 2890,
+          status: "pending",
+          created_at: new Date().toISOString(),
+        },
+        {
+          id: "ORD-002",
+          customer_id: "2",
+          total: 1950,
+          status: "completed",
+          created_at: new Date().toISOString(),
+        },
+      ]
+    }
+    return this.orders
+  }
+
+  async getAnalytics(): Promise<MockAnalytics> {
+    const orders = await this.getOrders()
+    const customers = await this.getCustomers()
+
+    return {
+      totalRevenue: orders.reduce((sum, order) => sum + order.total, 0),
+      totalOrders: orders.length,
+      totalCustomers: customers.length,
+      monthlyGrowth: 12.5,
+    }
+  }
+
+  async clearAllData(): Promise<void> {
+    this.products = []
+    this.customers = []
+    this.orders = []
+  }
+
+  async seedSampleData(): Promise<void> {
+    // Reset and populate with sample data
+    await this.clearAllData()
+    await this.getProducts()
+    await this.getCustomers()
+    await this.getOrders()
+  }
 }
 
-export async function getMockProductCategories(): Promise<string[]> {
-  await new Promise((resolve) => setTimeout(resolve, 100)); // Simulate network delay
-  const categories = new Set<string>();
-  mockProducts.forEach(product => categories.add(product.category));
-  return Array.from(categories);
-}
+export const mockDatabaseService = new MockDatabaseService()
