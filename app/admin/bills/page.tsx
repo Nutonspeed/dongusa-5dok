@@ -10,6 +10,11 @@ import { Textarea } from "@/components/ui/textarea"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { FileText, Plus, Search, Eye, Copy, Send, Printer, Calendar, DollarSign } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
+import {
+  calculateSubtotal,
+  formatCurrency,
+  type MoneyLineItem,
+} from "@/lib/money"
 
 interface Bill {
   id: string
@@ -118,7 +123,11 @@ export default function BillsManagement() {
 
   const createQuickBill = () => {
     const billId = `BILL-${String(bills.length + 1).padStart(3, "0")}`
-    const totalAmount = newBill.items.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0)
+    const lineItems: MoneyLineItem[] = newBill.items.map((item) => ({
+      quantity: item.quantity ?? 0,
+      price: item.unitPrice ?? 0,
+    }))
+    const totalAmount = calculateSubtotal(lineItems)
 
     const bill: Bill = {
       id: billId,
@@ -128,7 +137,9 @@ export default function BillsManagement() {
       items: newBill.items.map((item, index) => ({
         id: String(index + 1),
         ...item,
-        totalPrice: item.quantity * item.unitPrice,
+        totalPrice: calculateSubtotal([
+          { quantity: item.quantity ?? 0, price: item.unitPrice ?? 0 },
+        ]),
       })),
       totalAmount,
       status: "draft",
@@ -166,7 +177,7 @@ export default function BillsManagement() {
 
 ขอส่งบิลสำหรับการสั่งซื้อ
 บิลเลขที่: ${bill.id}
-ยอดรวม: ${bill.totalAmount.toLocaleString()} บาท
+ยอดรวม: ${formatCurrency(bill.totalAmount)}
 
 ดูรายละเอียดบิล: ${window.location.origin}/bill/view/${bill.id}
 
@@ -409,7 +420,7 @@ export default function BillsManagement() {
                       </div>
                     </td>
                     <td className="py-4 px-4">
-                      <span className="font-bold text-burgundy-600">{bill.totalAmount.toLocaleString()} บาท</span>
+                      <span className="font-bold text-burgundy-600">{formatCurrency(bill.totalAmount)}</span>
                     </td>
                     <td className="py-4 px-4">{getStatusBadge(bill.status)}</td>
                     <td className="py-4 px-4">
