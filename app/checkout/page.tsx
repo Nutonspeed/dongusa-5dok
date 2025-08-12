@@ -15,6 +15,9 @@ import { useCart } from "../contexts/CartContext"
 import { useAuth } from "../contexts/AuthContext"
 import { createClient } from "@/lib/supabase/client"
 import type { Profile, Order, OrderItem } from "@/types/entities"
+import type { Database } from "@/lib/supabase/types"
+
+type ProfileRow = Database["public"]["Tables"]["profiles"]["Row"]
 import Header from "../components/Header"
 import Footer from "../components/Footer"
 
@@ -66,16 +69,18 @@ export default function CheckoutPage() {
 
     const loadUserProfile = async () => {
       if (user) {
-        const { data: profile } = await supabase
+        const { data: profileData } = await supabase
           .from("profiles")
           .select("*")
           .eq("id", user.id)
           .single()
 
+        const profile = profileData as ProfileRow | null
+
         if (profile) {
           setShippingInfo((prev) => ({
             ...prev,
-            fullName: profile.full_name || user.user_metadata?.full_name || "",
+            fullName: profile.full_name || user.full_name || "",
             email: user.email || "",
             phone: profile.phone || "",
             address: profile.address || "",
@@ -133,7 +138,7 @@ export default function CheckoutPage() {
       if (orderError) throw orderError
 
       // Create order items
-      const orderItems = items.map((item) => ({
+      const orderItems = items.map((item: any) => ({
         order_id: order.id,
         product_id: item.id,
         product_name: item.name,
@@ -208,7 +213,7 @@ export default function CheckoutPage() {
         {/* Progress Steps */}
         <div className="mb-8">
           <div className="flex items-center justify-center space-x-8">
-            {steps.map((step) => (
+            {steps.map((step: any) => (
               <div key={step.number} className="flex items-center">
                 <div
                   className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium ${
@@ -477,7 +482,7 @@ export default function CheckoutPage() {
               <CardContent className="space-y-4">
                 {/* Items */}
                 <div className="space-y-3">
-                  {items.map((item) => (
+                  {items.map((item: any) => (
                     <div key={`${item.id}-${item.size}-${item.color}`} className="flex items-center space-x-3">
                       <div className="w-12 h-12 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
                         <img

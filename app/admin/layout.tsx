@@ -26,7 +26,13 @@ import {
 } from "lucide-react"
 import { useAuth } from "../contexts/AuthContext"
 
-const navigation = [
+interface NavItem {
+  name: string
+  href: string
+  icon: React.ComponentType<React.SVGProps<SVGSVGElement>>
+}
+
+const navigation: NavItem[] = [
   { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
   { name: "Orders", href: "/admin/orders", icon: ShoppingCart },
   { name: "Bills", href: "/admin/bills", icon: FileText },
@@ -68,7 +74,7 @@ export default function AdminLayout({
     router.push("/")
   }
 
-  const filteredNavigation = navigation
+  const filteredNavigation: NavItem[] = navigation
 
   // Show loading or redirect if not authenticated/authorized
   if (!isAuthenticated || !isAdmin) {
@@ -115,7 +121,7 @@ export default function AdminLayout({
               <h1 className="text-xl font-semibold text-white">Admin Panel</h1>
             </div>
             <nav className="flex-1 space-y-1 px-3 py-4">
-              {filteredNavigation.map((item) => {
+              {filteredNavigation.map((item: NavItem) => {
                 const isActive = pathname === item.href
                 return (
                   <Link
@@ -153,7 +159,7 @@ export default function AdminLayout({
             <h1 className="text-xl font-semibold text-white">Admin Panel</h1>
           </div>
           <nav className="flex-1 space-y-1 px-3 py-4">
-            {filteredNavigation.map((item) => {
+            {filteredNavigation.map((item: NavItem) => {
               const isActive = pathname === item.href
               return (
                 <Link

@@ -4,23 +4,14 @@ import { logger } from '@/lib/logger';
 import type React from "react"
 import { createContext, useContext, useState, useEffect } from "react"
 import { supabase, isSupabaseConfigured } from "@/lib/supabase/client"
-import type { User } from "@supabase/supabase-js"
-import type { Profile } from "@/types/entities"
+import type { AppUser } from "@/types/user"
+import type { Database } from "@/lib/supabase/types"
 
-interface UserProfile {
-  id: string
-  email: string
-  full_name: string | null
-  phone: string | null
-  role: "customer" | "admin" | "staff"
-  avatar_url: string | null
-  created_at: string
-  updated_at: string
-}
+type ProfileRow = Database["public"]["Tables"]["profiles"]["Row"]
 
 interface AuthContextType {
-  user: User | null
-  profile: UserProfile | null
+  user: AppUser | null
+  profile: ProfileRow | null
   isLoading: boolean
   isAuthenticated: boolean
   isAdmin: boolean
@@ -45,8 +36,8 @@ const defaultAuthContext: AuthContextType = {
 const AuthContext = createContext<AuthContextType>(defaultAuthContext)
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null)
-  const [profile, setProfile] = useState<UserProfile | null>(null)
+  const [user, setUser] = useState<AppUser | null>(null)
+  const [profile, setProfile] = useState<ProfileRow | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isMounted, setIsMounted] = useState(false)
 
@@ -73,10 +64,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             return
           }
 
-          setUser(session?.user ?? null)
+          const mappedUser: AppUser | null = session?.user
+            ? { ...session.user, full_name: session.user.user_metadata?.full_name }
+            : null
+          setUser(mappedUser)
 
-          if (session?.user) {
-            await fetchProfile(session.user.id)
+          if (mappedUser) {
+            await fetchProfile(mappedUser.id)
           }
         } else {
           try {
@@ -85,7 +79,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
             if (userData) {
               const parsedUser = JSON.parse(userData)
-              setUser(parsedUser)
+              const appUser: AppUser = {
+                ...parsedUser,
+                full_name: parsedUser.full_name || undefined,
+              }
+              setUser(appUser)
               setProfile({
                 id: parsedUser.id,
                 email: parsedUser.email,
@@ -102,12 +100,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 email: "admin@sofacover.com",
                 full_name: "Admin User",
                 phone: null,
-                role: "admin" as const,
+                role: "admin",
                 avatar_url: null,
                 created_at: new Date().toISOString(),
                 updated_at: new Date().toISOString(),
-              }
-              setUser(mockAdmin as any)
+              } as unknown as AppUser & ProfileRow
+              setUser(mockAdmin)
               setProfile(mockAdmin)
             }
           } catch (error) {
@@ -127,10 +125,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const {
         data: { subscription },
       } = supabase.auth.onAuthStateChange(async (event, session) => {
-        setUser(session?.user ?? null)
+        const mappedUser: AppUser | null = session?.user
+          ? { ...session.user, full_name: session.user.user_metadata?.full_name }
+          : null
+        setUser(mappedUser)
 
-        if (session?.user) {
-          await fetchProfile(session.user.id)
+        if (mappedUser) {
+          await fetchProfile(mappedUser.id)
         } else {
           setProfile(null)
         }
@@ -157,7 +158,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
 
         if (data) {
-          setProfile(data as UserProfile)
+          setProfile(data as ProfileRow)
         }
       }
     } catch (error) {
@@ -187,11 +188,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const credential = validCredentials.find((c) => c.email === email && c.password === password)
 
         if (credential) {
-          const mockUser = {
+          const mockUser: AppUser = {
             id: credential.role === "admin" ? "admin-id" : "user-id",
             email: credential.email,
             full_name: credential.role === "admin" ? "Admin User" : "Regular User",
-            role: credential.role,
+            app_metadata: {},
+            user_metadata: {},
+            aud: "", // minimal fields
+            created_at: "",
+            confirmed_at: null,
+            email_confirmed_at: null,
+            phone: "",
+            role: "authenticated",
+            last_sign_in_at: null,
+            identities: [],
+            factors: null,
           }
 
           if (typeof window !== "undefined") {
@@ -201,13 +212,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             }
           }
 
-          setUser(mockUser as any)
+          setUser(mockUser)
           setProfile({
             id: mockUser.id,
             email: mockUser.email,
-            full_name: mockUser.full_name,
+            full_name: mockUser.full_name || null,
             phone: null,
-            role: mockUser.role as "customer" | "admin",
+            role: credential.role as "customer" | "admin",
             avatar_url: null,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
@@ -249,22 +260,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         return { success: true }
       } else {
-        const mockUser = {
-          id: `user-${Date.now()}`,
-          email,
-          full_name: fullName || "",
-          role: "customer",
-        }
+          const mockUser: AppUser = {
+            id: `user-${Date.now()}`,
+            email,
+            full_name: fullName || "",
+            role: "authenticated",
+            app_metadata: {},
+            user_metadata: {},
+            aud: "",
+            created_at: "",
+            confirmed_at: null,
+            email_confirmed_at: null,
+            phone: "",
+            last_sign_in_at: null,
+            identities: [],
+            factors: null,
+          }
 
         if (typeof window !== "undefined") {
           localStorage.setItem("user_data", JSON.stringify(mockUser))
         }
 
-        setUser(mockUser as any)
+        setUser(mockUser)
         setProfile({
           id: mockUser.id,
           email: mockUser.email,
-          full_name: mockUser.full_name,
+          full_name: mockUser.full_name || null,
           phone: null,
           role: "customer",
           avatar_url: null,

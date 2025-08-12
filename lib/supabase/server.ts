@@ -2,6 +2,7 @@ import { logger } from '@/lib/logger';
 import { createServerClient } from "@supabase/ssr"
 import type { Database } from "@/types/database"
 import { cookies } from "next/headers"
+// @ts-expect-error react cache is experimental
 import { cache } from "react"
 
 // Check if Supabase environment variables are available

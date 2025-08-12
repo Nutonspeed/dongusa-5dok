@@ -19,6 +19,11 @@ import { useLanguage } from "../contexts/LanguageContext"
 import { useCart } from "../contexts/CartContext"
 import { useAuth } from "../contexts/AuthContext"
 
+interface NavItem {
+  name: { en: string; th: string }
+  href: string
+}
+
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isSearchOpen, setIsSearchOpen] = useState(false)
@@ -28,7 +33,7 @@ export default function Header() {
   const { user, isAuthenticated, isAdmin, signOut } = useAuth() // Updated to use signOut instead of logout
   const router = useRouter()
 
-  const navigation = [
+  const navigation: NavItem[] = [
     {
       name: { en: "Home", th: "หน้าแรก" },
       href: "/",
@@ -63,7 +68,10 @@ export default function Header() {
     setLanguage(language === "en" ? "th" : "en")
   }
 
-  const cartItemCount = items.reduce((total, item) => total + item.quantity, 0)
+  const cartItemCount = items.reduce(
+    (total: number, item: any) => total + item.quantity,
+    0,
+  )
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
@@ -97,7 +105,7 @@ export default function Header() {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex space-x-8">
-            {navigation.map((item) => (
+            {navigation.map((item: NavItem) => (
               <Link
                 key={item.href}
                 href={item.href}
@@ -117,7 +125,9 @@ export default function Header() {
                   <input
                     type="text"
                     value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      setSearchQuery(e.target.value)
+                    }
                     placeholder={language === "en" ? "Search products..." : "ค้นหาสินค้า..."}
                     className="w-48 px-3 py-1 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
                     autoFocus
@@ -243,7 +253,7 @@ export default function Header() {
         {isMenuOpen && (
           <div className="md:hidden border-t border-gray-200 py-4">
             <div className="space-y-2">
-              {navigation.map((item) => (
+              {navigation.map((item: NavItem) => (
                 <Link
                   key={item.href}
                   href={item.href}
@@ -263,7 +273,9 @@ export default function Header() {
                   <input
                     type="text"
                     value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      setSearchQuery(e.target.value)
+                    }
                     placeholder={language === "en" ? "Search products..." : "ค้นหาสินค้า..."}
                     className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                   />

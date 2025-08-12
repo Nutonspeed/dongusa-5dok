@@ -42,7 +42,7 @@ export default function ProfilePage() {
 
     if (user && profile) {
       const userData = {
-        fullName: profile.full_name || user.user_metadata?.full_name || "",
+        fullName: profile.full_name || user.full_name || "",
         email: user.email || "",
         phone: profile.phone || "",
         address: "", // Not available in current schema
@@ -149,7 +149,9 @@ export default function ProfilePage() {
                     <input
                       type="text"
                       value={editForm.fullName}
-                      onChange={(e) => setEditForm({ ...editForm, fullName: e.target.value })}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                        setEditForm({ ...editForm, fullName: e.target.value })
+                      }
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                     />
                   ) : (
@@ -177,7 +179,9 @@ export default function ProfilePage() {
                     <input
                       type="tel"
                       value={editForm.phone}
-                      onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                        setEditForm({ ...editForm, phone: e.target.value })
+                      }
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                     />
                   ) : (
@@ -193,7 +197,9 @@ export default function ProfilePage() {
                   {isEditing ? (
                     <textarea
                       value={editForm.address}
-                      onChange={(e) => setEditForm({ ...editForm, address: e.target.value })}
+                      onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+                        setEditForm({ ...editForm, address: e.target.value })
+                      }
                       rows={3}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                     />
