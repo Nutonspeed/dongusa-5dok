@@ -87,4 +87,12 @@
   body {
     @apply bg-background text-foreground;
   }
+  button:focus-visible,
+  a:focus-visible {
+    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background shadow-sm;
+  }
+  button:active,
+  a:active {
+    @apply shadow;
+  }
 }
