@@ -1,7 +1,7 @@
 import { logger } from '@/lib/logger';
 import { createServerClient } from "@supabase/ssr"
 import { NextResponse, type NextRequest } from "next/server"
-import type { Profile } from "@/types/entities"
+import type { Database } from "@/types/database"
 
 export const isSupabaseConfigured =
   typeof process.env.NEXT_PUBLIC_SUPABASE_URL === "string" &&
@@ -33,7 +33,7 @@ export async function updateSession(request: NextRequest) {
   })
 
   try {
-    const supabase = createServerClient(
+    const supabase = createServerClient<Database>(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
       {
@@ -80,7 +80,7 @@ export async function updateSession(request: NextRequest) {
       // Check admin role
       try {
         const { data: profile } = await supabase
-          .from<Profile>("profiles")
+          .from("profiles")
           .select("role")
           .eq("id", session.user.id)
           .single()

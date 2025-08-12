@@ -56,7 +56,7 @@ export class DatabaseAdapter {
     }
 
     return await this.supabase
-      .from<Product>("products")
+      .from("products")
       .select("*")
       .eq("is_active", true)
       .order("created_at", { ascending: false })
@@ -68,7 +68,7 @@ export class DatabaseAdapter {
       return { data: product || null, error: product ? null : "Product not found" }
     }
 
-    return await this.supabase.from<Product>("products").select("*").eq("id", id).single()
+    return await this.supabase.from("products").select("*").eq("id", id).single()
   }
 
   async createOrder(orderData: any) {
@@ -84,7 +84,7 @@ export class DatabaseAdapter {
       return { data: newOrder, error: null }
     }
 
-    return await this.supabase.from<Order>("orders").insert(orderData).select().single()
+    return await this.supabase.from("orders").insert(orderData).select().single()
   }
 
   async getOrders(userId?: string) {
@@ -96,7 +96,7 @@ export class DatabaseAdapter {
       return { data: orders, error: null }
     }
 
-    let query = this.supabase.from<Order>("orders").select("*")
+    let query = this.supabase.from("orders").select("*")
     if (userId) {
       query = query.eq("user_id", userId)
     }

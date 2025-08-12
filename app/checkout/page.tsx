@@ -67,7 +67,7 @@ export default function CheckoutPage() {
     const loadUserProfile = async () => {
       if (user) {
         const { data: profile } = await supabase
-          .from<Profile>("profiles")
+          .from("profiles")
           .select("*")
           .eq("id", user.id)
           .single()
@@ -125,7 +125,7 @@ export default function CheckoutPage() {
       }
 
       const { data: order, error: orderError } = await supabase
-        .from<Order>("orders")
+        .from("orders")
         .insert(orderData)
         .select()
         .single()
@@ -147,7 +147,7 @@ export default function CheckoutPage() {
       }))
 
       const { error: itemsError } = await supabase
-        .from<OrderItem>("order_items")
+        .from("order_items")
         .insert(orderItems)
 
       if (itemsError) throw itemsError

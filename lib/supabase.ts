@@ -1,10 +1,11 @@
 import { createClient } from "@supabase/supabase-js"
+import type { Database } from "@/types/database"
 
 // Use fallback values for build time when environment variables are not available
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://placeholder.supabase.co"
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "placeholder-key"
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey)
 
 // Database Types
 export interface Product {
@@ -122,7 +123,7 @@ export const db = {
       return []
     }
 
-    let query = supabase.from<Product>("products").select("*").order("created_at", { ascending: false })
+    let query = supabase.from("products").select("*").order("created_at", { ascending: false })
 
     if (filters?.category && filters.category !== "all") {
       query = query.eq("category", filters.category)
@@ -155,7 +156,7 @@ export const db = {
       return null
     }
 
-    const { data, error } = await supabase.from<Product>("products").select("*").eq("id", id).single()
+    const { data, error } = await supabase.from("products").select("*").eq("id", id).single()
 
     if (error) throw error
     return data as Product
@@ -166,7 +167,7 @@ export const db = {
       return null
     }
 
-    const { data, error } = await supabase.from<Product>("products").insert([product]).select().single()
+    const { data, error } = await supabase.from("products").insert([product]).select().single()
 
     if (error) throw error
     return data as Product
@@ -193,7 +194,7 @@ export const db = {
       return
     }
 
-    const { error } = await supabase.from<Product>("products").delete().eq("id", id)
+    const { error } = await supabase.from("products").delete().eq("id", id)
 
     if (error) throw error
   },
@@ -288,7 +289,7 @@ export const db = {
     }
 
     let query = supabase
-      .from<Order>("orders")
+      .from("orders")
       .select(`
         *,
         customer:customers(*)
@@ -323,7 +324,7 @@ export const db = {
     }
 
     const { data, error } = await supabase
-      .from<Order>("orders")
+      .from("orders")
       .select(`
         *,
         customer:customers(*)
@@ -340,7 +341,7 @@ export const db = {
       return null
     }
 
-    const { data, error } = await supabase.from<Order>("orders").insert([order]).select().single()
+    const { data, error } = await supabase.from("orders").insert([order]).select().single()
 
     if (error) throw error
     return data as Omit<Order, "customer">
@@ -352,7 +353,7 @@ export const db = {
     }
 
     const { data, error } = await supabase
-      .from<Order>("orders")
+      .from("orders")
       .update({ ...updates, updated_at: new Date().toISOString() })
       .eq("id", id)
       .select()
@@ -411,10 +412,10 @@ export const db = {
     }
 
     const [{ data: products }, { data: customers }, { data: orders }, { data: analytics }] = await Promise.all([
-      supabase.from<Product>("products").select("id, status, stock"),
+      supabase.from("products").select("id, status, stock"),
       supabase.from("customers").select("id, status, customer_type, total_spent"),
       supabase
-        .from<Order>("orders")
+        .from("orders")
         .select("id, status, total, created_at")
         .gte("created_at", new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()),
       supabase
