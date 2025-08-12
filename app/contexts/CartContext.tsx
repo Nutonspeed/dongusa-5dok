@@ -129,13 +129,12 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const addItem = (newItem: Omit<CartItem, "quantity"> & { quantity?: number }) => {
     setItems((prevItems) => {
-      const existingItemIndex = prevItems.findIndex(
-        (item) =>
-          item.id === newItem.id &&
-          item.size === newItem.size &&
-          item.color === newItem.color &&
-          item.fabricPattern === newItem.fabricPattern,
-      )
+      const itemKey = `${newItem.id}${newItem.size ? `-${newItem.size}` : ""}${newItem.color ? `-${newItem.color}` : ""}${newItem.fabricPattern ? `-${newItem.fabricPattern}` : ""}`
+
+      const existingItemIndex = prevItems.findIndex((item) => {
+        const existingKey = `${item.id}${item.size ? `-${item.size}` : ""}${item.color ? `-${item.color}` : ""}${item.fabricPattern ? `-${item.fabricPattern}` : ""}`
+        return existingKey === itemKey
+      })
 
       if (existingItemIndex > -1) {
         // Item exists, update quantity
@@ -143,8 +142,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         updatedItems[existingItemIndex].quantity += newItem.quantity || 1
         return updatedItems
       } else {
-        // New item, add to cart
-        return [...prevItems, { ...newItem, quantity: newItem.quantity || 1 }]
+        // New item, add to cart with composite key as id
+        return [...prevItems, { ...newItem, id: itemKey, quantity: newItem.quantity || 1 }]
       }
     })
   }

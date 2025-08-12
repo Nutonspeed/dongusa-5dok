@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { useLanguage } from "../contexts/LanguageContext"
+import { useAuth } from "../contexts/AuthContext"
 import Header from "../components/Header"
 import Footer from "../components/Footer"
 
@@ -14,11 +15,17 @@ export default function OrderSuccessPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { language } = useLanguage()
+  const { user } = useAuth()
   const [order, setOrder] = useState<any>(null)
 
   const orderId = searchParams.get("orderId")
 
   useEffect(() => {
+    if (!user) {
+      router.push("/login")
+      return
+    }
+
     if (!orderId) {
       router.push("/")
       return
@@ -33,7 +40,7 @@ export default function OrderSuccessPage() {
     } else {
       router.push("/")
     }
-  }, [orderId, router])
+  }, [orderId, router, user])
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("th-TH", {

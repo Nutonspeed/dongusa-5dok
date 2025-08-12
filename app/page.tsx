@@ -1,4 +1,3 @@
-```tsx file="app/page.tsx"
 "use client"
 
 import { DemoBanner } from "@/components/DemoBanner"

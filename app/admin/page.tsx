@@ -7,10 +7,28 @@ import { TrendingUp, TrendingDown, Users, Package, ShoppingCart, Eye, Clock } fr
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import loadable from "next/dynamic"
+
+const AdminAnalytics = loadable(() => import("./analytics/page"), {
+  loading: () => <div className="animate-pulse bg-gray-200 h-64 rounded-lg"></div>,
+})
+
+const AdminOrders = loadable(() => import("./orders/page"), {
+  loading: () => <div className="animate-pulse bg-gray-200 h-64 rounded-lg"></div>,
+})
+
+const AdminCustomers = loadable(() => import("./customers/page"), {
+  loading: () => <div className="animate-pulse bg-gray-200 h-64 rounded-lg"></div>,
+})
+
+const AdminInventory = loadable(() => import("./inventory/page"), {
+  loading: () => <div className="animate-pulse bg-gray-200 h-64 rounded-lg"></div>,
+})
 
 const AdminDashboardClient = ({ analytics, recentOrders, topProducts }) => {
   const [currentTime, setCurrentTime] = useState(new Date())
   const [dashboardStats, setDashboardStats] = useState(analytics || {})
+  const [activeComponent, setActiveComponent] = useState<string | null>(null)
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -91,7 +109,11 @@ const AdminDashboardClient = ({ analytics, recentOrders, topProducts }) => {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>คำสั่งซื้อล่าสุด</CardTitle>
-              <Button variant="outline" size="sm">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setActiveComponent(activeComponent === "orders" ? null : "orders")}
+              >
                 <Eye className="w-4 h-4 mr-2" />
                 ดูทั้งหมด
               </Button>
@@ -189,25 +211,48 @@ const AdminDashboardClient = ({ analytics, recentOrders, topProducts }) => {
         </CardHeader>
         <CardContent>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <Button className="h-20 flex-col space-y-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700">
+            <Button
+              className="h-20 flex-col space-y-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700"
+              onClick={() => setActiveComponent(activeComponent === "inventory" ? null : "inventory")}
+            >
               <Package className="w-6 h-6" />
               <span>เพิ่มสินค้าใหม่</span>
             </Button>
-            <Button className="h-20 flex-col space-y-2 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700">
+            <Button
+              className="h-20 flex-col space-y-2 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700"
+              onClick={() => setActiveComponent(activeComponent === "orders" ? null : "orders")}
+            >
               <ShoppingCart className="w-6 h-6" />
               <span>ดูคำสั่งซื้อ</span>
             </Button>
-            <Button className="h-20 flex-col space-y-2 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700">
+            <Button
+              className="h-20 flex-col space-y-2 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700"
+              onClick={() => setActiveComponent(activeComponent === "customers" ? null : "customers")}
+            >
               <Users className="w-6 h-6" />
               <span>จัดการลูกค้า</span>
             </Button>
-            <Button className="h-20 flex-col space-y-2 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700">
+            <Button
+              className="h-20 flex-col space-y-2 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700"
+              onClick={() => setActiveComponent(activeComponent === "analytics" ? null : "analytics")}
+            >
               <TrendingUp className="w-6 h-6" />
               <span>ดูรายงาน</span>
             </Button>
           </div>
         </CardContent>
       </Card>
+
+      {activeComponent && (
+        <Card>
+          <CardContent className="p-6">
+            {activeComponent === "analytics" && <AdminAnalytics />}
+            {activeComponent === "orders" && <AdminOrders />}
+            {activeComponent === "customers" && <AdminCustomers />}
+            {activeComponent === "inventory" && <AdminInventory />}
+          </CardContent>
+        </Card>
+      )}
     </div>
   )
 }

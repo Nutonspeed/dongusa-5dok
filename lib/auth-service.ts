@@ -1,14 +1,19 @@
-import { createClient } from "@supabase/supabase-js"
+import { createClient } from "@/lib/supabase/client"
 
 export class AuthService {
-  private supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
+  private getSupabase() {
+    return createClient()
+  }
 
   async signUp(email: string, password: string, userData?: any) {
-    const { data, error } = await this.supabase.auth.signUp({
+    const supabase = this.getSupabase()
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
+        emailRedirectTo:
+          process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL ||
+          (typeof window !== "undefined" ? `${window.location.origin}/auth/callback` : ""),
         data: userData,
       },
     })
@@ -18,7 +23,8 @@ export class AuthService {
   }
 
   async signIn(email: string, password: string) {
-    const { data, error } = await this.supabase.auth.signInWithPassword({
+    const supabase = this.getSupabase()
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     })
@@ -28,21 +34,24 @@ export class AuthService {
   }
 
   async signOut() {
-    const { error } = await this.supabase.auth.signOut()
+    const supabase = this.getSupabase()
+    const { error } = await supabase.auth.signOut()
     if (error) throw error
   }
 
   async getCurrentUser() {
+    const supabase = this.getSupabase()
     const {
       data: { user },
       error,
-    } = await this.supabase.auth.getUser()
+    } = await supabase.auth.getUser()
     if (error) throw error
     return user
   }
 
   async updateProfile(updates: any) {
-    const { data, error } = await this.supabase.auth.updateUser({
+    const supabase = this.getSupabase()
+    const { data, error } = await supabase.auth.updateUser({
       data: updates,
     })
 
@@ -51,7 +60,8 @@ export class AuthService {
   }
 
   onAuthStateChange(callback: (event: string, session: any) => void) {
-    return this.supabase.auth.onAuthStateChange(callback)
+    const supabase = this.getSupabase()
+    return supabase.auth.onAuthStateChange(callback)
   }
 }
 

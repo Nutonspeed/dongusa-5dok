@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { useLanguage } from "../contexts/LanguageContext"
+import { useAuth } from "../contexts/AuthContext"
 import Header from "../components/Header"
 import Footer from "../components/Footer"
 
@@ -15,13 +16,13 @@ export const dynamic = "force-dynamic"
 export default function OrdersPage() {
   const router = useRouter()
   const { language } = useLanguage()
+  const { user } = useAuth()
   const [orders, setOrders] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
     // Check if user is logged in
-    const token = localStorage.getItem("user_token")
-    if (!token) {
+    if (!user) {
       router.push("/login?redirect=/orders")
       return
     }
@@ -30,7 +31,7 @@ export default function OrdersPage() {
     const userOrders = JSON.parse(localStorage.getItem("user_orders") || "[]")
     setOrders(userOrders.reverse()) // Show newest first
     setIsLoading(false)
-  }, [router])
+  }, [router, user])
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("th-TH", {

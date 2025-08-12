@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
+import Image from "next/image"
 import { ArrowRight, Star, Shield, Truck, Award } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -139,10 +140,14 @@ export default function Hero() {
           {/* Right Content - Image Carousel */}
           <div className="relative">
             <div className="relative w-full h-96 lg:h-[500px] rounded-2xl overflow-hidden burgundy-shadow-lg">
-              <img
+              <Image
                 src={heroImages[currentImageIndex] || "/placeholder.svg"}
                 alt="Sofa Cover Showcase"
+                width={600}
+                height={500}
                 className="w-full h-full object-cover transition-opacity duration-1000"
+                priority
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 600px"
               />
 
               {/* Overlay with stats */}

@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
+import Image from "next/image"
 import { ArrowRight, Palette, Sparkles, Heart } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
@@ -156,10 +157,16 @@ I'd like to see fabric samples and more details.`
               className="group overflow-hidden hover:shadow-2xl transition-all duration-500 cursor-pointer burgundy-shadow"
             >
               <div className="relative h-80 overflow-hidden">
-                <img
-                  src={collection.image || "/placeholder.svg"}
+                <Image
+                  src={
+                    collection.image ||
+                    `/placeholder.svg?height=320&width=600&query=${encodeURIComponent(collection.name[language])}`
+                  }
                   alt={collection.name[language]}
+                  width={600}
+                  height={320}
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 600px"
                 />
 
                 {/* Overlay */}

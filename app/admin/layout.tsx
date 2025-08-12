@@ -27,18 +27,18 @@ import {
 import { useAuth } from "../contexts/AuthContext"
 
 const navigation = [
-  { name: "Dashboard", href: "/admin", icon: LayoutDashboard, permission: "view_analytics" },
-  { name: "Orders", href: "/admin/orders", icon: ShoppingCart, permission: "view_orders" },
-  { name: "Bills", href: "/admin/bills", icon: FileText, permission: "view_orders" },
-  { name: "Customers", href: "/admin/customers", icon: Users, permission: "view_customers" },
-  { name: "Products", href: "/admin/products", icon: Package, permission: "view_products" },
-  { name: "Fabric Gallery", href: "/admin/fabric-gallery", icon: ImageIcon, permission: "manage_fabric_gallery" },
-  { name: "Storefront Manager", href: "/admin/storefront", icon: Settings, permission: "manage_storefront" },
-  { name: "Shipping", href: "/admin/shipping", icon: Truck, permission: "manage_shipping" },
-  { name: "Messages", href: "/admin/messages", icon: MessageSquare, permission: "view_orders" },
-  { name: "Analytics", href: "/admin/analytics", icon: BarChart3, permission: "view_analytics" },
-  { name: "Settings", href: "/admin/settings", icon: Settings, permission: "view_settings" },
-  { name: "Demo", href: "/admin/demo", icon: TestTube, permission: "view_analytics" },
+  { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
+  { name: "Orders", href: "/admin/orders", icon: ShoppingCart },
+  { name: "Bills", href: "/admin/bills", icon: FileText },
+  { name: "Customers", href: "/admin/customers", icon: Users },
+  { name: "Products", href: "/admin/products", icon: Package },
+  { name: "Fabric Gallery", href: "/admin/fabric-gallery", icon: ImageIcon },
+  { name: "Storefront Manager", href: "/admin/storefront", icon: Settings },
+  { name: "Shipping", href: "/admin/shipping", icon: Truck },
+  { name: "Messages", href: "/admin/messages", icon: MessageSquare },
+  { name: "Analytics", href: "/admin/analytics", icon: BarChart3 },
+  { name: "Settings", href: "/admin/settings", icon: Settings },
+  { name: "Demo", href: "/admin/demo", icon: TestTube },
 ]
 
 export default function AdminLayout({
@@ -49,7 +49,7 @@ export default function AdminLayout({
   const pathname = usePathname()
   const router = useRouter()
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const { user, isAuthenticated, isAdmin, hasPermission, logout } = useAuth()
+  const { user, profile, isAuthenticated, isAdmin, signOut } = useAuth()
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -64,11 +64,11 @@ export default function AdminLayout({
   }, [isAuthenticated, isAdmin, pathname, router])
 
   const handleLogout = () => {
-    logout()
+    signOut()
     router.push("/")
   }
 
-  const filteredNavigation = navigation.filter((item) => !item.permission || hasPermission(item.permission))
+  const filteredNavigation = navigation
 
   // Show loading or redirect if not authenticated/authorized
   if (!isAuthenticated || !isAdmin) {
@@ -97,7 +97,8 @@ export default function AdminLayout({
       <Alert className="m-4 border-primary bg-primary/5">
         <Shield className="h-4 w-4 text-primary" />
         <AlertDescription className="text-primary">
-          Admin Mode: You are logged in as {user?.firstName} {user?.lastName} with administrative privileges.
+          Admin Mode: You are logged in as {user?.full_name || profile?.full_name || user?.email} with administrative
+          privileges.
         </AlertDescription>
       </Alert>
 

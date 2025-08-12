@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { useParams } from "next/navigation"
 import Link from "next/link"
+import Image from "next/image"
 import {
   ArrowLeft,
   Star,
@@ -118,10 +119,17 @@ export default function ProductDetailPage() {
           <div className="space-y-4">
             {/* Main Image */}
             <div className="aspect-square bg-white rounded-lg overflow-hidden shadow-sm">
-              <img
-                src={product.images[selectedImage] || "/placeholder.svg"}
+              <Image
+                src={
+                  product.images[selectedImage] ||
+                  "/placeholder.svg?height=600&width=600&query=sofa cover product main image"
+                }
                 alt={language === "th" ? product.name : product.nameEn}
+                width={600}
+                height={600}
                 className="w-full h-full object-cover"
+                priority
+                sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 600px"
               />
             </div>
 
@@ -135,10 +143,13 @@ export default function ProductDetailPage() {
                     selectedImage === index ? "border-pink-500" : "border-gray-200 hover:border-gray-300"
                   }`}
                 >
-                  <img
-                    src={image || "/placeholder.svg"}
+                  <Image
+                    src={image || "/placeholder.svg?height=150&width=150&query=sofa cover product thumbnail"}
                     alt={`Product ${index + 1}`}
+                    width={150}
+                    height={150}
                     className="w-full h-full object-cover"
+                    sizes="150px"
                   />
                 </button>
               ))}
@@ -432,10 +443,16 @@ export default function ProductDetailPage() {
                 <Card key={relatedProduct.id} className="group hover:shadow-lg transition-shadow">
                   <CardContent className="p-0">
                     <div className="aspect-square bg-gray-100 rounded-t-lg overflow-hidden">
-                      <img
-                        src={relatedProduct.images[0] || "/placeholder.svg"}
+                      <Image
+                        src={
+                          relatedProduct.images[0] ||
+                          "/placeholder.svg?height=300&width=300&query=related sofa cover product"
+                        }
                         alt={language === "th" ? relatedProduct.name : relatedProduct.nameEn}
+                        width={300}
+                        height={300}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        sizes="(max-width: 768px) 50vw, (max-width: 1024px) 25vw, 300px"
                       />
                     </div>
                     <div className="p-4">

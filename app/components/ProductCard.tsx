@@ -58,12 +58,14 @@ export default function ProductCard({
           <Link href={`/products/${product.id}`}>
             <Image
               src={
-                product.image_url || `/placeholder.svg?height=300&width=300&query=${encodeURIComponent(product.name)}`
+                product.image_url ||
+                `/placeholder.svg?height=256&width=300&query=${encodeURIComponent(product.name + " sofa cover")}`
               }
               alt={product.name}
               width={300}
-              height={300}
+              height={256}
               className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300"
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
             />
           </Link>
 

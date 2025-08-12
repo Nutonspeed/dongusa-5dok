@@ -25,7 +25,7 @@ export default function Header() {
   const [searchQuery, setSearchQuery] = useState("")
   const { language, setLanguage } = useLanguage()
   const { items } = useCart()
-  const { user, isAuthenticated, isAdmin, logout } = useAuth()
+  const { user, isAuthenticated, isAdmin, signOut } = useAuth() // Updated to use signOut instead of logout
   const router = useRouter()
 
   const navigation = [
@@ -75,7 +75,7 @@ export default function Header() {
   }
 
   const handleLogout = () => {
-    logout()
+    signOut() // Updated to use signOut function
     router.push("/")
   }
 
@@ -161,7 +161,7 @@ export default function Header() {
                   <User className="w-4 h-4" />
                   {isAuthenticated && (
                     <span className="hidden sm:block text-sm">
-                      {user?.firstName}
+                      {user?.full_name} {/* Updated to use full_name instead of firstName */}
                       {isAdmin && <Shield className="w-3 h-3 ml-1 text-primary inline" />}
                     </span>
                   )}

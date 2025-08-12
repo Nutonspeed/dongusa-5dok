@@ -28,8 +28,7 @@ export default function CheckoutPage() {
   const supabase = createClient()
 
   const [shippingInfo, setShippingInfo] = useState({
-    firstName: "",
-    lastName: "",
+    fullName: "",
     email: "",
     phone: "",
     address: "",
@@ -70,8 +69,7 @@ export default function CheckoutPage() {
         if (profile) {
           setShippingInfo((prev) => ({
             ...prev,
-            firstName: profile.first_name || "",
-            lastName: profile.last_name || "",
+            fullName: profile.full_name || user.user_metadata?.full_name || "",
             email: user.email || "",
             phone: profile.phone || "",
             address: profile.address || "",
@@ -105,7 +103,7 @@ export default function CheckoutPage() {
       // Create order in Supabase
       const orderData = {
         user_id: user?.id,
-        customer_name: `${shippingInfo.firstName} ${shippingInfo.lastName}`,
+        customer_name: shippingInfo.fullName,
         customer_email: shippingInfo.email,
         customer_phone: shippingInfo.phone,
         shipping_address: shippingInfo.address,
@@ -231,32 +229,18 @@ export default function CheckoutPage() {
                 </CardHeader>
                 <CardContent>
                   <form onSubmit={handleShippingSubmit} className="space-y-6">
-                    <div className="grid md:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          <User className="w-4 h-4 inline mr-1" />
-                          {language === "th" ? "ชื่อ" : "First Name"} *
-                        </label>
-                        <input
-                          type="text"
-                          value={shippingInfo.firstName}
-                          onChange={(e) => setShippingInfo({ ...shippingInfo, firstName: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                          required
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          {language === "th" ? "นามสกุล" : "Last Name"} *
-                        </label>
-                        <input
-                          type="text"
-                          value={shippingInfo.lastName}
-                          onChange={(e) => setShippingInfo({ ...shippingInfo, lastName: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                          required
-                        />
-                      </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <User className="w-4 h-4 inline mr-1" />
+                        {language === "th" ? "ชื่อ-นามสกุล" : "Full Name"} *
+                      </label>
+                      <input
+                        type="text"
+                        value={shippingInfo.fullName}
+                        onChange={(e) => setShippingInfo({ ...shippingInfo, fullName: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                        required
+                      />
                     </div>
 
                     <div className="grid md:grid-cols-2 gap-4">

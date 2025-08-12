@@ -78,6 +78,26 @@ export default function RootLayout({
 }: {
   children: React.ReactNode
 }) {
+  const organizationSchema = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: "SofaCover Pro",
+    url: "https://sofacoverpro.com",
+    logo: "https://sofacoverpro.com/logo.png",
+    description: "Premium custom sofa covers with perfect fit guarantee and fast delivery",
+    address: {
+      "@type": "PostalAddress",
+      addressCountry: "TH",
+    },
+    contactPoint: {
+      "@type": "ContactPoint",
+      telephone: "+66-xxx-xxx-xxxx",
+      contactType: "customer service",
+      availableLanguage: ["Thai", "English"],
+    },
+    sameAs: ["https://facebook.com/sofacoverpro", "https://instagram.com/sofacoverpro"],
+  }
+
   return (
     <html lang="th" suppressHydrationWarning>
       <head>
@@ -87,6 +107,12 @@ export default function RootLayout({
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#8B1538" />
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(organizationSchema),
+          }}
+        />
       </head>
       <body className={`${inter.className} antialiased`} suppressHydrationWarning>
         <LanguageProvider>

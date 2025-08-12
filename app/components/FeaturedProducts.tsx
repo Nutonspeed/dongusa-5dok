@@ -2,11 +2,12 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
+import Image from "next/image"
 import { Star, Heart, ShoppingCart, Eye, ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { useLanguage } from "@/hooks/useLanguage"
+import { useLanguage } from "../contexts/LanguageContext"
 import { useCart } from "../contexts/CartContext"
 import { DatabaseService } from "@/lib/database"
 import { createClient } from "@/lib/supabase/client"
@@ -117,10 +118,16 @@ export default function FeaturedProducts() {
               className="group hover:shadow-xl transition-all duration-300 overflow-hidden burgundy-shadow"
             >
               <div className="relative">
-                <img
-                  src={product.images[0] || "/placeholder.svg"}
+                <Image
+                  src={
+                    product.images[0] ||
+                    `/placeholder.svg?height=256&width=400&query=${encodeURIComponent(product.name + " sofa cover")}`
+                  }
                   alt={product.name}
+                  width={400}
+                  height={256}
                   className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300"
+                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
                 />
 
                 {/* Badges */}

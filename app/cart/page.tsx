@@ -101,7 +101,7 @@ export default function CartPage() {
           {/* Cart Items */}
           <div className="lg:col-span-2 space-y-4">
             {items.map((item) => (
-              <Card key={`${item.id}-${item.size}-${item.color}`} className="hover:shadow-md transition-shadow">
+              <Card key={item.id} className="hover:shadow-md transition-shadow">
                 <CardContent className="p-6">
                   <div className="flex gap-4">
                     {/* Product Image */}
@@ -136,24 +136,21 @@ export default function CartPage() {
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-2">
                           <button
-                            onClick={() => updateQuantity(`${item.id}-${item.size}-${item.color}`, item.quantity - 1)}
+                            onClick={() => updateQuantity(item.id, item.quantity - 1)}
                             className="w-8 h-8 border border-gray-300 rounded-lg flex items-center justify-center hover:bg-gray-50"
                           >
                             <Minus className="w-4 h-4" />
                           </button>
                           <span className="w-12 text-center font-medium">{item.quantity}</span>
                           <button
-                            onClick={() => updateQuantity(`${item.id}-${item.size}-${item.color}`, item.quantity + 1)}
+                            onClick={() => updateQuantity(item.id, item.quantity + 1)}
                             className="w-8 h-8 border border-gray-300 rounded-lg flex items-center justify-center hover:bg-gray-50"
                           >
                             <Plus className="w-4 h-4" />
                           </button>
                         </div>
 
-                        <button
-                          onClick={() => removeItem(`${item.id}-${item.size}-${item.color}`)}
-                          className="text-red-500 hover:text-red-700 p-2"
-                        >
+                        <button onClick={() => removeItem(item.id)} className="text-red-500 hover:text-red-700 p-2">
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </div>

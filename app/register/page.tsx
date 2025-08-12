@@ -2,23 +2,25 @@
 
 export const dynamic = "force-dynamic"
 
-import { useState } from "react"
+import { useState, useTransition } from "react"
 import type React from "react"
 import { useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { Eye, EyeOff, Lock, Mail, UserIcon, Phone } from "lucide-react"
+import { Eye, EyeOff, Lock, Mail, UserIcon, Phone, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useLanguage } from "../contexts/LanguageContext"
 import { useAuth } from "../contexts/AuthContext"
+import { signUp } from "@/lib/actions"
 import Header from "../components/Header"
 import Footer from "../components/Footer"
 
 export default function RegisterPage() {
   const router = useRouter()
   const { language } = useLanguage()
-  const { register, isAuthenticated } = useAuth()
+  const { isAuthenticated } = useAuth()
+  const [isPending, startTransition] = useTransition()
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -29,8 +31,7 @@ export default function RegisterPage() {
   })
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState("")
+  const [state, setState] = useState<{ error?: string; success?: string } | null>(null)
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -40,37 +41,36 @@ export default function RegisterPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setIsLoading(true)
-    setError("")
+    setState(null)
 
-    // Validation
     if (formData.password !== formData.confirmPassword) {
-      setError(language === "th" ? "รหัสผ่านไม่ตรงกัน" : "Passwords do not match")
-      setIsLoading(false)
+      setState({ error: language === "th" ? "รหัสผ่านไม่ตรงกัน" : "Passwords do not match" })
       return
     }
 
     if (formData.password.length < 6) {
-      setError(language === "th" ? "รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร" : "Password must be at least 6 characters")
-      setIsLoading(false)
+      setState({ error: language === "th" ? "รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร" : "Password must be at least 6 characters" })
       return
     }
 
-    const result = await register({
-      firstName: formData.firstName,
-      lastName: formData.lastName,
-      email: formData.email,
-      phone: formData.phone,
-      password: formData.password,
+    startTransition(async () => {
+      try {
+        const formDataObj = new FormData()
+        formDataObj.append("email", formData.email)
+        formDataObj.append("password", formData.password)
+        formDataObj.append("fullName", `${formData.firstName} ${formData.lastName}`.trim())
+
+        const result = await signUp(null, formDataObj)
+        setState(result)
+
+        if (result.success) {
+          // Redirect after successful registration
+          setTimeout(() => router.push("/auth/login"), 2000)
+        }
+      } catch (error) {
+        setState({ error: language === "th" ? "การสมัครสมาชิกล้มเหลว" : "Registration failed" })
+      }
     })
-
-    if (result.success) {
-      router.push("/")
-    } else {
-      setError(result.error || (language === "th" ? "การสมัครสมาชิกล้มเหลว" : "Registration failed"))
-    }
-
-    setIsLoading(false)
   }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -99,12 +99,19 @@ export default function RegisterPage() {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
-              {error && (
+              {state?.error && (
                 <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-                  <p className="text-sm text-red-600">{error}</p>
+                  <p className="text-sm text-red-600">{state.error}</p>
                 </div>
               )}
 
+              {state?.success && (
+                <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+                  <p className="text-sm text-green-600">{state.success}</p>
+                </div>
+              )}
+
+              {/* ... existing form fields ... */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -222,16 +229,19 @@ export default function RegisterPage() {
 
               <Button
                 type="submit"
-                disabled={isLoading}
+                disabled={isPending}
                 className="w-full bg-burgundy-gradient hover:opacity-90 text-white"
               >
-                {isLoading
-                  ? language === "th"
-                    ? "กำลังสมัครสมาชิก..."
-                    : "Creating account..."
-                  : language === "th"
-                    ? "สมัครสมาชิก"
-                    : "Register"}
+                {isPending ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    {language === "th" ? "กำลังสมัครสมาชิก..." : "Creating account..."}
+                  </>
+                ) : language === "th" ? (
+                  "สมัครสมาชิก"
+                ) : (
+                  "Register"
+                )}
               </Button>
             </form>
 
