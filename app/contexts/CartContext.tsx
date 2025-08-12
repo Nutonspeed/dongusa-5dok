@@ -2,6 +2,8 @@
 
 import type React from "react"
 import { createContext, useContext, useState, useEffect } from "react"
+import { createClient } from "@/lib/supabase/client"
+import { useAuth } from "./AuthContext"
 
 interface CartItem {
   id: string
@@ -32,6 +34,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isMounted, setIsMounted] = useState(false)
+  const { user } = useAuth()
+  const supabase = createClient()
 
   useEffect(() => {
     setIsMounted(true)
@@ -40,39 +44,88 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!isMounted) return
 
-    const loadCartData = () => {
-      try {
-        if (typeof window === "undefined") return
+    const loadCartData = async () => {
+      await new Promise((resolve) => setTimeout(resolve, 200))
 
-        const savedCart = localStorage.getItem("cart")
-        if (savedCart) {
-          const parsedCart = JSON.parse(savedCart)
-          if (Array.isArray(parsedCart)) {
-            setItems(parsedCart)
+      try {
+        if (user) {
+          // Load cart from Supabase for authenticated users
+          const { data: cartData, error } = await supabase.from("cart_items").select("*").eq("user_id", user.id)
+
+          if (!error && cartData) {
+            const cartItems = cartData.map((item) => ({
+              id: item.product_id,
+              name: item.product_name,
+              price: item.price,
+              quantity: item.quantity,
+              image: item.image_url,
+              size: item.size,
+              color: item.color,
+              fabricPattern: item.fabric_pattern,
+              customizations: item.customizations,
+            }))
+            setItems(cartItems)
+          }
+        } else {
+          // Fallback to localStorage for guest users
+          if (typeof window === "undefined") return
+
+          const savedCart = localStorage.getItem("cart")
+          if (savedCart) {
+            const parsedCart = JSON.parse(savedCart)
+            if (Array.isArray(parsedCart)) {
+              setItems(parsedCart)
+            }
           }
         }
       } catch (error) {
-        console.error("Error loading cart from localStorage:", error)
+        console.error("Error loading cart:", error)
       } finally {
         setIsLoading(false)
       }
     }
 
-    const timeoutId = setTimeout(loadCartData, 150)
-    return () => clearTimeout(timeoutId)
-  }, [isMounted])
+    loadCartData()
+  }, [isMounted, user, supabase])
 
   useEffect(() => {
     if (!isMounted || isLoading) return
 
-    try {
-      if (typeof window !== "undefined") {
-        localStorage.setItem("cart", JSON.stringify(items))
+    const saveTimeout = setTimeout(async () => {
+      try {
+        if (user) {
+          // Save to Supabase for authenticated users
+          await supabase.from("cart_items").delete().eq("user_id", user.id)
+
+          if (items.length > 0) {
+            const cartData = items.map((item) => ({
+              user_id: user.id,
+              product_id: item.id,
+              product_name: item.name,
+              price: item.price,
+              quantity: item.quantity,
+              image_url: item.image,
+              size: item.size,
+              color: item.color,
+              fabric_pattern: item.fabricPattern,
+              customizations: item.customizations,
+            }))
+
+            await supabase.from("cart_items").insert(cartData)
+          }
+        } else {
+          // Fallback to localStorage for guest users
+          if (typeof window !== "undefined") {
+            localStorage.setItem("cart", JSON.stringify(items))
+          }
+        }
+      } catch (error) {
+        console.error("Error saving cart:", error)
       }
-    } catch (error) {
-      console.error("Error saving cart to localStorage:", error)
-    }
-  }, [items, isLoading, isMounted])
+    }, 100)
+
+    return () => clearTimeout(saveTimeout)
+  }, [items, isLoading, isMounted, user, supabase])
 
   const addItem = (newItem: Omit<CartItem, "quantity"> & { quantity?: number }) => {
     setItems((prevItems) => {
@@ -133,7 +186,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   }
 
   if (!isMounted) {
-    return null
+    return <div style={{ display: "none" }}>{children}</div>
   }
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>

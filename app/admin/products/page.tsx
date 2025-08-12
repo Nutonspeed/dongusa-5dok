@@ -5,106 +5,8 @@ import { Plus, Search, Filter, Edit, Trash2, Eye, Package, AlertTriangle, CheckC
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-
-// Mock products data
-const productsData = [
-  {
-    id: "1",
-    name: "ผ้าคลุมโซฟากำมะหยี่พรีเมียม",
-    nameEn: "Premium Velvet Sofa Cover",
-    category: "covers",
-    type: "custom",
-    priceRange: { min: 1500, max: 4500 },
-    stock: 25,
-    status: "active",
-    image: "/placeholder.svg?height=100&width=100&text=Velvet",
-    rating: 4.8,
-    reviews: 124,
-    sold: 89,
-    createdAt: "2024-01-15",
-    updatedAt: "2024-01-20",
-  },
-  {
-    id: "2",
-    name: "ผ้าคลุมโซฟากันน้ำ",
-    nameEn: "Waterproof Sofa Cover",
-    category: "covers",
-    type: "custom",
-    priceRange: { min: 1200, max: 3800 },
-    stock: 18,
-    status: "active",
-    image: "/placeholder.svg?height=100&width=100&text=Waterproof",
-    rating: 4.6,
-    reviews: 89,
-    sold: 67,
-    createdAt: "2024-01-10",
-    updatedAt: "2024-01-18",
-  },
-  {
-    id: "3",
-    name: "หมอนอิงลายเดียวกัน",
-    nameEn: "Matching Throw Pillows",
-    category: "accessories",
-    type: "fixed",
-    price: 350,
-    stock: 5,
-    status: "low_stock",
-    image: "/placeholder.svg?height=100&width=100&text=Pillows",
-    rating: 4.4,
-    reviews: 156,
-    sold: 234,
-    createdAt: "2024-01-05",
-    updatedAt: "2024-01-19",
-  },
-  {
-    id: "4",
-    name: "คลิปยึดผ้าคลุมโซฟา",
-    nameEn: "Sofa Cover Clips",
-    category: "accessories",
-    type: "fixed",
-    price: 120,
-    stock: 0,
-    status: "out_of_stock",
-    image: "/placeholder.svg?height=100&width=100&text=Clips",
-    rating: 4.2,
-    reviews: 203,
-    sold: 445,
-    createdAt: "2024-01-01",
-    updatedAt: "2024-01-17",
-  },
-  {
-    id: "5",
-    name: "น้ำยาทำความสะอาดผ้า",
-    nameEn: "Fabric Cleaner",
-    category: "accessories",
-    type: "fixed",
-    price: 280,
-    stock: 42,
-    status: "active",
-    image: "/placeholder.svg?height=100&width=100&text=Cleaner",
-    rating: 4.3,
-    reviews: 78,
-    sold: 156,
-    createdAt: "2023-12-20",
-    updatedAt: "2024-01-16",
-  },
-  {
-    id: "6",
-    name: "ผ้าคลุมโซฟาแบบยืดหยุ่น",
-    nameEn: "Stretch Sofa Cover",
-    category: "covers",
-    type: "custom",
-    priceRange: { min: 990, max: 2890 },
-    stock: 33,
-    status: "draft",
-    image: "/placeholder.svg?height=100&width=100&text=Stretch",
-    rating: 4.1,
-    reviews: 234,
-    sold: 123,
-    createdAt: "2024-01-22",
-    updatedAt: "2024-01-22",
-  },
-]
+import { DatabaseService } from "@/lib/database"
+import { createClient } from "@/lib/supabase/server"
 
 const categories = [
   { id: "all", name: "ทั้งหมด" },
@@ -120,19 +22,24 @@ const statusOptions = [
   { id: "out_of_stock", name: "หมด" },
 ]
 
-export default function ProductsManagement() {
+export default async function ProductsManagement() {
+  const supabase = createClient()
+  const db = new DatabaseService(supabase)
+
+  const { data: products } = await db.getProducts({ limit: 50 })
+  const { data: fabricCollections } = await db.getFabricCollections()
+
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedCategory, setSelectedCategory] = useState("all")
   const [selectedStatus, setSelectedStatus] = useState("all")
   const [showFilters, setShowFilters] = useState(false)
 
-  const filteredProducts = productsData.filter((product) => {
+  const filteredProducts = (products || []).filter((product) => {
     const matchesSearch =
       product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.nameEn.toLowerCase().includes(searchTerm.toLowerCase())
+      product.name_en?.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesCategory = selectedCategory === "all" || product.category === selectedCategory
     const matchesStatus = selectedStatus === "all" || product.status === selectedStatus
-
     return matchesSearch && matchesCategory && matchesStatus
   })
 
@@ -198,7 +105,7 @@ export default function ProductsManagement() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">สินค้าทั้งหมด</p>
-                <p className="text-2xl font-bold text-gray-900">{productsData.length}</p>
+                <p className="text-2xl font-bold text-gray-900">{products?.length || 0}</p>
               </div>
               <Package className="w-8 h-8 text-blue-600" />
             </div>
@@ -210,7 +117,7 @@ export default function ProductsManagement() {
               <div>
                 <p className="text-sm text-gray-600">เปิดขาย</p>
                 <p className="text-2xl font-bold text-green-600">
-                  {productsData.filter((p) => p.status === "active").length}
+                  {products?.filter((p) => p.status === "active").length || 0}
                 </p>
               </div>
               <CheckCircle className="w-8 h-8 text-green-600" />
@@ -223,7 +130,7 @@ export default function ProductsManagement() {
               <div>
                 <p className="text-sm text-gray-600">สต็อกต่ำ</p>
                 <p className="text-2xl font-bold text-yellow-600">
-                  {productsData.filter((p) => p.status === "low_stock").length}
+                  {products?.filter((p) => p.status === "low_stock").length || 0}
                 </p>
               </div>
               <AlertTriangle className="w-8 h-8 text-yellow-600" />
@@ -236,7 +143,7 @@ export default function ProductsManagement() {
               <div>
                 <p className="text-sm text-gray-600">หมด</p>
                 <p className="text-2xl font-bold text-red-600">
-                  {productsData.filter((p) => p.status === "out_of_stock").length}
+                  {products?.filter((p) => p.status === "out_of_stock").length || 0}
                 </p>
               </div>
               <XCircle className="w-8 h-8 text-red-600" />
@@ -296,7 +203,7 @@ export default function ProductsManagement() {
           {/* Results count */}
           <div className="mt-4 pt-4 border-t">
             <p className="text-sm text-gray-600">
-              พบ {filteredProducts.length} รายการจากทั้งหมด {productsData.length} รายการ
+              พบ {filteredProducts.length} รายการจากทั้งหมด {products?.length || 0} รายการ
             </p>
           </div>
         </CardContent>
@@ -334,7 +241,7 @@ export default function ProductsManagement() {
                         />
                         <div>
                           <h4 className="font-semibold text-gray-900 text-sm">{product.name}</h4>
-                          <p className="text-xs text-gray-500">{product.nameEn}</p>
+                          <p className="text-xs text-gray-500">{product.name_en}</p>
                         </div>
                       </div>
                     </td>
@@ -345,12 +252,12 @@ export default function ProductsManagement() {
                       {product.type === "custom" ? (
                         <div>
                           <p className="font-semibold text-pink-600 text-sm">
-                            {formatPriceRange(product.priceRange.min, product.priceRange.max)}
+                            {formatPriceRange(product.price_range?.min || 0, product.price_range?.max || 0)}
                           </p>
                           <p className="text-xs text-gray-500">ราคาตามขนาด</p>
                         </div>
                       ) : (
-                        <p className="font-semibold text-pink-600">{formatPrice(product.price)}</p>
+                        <p className="font-semibold text-pink-600">{formatPrice(product.price || 0)}</p>
                       )}
                     </td>
                     <td className="py-4 px-4">

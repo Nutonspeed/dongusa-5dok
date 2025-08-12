@@ -35,20 +35,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
-const salesData = [
-  { month: "ม.ค.", revenue: 45230, orders: 23, customers: 18, profit: 18092, conversion: 3.2 },
-  { month: "ก.พ.", revenue: 52100, orders: 28, customers: 22, profit: 20840, conversion: 3.8 },
-  { month: "มี.ค.", revenue: 48900, orders: 25, customers: 20, profit: 19560, conversion: 3.5 },
-  { month: "เม.ย.", revenue: 61200, orders: 32, customers: 26, profit: 24480, conversion: 4.1 },
-  { month: "พ.ค.", revenue: 58700, orders: 30, customers: 24, profit: 23480, conversion: 3.9 },
-  { month: "มิ.ย.", revenue: 67800, orders: 35, customers: 28, profit: 27120, conversion: 4.3 },
-  { month: "ก.ค.", revenue: 72500, orders: 38, customers: 31, profit: 29000, conversion: 4.6 },
-  { month: "ส.ค.", revenue: 69300, orders: 36, customers: 29, profit: 27720, conversion: 4.4 },
-  { month: "ก.ย.", revenue: 75600, orders: 40, customers: 33, profit: 30240, conversion: 4.8 },
-  { month: "ต.ค.", revenue: 81200, orders: 42, customers: 35, profit: 32480, conversion: 5.1 },
-  { month: "พ.ย.", revenue: 78900, orders: 41, customers: 34, profit: 31560, conversion: 4.9 },
-  { month: "ธ.ค.", revenue: 89400, orders: 47, customers: 38, profit: 35760, conversion: 5.3 },
-]
+import { DatabaseService } from "@/lib/database"
+import { useEffect } from "react"
 
 const productCategoryData = [
   { name: "ผ้าคลุมโซฟา", value: 65, color: "hsl(345, 85%, 35%)", revenue: 456780, growth: 12.5 },
@@ -102,6 +90,59 @@ export default function AnalyticsPage() {
   const [selectedMetric, setSelectedMetric] = useState("revenue")
   const [comparisonPeriod, setComparisonPeriod] = useState("previous_period")
 
+  const [salesData, setSalesData] = useState<any[]>([])
+  const [analytics, setAnalytics] = useState<any>({})
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    const loadAnalyticsData = async () => {
+      try {
+        setLoading(true)
+        const db = new DatabaseService()
+
+        const analyticsData = await db.getAnalytics()
+        const salesHistory = await db.getSalesData(selectedTimeRange)
+
+        setSalesData(salesHistory)
+        setAnalytics(analyticsData)
+      } catch (err) {
+        console.error("Error loading analytics:", err)
+        setError("ไม่สามารถโหลดข้อมูลการวิเคราะห์ได้")
+
+        setSalesData([
+          { month: "ม.ค.", revenue: 45230, orders: 23, customers: 18, profit: 18092, conversion: 3.2 },
+          { month: "ก.พ.", revenue: 52100, orders: 28, customers: 22, profit: 20840, conversion: 3.8 },
+          { month: "มี.ค.", revenue: 48900, orders: 25, customers: 20, profit: 19560, conversion: 3.5 },
+          { month: "เม.ย.", revenue: 61200, orders: 32, customers: 26, profit: 24480, conversion: 4.1 },
+          { month: "พ.ค.", revenue: 58700, orders: 30, customers: 24, profit: 23480, conversion: 3.9 },
+          { month: "มิ.ย.", revenue: 67800, orders: 35, customers: 28, profit: 27120, conversion: 4.3 },
+        ])
+        setAnalytics({
+          totalRevenue: 750000,
+          totalOrders: 245,
+          totalCustomers: 156,
+          averageOrderValue: 3061,
+          conversionRate: 4.2,
+          profitMargin: 40.5,
+        })
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadAnalyticsData()
+  }, [selectedTimeRange])
+
+  const totalRevenue = analytics.totalRevenue || salesData.reduce((sum, item) => sum + item.revenue, 0)
+  const totalOrders = analytics.totalOrders || salesData.reduce((sum, item) => sum + item.orders, 0)
+  const totalCustomers = analytics.totalCustomers || salesData.reduce((sum, item) => sum + item.customers, 0)
+  const averageOrderValue = analytics.averageOrderValue || totalRevenue / totalOrders
+  const totalProfit = analytics.totalProfit || salesData.reduce((sum, item) => sum + item.profit, 0)
+  const profitMargin = analytics.profitMargin || (totalProfit / totalRevenue) * 100
+  const averageConversion =
+    analytics.conversionRate || salesData.reduce((sum, item) => sum + item.conversion, 0) / salesData.length
+
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("th-TH", {
       style: "currency",
@@ -117,14 +158,6 @@ export default function AnalyticsPage() {
     return ((current - previous) / previous) * 100
   }
 
-  const totalRevenue = salesData.reduce((sum, item) => sum + item.revenue, 0)
-  const totalOrders = salesData.reduce((sum, item) => sum + item.orders, 0)
-  const totalCustomers = salesData.reduce((sum, item) => sum + item.customers, 0)
-  const averageOrderValue = totalRevenue / totalOrders
-  const totalProfit = salesData.reduce((sum, item) => sum + item.profit, 0)
-  const profitMargin = (totalProfit / totalRevenue) * 100
-  const averageConversion = salesData.reduce((sum, item) => sum + item.conversion, 0) / salesData.length
-
   const tabs = [
     { id: "overview", name: "ภาพรวม", icon: BarChart3 },
     { id: "sales", name: "ยอดขาย", icon: DollarSign },
@@ -137,6 +170,17 @@ export default function AnalyticsPage() {
   const handleExportReport = (format: string) => {
     console.log(`Exporting report in ${format} format`)
     // Implementation for export functionality
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-gray-600">กำลังโหลดข้อมูลการวิเคราะห์...</p>
+        </div>
+      </div>
+    )
   }
 
   return (

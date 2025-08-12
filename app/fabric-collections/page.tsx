@@ -2,111 +2,30 @@
 
 import { useState } from "react"
 import { Search, Filter, ExternalLink, Grid, List } from "lucide-react"
+import { DatabaseService } from "@/lib/database"
+import { createClient } from "@/lib/supabase/server"
+import { useLanguage } from "@/hooks/useLanguage"
 
-const allCollections = [
-  {
-    id: 1,
-    name: "Modern Minimalist",
-    description: "Clean lines and neutral tones perfect for contemporary spaces",
-    patternCount: 12,
-    priceRange: "$49 - $159",
-    category: "modern",
-    patterns: [
-      { id: 1, name: "Arctic White", color: "#F8F9FA", texture: "Smooth Cotton" },
-      { id: 2, name: "Stone Gray", color: "#6C757D", texture: "Linen Blend" },
-      { id: 3, name: "Charcoal", color: "#343A40", texture: "Performance Fabric" },
-      { id: 4, name: "Cream", color: "#FFF8DC", texture: "Soft Cotton" },
-      { id: 5, name: "Sage Green", color: "#9CAF88", texture: "Organic Cotton" },
-      { id: 6, name: "Dusty Blue", color: "#6B8CAE", texture: "Linen Blend" },
-    ],
-  },
-  {
-    id: 2,
-    name: "Classic Elegance",
-    description: "Timeless patterns and rich textures for sophisticated interiors",
-    patternCount: 18,
-    priceRange: "$69 - $199",
-    category: "classic",
-    patterns: [
-      { id: 7, name: "Royal Navy Damask", color: "#1B365D", texture: "Jacquard Weave" },
-      { id: 8, name: "Burgundy Paisley", color: "#800020", texture: "Velvet" },
-      { id: 9, name: "Gold Brocade", color: "#FFD700", texture: "Silk Blend" },
-      { id: 10, name: "Forest Plaid", color: "#355E3B", texture: "Wool Blend" },
-      { id: 11, name: "Ivory Toile", color: "#FFFFF0", texture: "Cotton Canvas" },
-      { id: 12, name: "Mahogany Stripe", color: "#C04000", texture: "Chenille" },
-    ],
-  },
-  {
-    id: 3,
-    name: "Bohemian Chic",
-    description: "Vibrant colors and artistic designs for eclectic spaces",
-    patternCount: 15,
-    priceRange: "$59 - $179",
-    category: "bohemian",
-    patterns: [
-      { id: 13, name: "Sunset Mandala", color: "#FF6B35", texture: "Cotton Canvas" },
-      { id: 14, name: "Peacock Feather", color: "#4F7942", texture: "Velvet" },
-      { id: 15, name: "Desert Rose", color: "#C21807", texture: "Linen Blend" },
-      { id: 16, name: "Turquoise Ikat", color: "#40E0D0", texture: "Cotton Blend" },
-      { id: 17, name: "Moroccan Tile", color: "#B8860B", texture: "Jacquard" },
-      { id: 18, name: "Tribal Geometric", color: "#8B4513", texture: "Canvas" },
-    ],
-  },
-  {
-    id: 4,
-    name: "Scandinavian Style",
-    description: "Light, airy, and functional designs inspired by Nordic aesthetics",
-    patternCount: 10,
-    priceRange: "$55 - $149",
-    category: "scandinavian",
-    patterns: [
-      { id: 19, name: "Nordic White", color: "#FFFFFF", texture: "Organic Cotton" },
-      { id: 20, name: "Birch Gray", color: "#F5F5DC", texture: "Linen" },
-      { id: 21, name: "Pine Green", color: "#01796F", texture: "Hemp Blend" },
-      { id: 22, name: "Fjord Blue", color: "#4682B4", texture: "Wool Blend" },
-      { id: 23, name: "Aurora Pink", color: "#FFB6C1", texture: "Cotton" },
-      { id: 24, name: "Slate Blue", color: "#6A5ACD", texture: "Linen Blend" },
-    ],
-  },
-  {
-    id: 5,
-    name: "Luxury Velvet",
-    description: "Premium velvet textures in deep, rich colors",
-    patternCount: 8,
-    priceRange: "$89 - $249",
-    category: "luxury",
-    patterns: [
-      { id: 25, name: "Midnight Velvet", color: "#191970", texture: "Premium Velvet" },
-      { id: 26, name: "Emerald Crush", color: "#50C878", texture: "Crushed Velvet" },
-      { id: 27, name: "Ruby Red", color: "#E0115F", texture: "Plush Velvet" },
-      { id: 28, name: "Champagne Gold", color: "#F7E7CE", texture: "Silk Velvet" },
-      { id: 29, name: "Deep Purple", color: "#663399", texture: "Cotton Velvet" },
-      { id: 30, name: "Chocolate Brown", color: "#7B3F00", texture: "Micro Velvet" },
-    ],
-  },
-  {
-    id: 6,
-    name: "Outdoor Collection",
-    description: "Weather-resistant and durable fabrics for outdoor furniture",
-    patternCount: 14,
-    priceRange: "$79 - $199",
-    category: "outdoor",
-    patterns: [
-      { id: 31, name: "Ocean Breeze", color: "#006994", texture: "Sunbrella Canvas" },
-      { id: 32, name: "Sunset Stripe", color: "#FF7F50", texture: "Marine Vinyl" },
-      { id: 33, name: "Forest Canopy", color: "#228B22", texture: "Solution Dyed" },
-      { id: 34, name: "Sand Dune", color: "#C2B280", texture: "Outdoor Canvas" },
-      { id: 35, name: "Coral Reef", color: "#FF7F7F", texture: "Weather Guard" },
-      { id: 36, name: "Storm Gray", color: "#708090", texture: "Marine Grade" },
-    ],
-  },
-]
+export default async function FabricCollectionsPage() {
+  const supabase = createClient()
+  const db = new DatabaseService(supabase)
 
-export default function FabricCollectionsPage() {
+  const { data: collections, error } = await db.getFabricCollections()
+
+  if (error) {
+    console.error("Error fetching fabric collections:", error)
+  }
+
+  return <FabricCollectionsClient initialCollections={collections || []} />
+}
+
+function FabricCollectionsClient({ initialCollections }) {
+  const [collections] = useState(initialCollections)
   const [selectedCategory, setSelectedCategory] = useState("all")
   const [searchTerm, setSearchTerm] = useState("")
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
   const [selectedCollection, setSelectedCollection] = useState<number | null>(null)
+  const { language } = useLanguage()
 
   const categories = [
     { value: "all", label: "All Collections" },
@@ -118,7 +37,7 @@ export default function FabricCollectionsPage() {
     { value: "outdoor", label: "Outdoor" },
   ]
 
-  const filteredCollections = allCollections.filter((collection) => {
+  const filteredCollections = collections.filter((collection) => {
     const matchesCategory = selectedCategory === "all" || collection.category === selectedCategory
     const matchesSearch =
       collection.name.toLowerCase().includes(searchTerm.toLowerCase()) ||

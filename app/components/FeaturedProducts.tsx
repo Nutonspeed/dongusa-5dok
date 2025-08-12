@@ -1,116 +1,61 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { Star, Heart, ShoppingCart, Eye, ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { useLanguage } from "../contexts/LanguageContext"
+import { useLanguage } from "@/hooks/useLanguage"
 import { useCart } from "../contexts/CartContext"
+import { DatabaseService } from "@/lib/database"
+import { createClient } from "@/lib/supabase/client"
 
 interface Product {
   id: string
-  name: {
-    en: string
-    th: string
-  }
-  description: {
-    en: string
-    th: string
-  }
+  name: string
+  description: string
   price: number
-  originalPrice?: number
-  image: string
-  rating: number
-  reviewCount: number
-  category: string
-  isNew?: boolean
-  isBestseller?: boolean
-  colors: string[]
+  compare_at_price?: number
+  images: string[]
+  rating?: number
+  reviews?: number
+  category?: {
+    name: string
+    slug: string
+  }
+  is_featured?: boolean
+  is_new?: boolean
+  colors?: string[]
 }
-
-const featuredProducts: Product[] = [
-  {
-    id: "1",
-    name: {
-      en: "Modern Minimalist Sofa Cover",
-      th: "ผ้าคลุมโซฟาสไตล์มินิมอล",
-    },
-    description: {
-      en: "Clean lines and contemporary design for modern living spaces",
-      th: "เส้นสายเรียบง่ายและการออกแบบร่วมสมัยสำหรับพื้นที่นั่งเล่นสมัยใหม่",
-    },
-    price: 2490,
-    originalPrice: 3200,
-    image: "/modern-minimalist-fabric-pattern-1.png",
-    rating: 4.8,
-    reviewCount: 324,
-    category: "Modern",
-    isBestseller: true,
-    colors: ["#F5F5F5", "#E8E8E8", "#D3D3D3"],
-  },
-  {
-    id: "2",
-    name: {
-      en: "Classic Elegant Sofa Cover",
-      th: "ผ้าคลุมโซฟาสไตล์คลาสสิก",
-    },
-    description: {
-      en: "Timeless elegance with premium fabric and sophisticated patterns",
-      th: "ความหรูหราเหนือกาลเวลาด้วยผ้าพรีเมียมและลายที่ซับซ้อน",
-    },
-    price: 3290,
-    image: "/classic-elegant-fabric-pattern-1.png",
-    rating: 4.9,
-    reviewCount: 189,
-    category: "Classic",
-    isNew: true,
-    colors: ["#8B4513", "#A0522D", "#CD853F"],
-  },
-  {
-    id: "3",
-    name: {
-      en: "Bohemian Chic Sofa Cover",
-      th: "ผ้าคลุมโซฟาสไตล์โบฮีเมียน",
-    },
-    description: {
-      en: "Vibrant patterns and textures for a free-spirited living space",
-      th: "ลายและเนื้อผ้าที่มีชีวิตชีวาสำหรับพื้นที่นั่งเล่นที่เป็นอิสระ",
-    },
-    price: 2890,
-    originalPrice: 3500,
-    image: "/bohemian-chic-fabric-pattern-1.png",
-    rating: 4.7,
-    reviewCount: 267,
-    category: "Bohemian",
-    colors: ["#8B0000", "#FF6347", "#FFD700"],
-  },
-  {
-    id: "4",
-    name: {
-      en: "Luxury Velvet Sofa Cover",
-      th: "ผ้าคลุมโซฟากำมะหยี่หรู",
-    },
-    description: {
-      en: "Premium velvet material with rich colors and luxurious feel",
-      th: "วัสดุกำมะหยี่พรีเมียมด้วยสีที่เข้มข้นและความรู้สึกหรูหรา",
-    },
-    price: 4290,
-    image: "/modern-minimalist-fabric-pattern-2.png",
-    rating: 4.9,
-    reviewCount: 156,
-    category: "Luxury",
-    isNew: true,
-    isBestseller: true,
-    colors: ["#4B0082", "#800080", "#9370DB"],
-  },
-]
 
 export default function FeaturedProducts() {
   const { language } = useLanguage()
   const { addItem } = useCart()
   const [favorites, setFavorites] = useState<string[]>([])
+  const [products, setProducts] = useState<Product[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchFeaturedProducts = async () => {
+      try {
+        const supabase = createClient()
+        const db = new DatabaseService(supabase)
+
+        const { data } = await db.getFeaturedProducts(4)
+
+        if (data) {
+          setProducts(data)
+        }
+      } catch (error) {
+        console.error("Error fetching featured products:", error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchFeaturedProducts()
+  }, [])
 
   const toggleFavorite = (productId: string) => {
     setFavorites((prev) => (prev.includes(productId) ? prev.filter((id) => id !== productId) : [...prev, productId]))
@@ -119,9 +64,9 @@ export default function FeaturedProducts() {
   const handleAddToCart = (product: Product) => {
     addItem({
       id: product.id,
-      name: product.name[language],
+      name: product.name,
       price: product.price,
-      image: product.image,
+      image: product.images[0] || "/placeholder.svg",
       quantity: 1,
     })
   }
@@ -132,6 +77,21 @@ export default function FeaturedProducts() {
       currency: "THB",
       minimumFractionDigits: 0,
     }).format(price)
+  }
+
+  if (loading) {
+    return (
+      <section className="py-16 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center">
+            <div className="animate-pulse">
+              <div className="h-8 bg-gray-300 rounded w-64 mx-auto mb-4"></div>
+              <div className="h-4 bg-gray-300 rounded w-96 mx-auto"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+    )
   }
 
   return (
@@ -151,29 +111,29 @@ export default function FeaturedProducts() {
 
         {/* Products Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
-          {featuredProducts.map((product) => (
+          {products.map((product) => (
             <Card
               key={product.id}
               className="group hover:shadow-xl transition-all duration-300 overflow-hidden burgundy-shadow"
             >
               <div className="relative">
                 <img
-                  src={product.image || "/placeholder.svg"}
-                  alt={product.name[language]}
+                  src={product.images[0] || "/placeholder.svg"}
+                  alt={product.name}
                   className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300"
                 />
 
                 {/* Badges */}
                 <div className="absolute top-3 left-3 flex flex-col gap-2">
-                  {product.isNew && (
+                  {product.is_new && (
                     <Badge className="bg-green-500 text-white">{language === "en" ? "New" : "ใหม่"}</Badge>
                   )}
-                  {product.isBestseller && (
-                    <Badge className="bg-primary text-white">{language === "en" ? "Bestseller" : "ขายดี"}</Badge>
+                  {product.is_featured && (
+                    <Badge className="bg-primary text-white">{language === "en" ? "Featured" : "แนะนำ"}</Badge>
                   )}
-                  {product.originalPrice && (
+                  {product.compare_at_price && (
                     <Badge className="bg-orange-500 text-white">
-                      {Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)}% OFF
+                      {Math.round(((product.compare_at_price - product.price) / product.compare_at_price) * 100)}% OFF
                     </Badge>
                   )}
                 </div>
@@ -215,13 +175,13 @@ export default function FeaturedProducts() {
 
               <CardContent className="p-6">
                 {/* Category */}
-                <div className="text-sm text-primary font-medium mb-2">{product.category}</div>
+                <div className="text-sm text-primary font-medium mb-2">{product.category?.name || "Product"}</div>
 
                 {/* Product Name */}
-                <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-2">{product.name[language]}</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-2">{product.name}</h3>
 
                 {/* Description */}
-                <p className="text-gray-600 text-sm mb-4 line-clamp-2">{product.description[language]}</p>
+                <p className="text-gray-600 text-sm mb-4 line-clamp-2">{product.description}</p>
 
                 {/* Rating */}
                 <div className="flex items-center space-x-2 mb-4">
@@ -230,36 +190,40 @@ export default function FeaturedProducts() {
                       <Star
                         key={i}
                         className={`w-4 h-4 ${
-                          i < Math.floor(product.rating) ? "fill-yellow-400 text-yellow-400" : "text-gray-300"
+                          i < Math.floor(product.rating || 0) ? "fill-yellow-400 text-yellow-400" : "text-gray-300"
                         }`}
                       />
                     ))}
                   </div>
                   <span className="text-sm text-gray-600">
-                    {product.rating} ({product.reviewCount})
+                    {product.rating || 0} ({product.reviews || 0})
                   </span>
                 </div>
 
                 {/* Colors */}
-                <div className="flex items-center space-x-2 mb-4">
-                  <span className="text-sm text-gray-600">{language === "en" ? "Colors:" : "สี:"}</span>
-                  <div className="flex space-x-1">
-                    {product.colors.map((color, index) => (
-                      <div
-                        key={index}
-                        className="w-4 h-4 rounded-full border border-gray-300"
-                        style={{ backgroundColor: color }}
-                      />
-                    ))}
+                {product.colors && (
+                  <div className="flex items-center space-x-2 mb-4">
+                    <span className="text-sm text-gray-600">{language === "en" ? "Colors:" : "สี:"}</span>
+                    <div className="flex space-x-1">
+                      {product.colors.map((color, index) => (
+                        <div
+                          key={index}
+                          className="w-4 h-4 rounded-full border border-gray-300"
+                          style={{ backgroundColor: color }}
+                        />
+                      ))}
+                    </div>
                   </div>
-                </div>
+                )}
 
                 {/* Price */}
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
                     <span className="text-xl font-bold text-gray-900">{formatPrice(product.price)}</span>
-                    {product.originalPrice && (
-                      <span className="text-sm text-gray-500 line-through">{formatPrice(product.originalPrice)}</span>
+                    {product.compare_at_price && (
+                      <span className="text-sm text-gray-500 line-through">
+                        {formatPrice(product.compare_at_price)}
+                      </span>
                     )}
                   </div>
                 </div>

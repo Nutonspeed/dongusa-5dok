@@ -1,21 +1,51 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import Link from "next/link"
 import { Search, Grid, List, Star, Calculator, MessageCircle, Filter, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
-import { useLanguage } from "../contexts/LanguageContext"
+import { useLanguage } from "@/hooks/useLanguage"
 import { useCart } from "../contexts/CartContext"
 import Header from "../components/Header"
 import Footer from "../components/Footer"
-import { mockProducts, categories, sortOptions, type Product } from "../../lib/mock-products"
+import { DatabaseService } from "@/lib/database"
+import { createClient } from "@/lib/supabase/client"
+
+interface Product {
+  id: string
+  name: string
+  description: string
+  price: number
+  compare_at_price?: number
+  sku: string
+  category_id: string
+  stock_quantity: number
+  images: string[]
+  is_active: boolean
+  created_at: string
+  updated_at: string
+  category?: {
+    name: string
+    slug: string
+  }
+  rating?: number
+  reviews?: number
+  tags?: string[]
+  type?: "fixed" | "custom"
+  priceRange?: { min: number; max: number }
+  bestseller?: boolean
+  discount?: number
+}
 
 export default function ProductsPage() {
   const { language } = useLanguage()
   const { addItem } = useCart()
+  const [products, setProducts] = useState<Product[]>([])
+  const [categories, setCategories] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedCategory, setSelectedCategory] = useState("all")
   const [sortBy, setSortBy] = useState("popular")
@@ -24,54 +54,91 @@ export default function ProductsPage() {
   const [selectedTags, setSelectedTags] = useState<string[]>([])
   const [showFilters, setShowFilters] = useState(false)
 
-  // Get all unique tags
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const supabase = createClient()
+        const db = new DatabaseService(supabase)
+
+        const [productsResult, categoriesResult] = await Promise.all([db.getProducts(), db.getCategories()])
+
+        if (productsResult.data) {
+          setProducts(productsResult.data)
+        }
+
+        if (categoriesResult.data) {
+          setCategories([
+            { id: "all", name: { en: "All Categories", th: "หมวดหมู่ทั้งหมด" } },
+            ...categoriesResult.data.map((cat) => ({
+              id: cat.id,
+              name: { en: cat.name, th: cat.name },
+            })),
+          ])
+        }
+      } catch (error) {
+        console.error("Error fetching data:", error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchData()
+  }, [])
+
   const allTags = useMemo(() => {
     const tags = new Set<string>()
-    mockProducts.forEach((product) => {
+    products.forEach((product) => {
       product.tags?.forEach((tag) => tags.add(tag))
     })
     return Array.from(tags)
-  }, [])
+  }, [products])
+
+  const sortOptions = [
+    { id: "popular", name: { en: "Most Popular", th: "ยอดนิยม" } },
+    { id: "newest", name: { en: "Newest", th: "ใหม่ล่าสุด" } },
+    { id: "price-low", name: { en: "Price: Low to High", th: "ราคา: ต่ำ - สูง" } },
+    { id: "price-high", name: { en: "Price: High to Low", th: "ราคา: สูง - ต่ำ" } },
+    { id: "rating", name: { en: "Highest Rated", th: "คะแนนสูงสุด" } },
+  ]
 
   const filteredAndSortedProducts = useMemo(() => {
-    const filtered = mockProducts.filter((product) => {
+    const filtered = products.filter((product) => {
       const matchesSearch =
-        product[language === "th" ? "name" : "nameEn"].toLowerCase().includes(searchTerm.toLowerCase()) ||
-        product.description[language].toLowerCase().includes(searchTerm.toLowerCase())
+        product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        product.description.toLowerCase().includes(searchTerm.toLowerCase())
 
-      const matchesCategory = selectedCategory === "all" || product.category === selectedCategory
+      const matchesCategory = selectedCategory === "all" || product.category_id === selectedCategory
 
-      const productMaxPrice = product.type === "custom" ? product.priceRange!.max : product.price!
-      const productMinPrice = product.type === "custom" ? product.priceRange!.min : product.price!
+      const productMaxPrice = product.type === "custom" ? product.priceRange?.max || product.price : product.price
+      const productMinPrice = product.type === "custom" ? product.priceRange?.min || product.price : product.price
       const matchesPrice = productMaxPrice >= priceRange.min && productMinPrice <= priceRange.max
 
       const matchesTags = selectedTags.length === 0 || selectedTags.some((tag) => product.tags?.includes(tag))
 
-      return matchesSearch && matchesCategory && matchesPrice && matchesTags
+      return matchesSearch && matchesCategory && matchesPrice && matchesTags && product.is_active
     })
 
-    // Sort products
     filtered.sort((a, b) => {
       switch (sortBy) {
         case "newest":
-          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
         case "price-low":
-          const aPrice = a.type === "custom" ? a.priceRange!.min : a.price!
-          const bPrice = b.type === "custom" ? b.priceRange!.min : b.price!
+          const aPrice = a.type === "custom" ? a.priceRange?.min || a.price : a.price
+          const bPrice = b.type === "custom" ? b.priceRange?.min || b.price : b.price
           return aPrice - bPrice
         case "price-high":
-          const aPriceHigh = a.type === "custom" ? a.priceRange!.max : a.price!
-          const bPriceHigh = b.type === "custom" ? b.priceRange!.max : b.price!
+          const aPriceHigh = a.type === "custom" ? a.priceRange?.max || a.price : a.price
+          const bPriceHigh = b.type === "custom" ? b.priceRange?.max || b.price : b.price
           return bPriceHigh - aPriceHigh
         case "rating":
-          return b.rating - a.rating
+          return (b.rating || 0) - (a.rating || 0)
         default: // popular
-          return b.reviews - a.reviews
+          return (b.reviews || 0) - (a.reviews || 0)
       }
     })
 
     return filtered
-  }, [searchTerm, selectedCategory, sortBy, priceRange, selectedTags, language])
+  }, [searchTerm, selectedCategory, sortBy, priceRange, selectedTags, products])
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("th-TH", {
@@ -88,7 +155,7 @@ export default function ProductsPage() {
     const message =
       language === "th"
         ? `สวัสดีครับ/ค่ะ! ผมสนใจ "${product.name}" ช่วยประเมินราคาให้หน่อยครับ/ค่ะ ขนาดโซฟาของผมคือ... (กรุณาแนบรูปโซฟาด้วยครับ/ค่ะ)`
-        : `Hello! I'm interested in "${product.nameEn}". Could you please provide a quote? My sofa size is... (Please attach sofa photo)`
+        : `Hello! I'm interested in "${product.name}". Could you please provide a quote? My sofa size is... (Please attach sofa photo)`
 
     const facebookUrl = `https://m.me/your-facebook-page?text=${encodeURIComponent(message)}`
     window.open(facebookUrl, "_blank")
@@ -98,8 +165,8 @@ export default function ProductsPage() {
     if (product.type === "fixed") {
       addItem({
         id: product.id,
-        name: language === "th" ? product.name : product.nameEn,
-        price: product.price!,
+        name: product.name,
+        price: product.price,
         image: product.images[0],
         quantity: 1,
       })
@@ -191,6 +258,17 @@ export default function ProductsPage() {
       </Button>
     </div>
   )
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+          <p className="mt-4 text-gray-600">{language === "th" ? "กำลังโหลด..." : "Loading..."}</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -323,7 +401,7 @@ export default function ProductsPage() {
                       <div className="aspect-square bg-gray-100 rounded-t-lg overflow-hidden relative">
                         <img
                           src={product.images[0] || "/placeholder.svg"}
-                          alt={language === "th" ? product.name : product.nameEn}
+                          alt={product.name}
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                         />
                         {product.bestseller && (
@@ -343,11 +421,9 @@ export default function ProductsPage() {
 
                       {/* Product Info */}
                       <div className="p-4 space-y-3">
-                        <h3 className="font-semibold text-gray-900 line-clamp-2">
-                          {language === "th" ? product.name : product.nameEn}
-                        </h3>
+                        <h3 className="font-semibold text-gray-900 line-clamp-2">{product.name}</h3>
 
-                        <p className="text-sm text-gray-600 line-clamp-2">{product.description[language]}</p>
+                        <p className="text-sm text-gray-600 line-clamp-2">{product.description}</p>
 
                         {/* Rating */}
                         <div className="flex items-center space-x-1">
@@ -356,7 +432,7 @@ export default function ProductsPage() {
                               <Star
                                 key={i}
                                 className={`w-4 h-4 ${
-                                  i < Math.floor(product.rating) ? "text-yellow-400 fill-current" : "text-gray-300"
+                                  i < Math.floor(product.rating || 0) ? "text-yellow-400 fill-current" : "text-gray-300"
                                 }`}
                               />
                             ))}
@@ -371,14 +447,17 @@ export default function ProductsPage() {
                           {product.type === "custom" ? (
                             <div>
                               <p className="text-lg font-bold text-pink-600">
-                                {formatPriceRange(product.priceRange!.min, product.priceRange!.max)}
+                                {formatPriceRange(
+                                  product.priceRange?.min || product.price,
+                                  product.priceRange?.max || product.price,
+                                )}
                               </p>
                               <p className="text-xs text-gray-500">
                                 {language === "th" ? "ราคาขึ้นอยู่กับขนาดโซฟา" : "Price depends on sofa size"}
                               </p>
                             </div>
                           ) : (
-                            <p className="text-lg font-bold text-pink-600">{formatPrice(product.price!)}</p>
+                            <p className="text-lg font-bold text-pink-600">{formatPrice(product.price)}</p>
                           )}
                         </div>
 
@@ -432,7 +511,7 @@ export default function ProductsPage() {
                         <div className="w-32 h-32 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0 relative">
                           <img
                             src={product.images[0] || "/placeholder.svg"}
-                            alt={language === "th" ? product.name : product.nameEn}
+                            alt={product.name}
                             className="w-full h-full object-cover"
                           />
                           {product.bestseller && (
@@ -446,24 +525,25 @@ export default function ProductsPage() {
                         <div className="flex-1 space-y-3">
                           <div className="flex justify-between items-start">
                             <div>
-                              <h3 className="text-xl font-semibold text-gray-900">
-                                {language === "th" ? product.name : product.nameEn}
-                              </h3>
-                              <p className="text-gray-600 mt-1">{product.description[language]}</p>
+                              <h3 className="text-xl font-semibold text-gray-900">{product.name}</h3>
+                              <p className="text-gray-600 mt-1">{product.description}</p>
                             </div>
 
                             <div className="text-right">
                               {product.type === "custom" ? (
                                 <div>
                                   <p className="text-xl font-bold text-pink-600">
-                                    {formatPriceRange(product.priceRange!.min, product.priceRange!.max)}
+                                    {formatPriceRange(
+                                      product.priceRange?.min || product.price,
+                                      product.priceRange?.max || product.price,
+                                    )}
                                   </p>
                                   <p className="text-xs text-gray-500">
                                     {language === "th" ? "ราคาตามขนาด" : "Custom pricing"}
                                   </p>
                                 </div>
                               ) : (
-                                <p className="text-xl font-bold text-pink-600">{formatPrice(product.price!)}</p>
+                                <p className="text-xl font-bold text-pink-600">{formatPrice(product.price)}</p>
                               )}
                             </div>
                           </div>
@@ -475,7 +555,9 @@ export default function ProductsPage() {
                                 <Star
                                   key={i}
                                   className={`w-4 h-4 ${
-                                    i < Math.floor(product.rating) ? "text-yellow-400 fill-current" : "text-gray-300"
+                                    i < Math.floor(product.rating || 0)
+                                      ? "text-yellow-400 fill-current"
+                                      : "text-gray-300"
                                   }`}
                                 />
                               ))}

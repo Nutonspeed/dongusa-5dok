@@ -168,7 +168,7 @@ const translations = {
   },
 }
 
-const LanguageContext = createContext<LanguageContextType | undefined>(undefined)
+export const LanguageContext = createContext<LanguageContextType | undefined>(undefined)
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const [language, setLanguage] = useState<Language>("th")
@@ -181,7 +181,9 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!isMounted) return
 
-    const loadLanguageData = () => {
+    const loadLanguageData = async () => {
+      await new Promise((resolve) => setTimeout(resolve, 50))
+
       try {
         if (typeof window === "undefined") return
 
@@ -194,14 +196,17 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
       }
     }
 
-    const timeoutId = setTimeout(loadLanguageData, 50)
-    return () => clearTimeout(timeoutId)
+    loadLanguageData()
   }, [isMounted])
 
   const handleSetLanguage = (lang: Language) => {
     setLanguage(lang)
     if (typeof window !== "undefined") {
-      localStorage.setItem("language", lang)
+      try {
+        localStorage.setItem("language", lang)
+      } catch (error) {
+        console.error("Error saving language to localStorage:", error)
+      }
     }
   }
 
@@ -210,7 +215,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   }
 
   if (!isMounted) {
-    return null
+    return <div style={{ display: "none" }}>{children}</div>
   }
 
   return (

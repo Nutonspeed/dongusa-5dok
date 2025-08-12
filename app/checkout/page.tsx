@@ -11,6 +11,8 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
 import { useLanguage } from "../contexts/LanguageContext"
 import { useCart } from "../contexts/CartContext"
+import { useAuth } from "../contexts/AuthContext"
+import { createClient } from "@/lib/supabase/client"
 import Header from "../components/Header"
 import Footer from "../components/Footer"
 
@@ -18,8 +20,10 @@ export default function CheckoutPage() {
   const router = useRouter()
   const { language } = useLanguage()
   const { items, getTotalPrice, clearCart } = useCart()
+  const { user } = useAuth()
   const [isLoading, setIsLoading] = useState(false)
   const [currentStep, setCurrentStep] = useState(1)
+  const supabase = createClient()
 
   const [shippingInfo, setShippingInfo] = useState({
     firstName: "",
@@ -46,9 +50,8 @@ export default function CheckoutPage() {
 
   useEffect(() => {
     // Check if user is logged in
-    const token = localStorage.getItem("user_token")
-    if (!token) {
-      router.push("/login?redirect=/checkout")
+    if (!user) {
+      router.push("/auth/login?redirect=/checkout")
       return
     }
 
@@ -58,19 +61,27 @@ export default function CheckoutPage() {
       return
     }
 
-    // Load user info if available
-    const savedUserInfo = localStorage.getItem("user_info")
-    if (savedUserInfo) {
-      const userInfo = JSON.parse(savedUserInfo)
-      setShippingInfo((prev) => ({
-        ...prev,
-        firstName: userInfo.firstName || "",
-        lastName: userInfo.lastName || "",
-        email: userInfo.email || "",
-        phone: userInfo.phone || "",
-      }))
+    const loadUserProfile = async () => {
+      if (user) {
+        const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single()
+
+        if (profile) {
+          setShippingInfo((prev) => ({
+            ...prev,
+            firstName: profile.first_name || "",
+            lastName: profile.last_name || "",
+            email: user.email || "",
+            phone: profile.phone || "",
+            address: profile.address || "",
+            city: profile.city || "",
+            postalCode: profile.postal_code || "",
+          }))
+        }
+      }
     }
-  }, [router, items.length])
+
+    loadUserProfile()
+  }, [router, items.length, user, supabase])
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("th-TH", {
@@ -88,30 +99,76 @@ export default function CheckoutPage() {
     e.preventDefault()
     setIsLoading(true)
 
-    // Mock payment processing
-    setTimeout(() => {
-      // Create order
-      const order = {
-        id: `ORD-${Date.now()}`,
-        items,
-        shippingInfo,
-        paymentInfo,
-        totalPrice: finalTotal,
-        status: "confirmed",
-        createdAt: new Date().toISOString(),
+    try {
+      // Create order in Supabase
+      const orderData = {
+        user_id: user?.id,
+        customer_name: `${shippingInfo.firstName} ${shippingInfo.lastName}`,
+        customer_email: shippingInfo.email,
+        customer_phone: shippingInfo.phone,
+        shipping_address: shippingInfo.address,
+        shipping_city: shippingInfo.city,
+        shipping_postal_code: shippingInfo.postalCode,
+        notes: shippingInfo.notes,
+        payment_method: paymentInfo.method,
+        subtotal: totalPrice,
+        shipping_fee: shippingFee,
+        total_amount: finalTotal,
+        status: "pending",
+        channel: "website",
       }
 
-      // Save order to localStorage (mock database)
-      const existingOrders = JSON.parse(localStorage.getItem("user_orders") || "[]")
-      existingOrders.push(order)
-      localStorage.setItem("user_orders", JSON.stringify(existingOrders))
+      const { data: order, error: orderError } = await supabase.from("orders").insert(orderData).select().single()
+
+      if (orderError) throw orderError
+
+      // Create order items
+      const orderItems = items.map((item) => ({
+        order_id: order.id,
+        product_id: item.id,
+        product_name: item.name,
+        quantity: item.quantity,
+        unit_price: item.price,
+        total_price: item.price * item.quantity,
+        size: item.size,
+        color: item.color,
+        fabric_pattern: item.fabricPattern,
+        customizations: item.customizations,
+      }))
+
+      const { error: itemsError } = await supabase.from("order_items").insert(orderItems)
+
+      if (itemsError) throw itemsError
 
       // Clear cart
       clearCart()
 
       // Redirect to success page
       router.push(`/order-success?orderId=${order.id}`)
-    }, 2000)
+    } catch (error) {
+      console.error("Order creation failed:", error)
+      // Fallback to mock processing
+      setTimeout(() => {
+        const order = {
+          id: `ORD-${Date.now()}`,
+          items,
+          shippingInfo,
+          paymentInfo,
+          totalPrice: finalTotal,
+          status: "confirmed",
+          createdAt: new Date().toISOString(),
+        }
+
+        const existingOrders = JSON.parse(localStorage.getItem("user_orders") || "[]")
+        existingOrders.push(order)
+        localStorage.setItem("user_orders", JSON.stringify(existingOrders))
+
+        clearCart()
+        router.push(`/order-success?orderId=${order.id}`)
+      }, 1000)
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const steps = [

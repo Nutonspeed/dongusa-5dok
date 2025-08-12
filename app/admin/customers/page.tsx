@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import {
   Search,
   Eye,
@@ -31,41 +31,8 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Progress } from "@/components/ui/progress"
-
-// Mock data for enhanced CRM features
-const communicationHistory = [
-  {
-    id: "1",
-    type: "email",
-    subject: "ขอบคุณสำหรับการสั่งซื้อ",
-    content: "ขอบคุณที่เลือกใช้บริการของเรา คำสั่งซื้อของคุณกำลังเตรียมจัดส่ง",
-    date: "2024-01-25T10:30:00Z",
-    staff_member: "ระบบอัตโนมัติ",
-    status: "read",
-  },
-  {
-    id: "2",
-    type: "phone",
-    content: "โทรสอบถามเกี่ยวกับสินค้าผ้าคลุมโซฟาสำหรับโซฟา L-Shape",
-    date: "2024-01-20T14:15:00Z",
-    staff_member: "คุณสมใส",
-    status: "delivered",
-  },
-]
-
-const customerTickets = [
-  {
-    id: "TICKET-001",
-    subject: "สินค้าไม่ตรงตามที่สั่ง",
-    description: "ได้รับผ้าคลุมโซฟาสีน้ำเงิน แต่สั่งสีเทา",
-    status: "in_progress",
-    priority: "high",
-    created_date: "2024-01-24T09:00:00Z",
-    last_updated: "2024-01-25T11:30:00Z",
-    assigned_to: "คุณสมใส",
-    category: "order_issue",
-  },
-]
+import { DatabaseService } from "@/lib/database"
+import { formatPrice } from "@/utils/formatPrice" // Import formatPrice function
 
 const customerSegments = [
   {
@@ -130,16 +97,6 @@ const automatedCampaigns = [
   },
 ]
 
-const stats = {
-  totalCustomers: 100,
-  activeCustomers: 80,
-  vipCustomers: 20,
-  averageOrderValue: 3200,
-}
-
-const formatPrice = (price: number) =>
-  new Intl.NumberFormat("th-TH", { style: "currency", currency: "THB" }).format(price)
-
 const customerTypes = [
   { id: "all", name: "ทุกประเภท" },
   { id: "vip", name: "VIP" },
@@ -154,52 +111,6 @@ const statusOptions = [
   { id: "closed", name: "ปิด" },
 ]
 
-const customersData = [
-  {
-    id: "CUST-001",
-    name: "คุณสมชาย ใจดี",
-    email: "somchai.jaidee@example.com",
-    phone: "0812345678",
-    address: "123 ถนนสมชาย, แขวงใจดี, เขตบางกอกใหญ่, กรุงเทพมหานคร",
-    totalOrders: 10,
-    totalSpent: 32000,
-    averageOrderValue: 3200,
-    lastOrderDate: "2024-01-20",
-    status: "active",
-    customerType: "vip",
-  },
-  {
-    id: "CUST-002",
-    name: "คุณสมหญิง รักสวย",
-    email: "somying.raksue@example.com",
-    phone: "0887654321",
-    address: "456 ถนนสมหญิง, แขวงรักสวย, เขตบางกอกใหญ่, กรุงเทพมหานคร",
-    totalOrders: 5,
-    totalSpent: 16000,
-    averageOrderValue: 3200,
-    lastOrderDate: "2024-01-15",
-    status: "active",
-    customerType: "new",
-  },
-]
-
-const filteredCustomers = customersData.filter((customer) => {
-  // Implement filtering logic here based on searchTerm, selectedType, selectedStatus, and selectedSegment
-  return true
-})
-
-const getCustomerTypeBadge = (type: string) => {
-  // Implement badge logic here based on customer type
-  return <Badge className="bg-blue-100 text-blue-800">VIP</Badge>
-}
-
-const formatDate = (date: string) => new Date(date).toLocaleDateString("th-TH")
-
-const getStatusBadge = (status: string) => {
-  // Implement badge logic here based on customer status
-  return <Badge className="bg-green-100 text-green-800">Active</Badge>
-}
-
 export default function CustomersManagement() {
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedType, setSelectedType] = useState("all")
@@ -209,6 +120,140 @@ export default function CustomersManagement() {
   const [isNewTicketDialogOpen, setIsNewTicketDialogOpen] = useState(false)
   const [isNewCampaignDialogOpen, setIsNewCampaignDialogOpen] = useState(false)
   const [selectedSegment, setSelectedSegment] = useState<string>("all")
+
+  const [customersData, setCustomersData] = useState<any[]>([])
+  const [stats, setStats] = useState({
+    totalCustomers: 0,
+    activeCustomers: 0,
+    vipCustomers: 0,
+    averageOrderValue: 0,
+  })
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    const loadCustomerData = async () => {
+      try {
+        setLoading(true)
+        const db = new DatabaseService()
+
+        const customers = await db.getCustomers()
+        const analytics = await db.getAnalytics()
+
+        setCustomersData(customers)
+        setStats({
+          totalCustomers: customers.length,
+          activeCustomers: customers.filter((c) => c.status === "active").length,
+          vipCustomers: customers.filter((c) => c.customerType === "vip").length,
+          averageOrderValue: analytics.averageOrderValue || 0,
+        })
+      } catch (err) {
+        console.error("Error loading customer data:", err)
+        setError("ไม่สามารถโหลดข้อมูลลูกค้าได้")
+
+        setCustomersData([
+          {
+            id: "CUST-001",
+            name: "คุณสมชาย ใจดี",
+            email: "somchai.jaidee@example.com",
+            phone: "0812345678",
+            address: "123 ถนนสมชาย, แขวงใจดี, เขตบางกอกใหญ่, กรุงเทพมหานคร",
+            totalOrders: 10,
+            totalSpent: 32000,
+            averageOrderValue: 3200,
+            lastOrderDate: "2024-01-20",
+            status: "active",
+            customerType: "vip",
+          },
+          {
+            id: "CUST-002",
+            name: "คุณสมหญิง รักสวย",
+            email: "somying.raksue@example.com",
+            phone: "0887654321",
+            address: "456 ถนนสมหญิง, แขวงรักสวย, เขตบางกอกใหญ่, กรุงเทพมหานคร",
+            totalOrders: 5,
+            totalSpent: 16000,
+            averageOrderValue: 3200,
+            lastOrderDate: "2024-01-15",
+            status: "active",
+            customerType: "new",
+          },
+        ])
+        setStats({
+          totalCustomers: 100,
+          activeCustomers: 80,
+          vipCustomers: 20,
+          averageOrderValue: 3200,
+        })
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadCustomerData()
+  }, [])
+
+  const filteredCustomers = customersData.filter((customer) => {
+    const matchesSearch =
+      searchTerm === "" ||
+      customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      customer.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      customer.phone.includes(searchTerm) ||
+      customer.id.toLowerCase().includes(searchTerm.toLowerCase())
+
+    const matchesType = selectedType === "all" || customer.customerType === selectedType
+    const matchesStatus = selectedStatus === "all" || customer.status === selectedStatus
+
+    return matchesSearch && matchesType && matchesStatus
+  })
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-gray-600">กำลังโหลดข้อมูลลูกค้า...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="text-red-500 text-xl mb-4">⚠️</div>
+          <p className="text-red-600">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="mt-4 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90"
+          >
+            ลองใหม่
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  const getCustomerTypeBadge = (type: string) => {
+    const badgeColors = {
+      vip: "bg-blue-100 text-blue-800",
+      new: "bg-green-100 text-green-800",
+      all: "bg-gray-100 text-gray-800",
+    }
+    return <Badge className={badgeColors[type] || badgeColors.all}>{type.toUpperCase()}</Badge>
+  }
+
+  const formatDate = (date: string) => new Date(date).toLocaleDateString("th-TH")
+
+  const getStatusBadge = (status: string) => {
+    const badgeColors = {
+      active: "bg-green-100 text-green-800",
+      inactive: "bg-red-100 text-red-800",
+      all: "bg-gray-100 text-gray-800",
+    }
+    return <Badge className={badgeColors[status] || badgeColors.all}>{status.toUpperCase()}</Badge>
+  }
 
   return (
     <div className="space-y-6">
@@ -288,7 +333,7 @@ export default function CustomersManagement() {
               <div>
                 <p className="text-sm text-gray-600">Tickets เปิด</p>
                 <p className="text-2xl font-bold text-orange-600">
-                  {customerTickets.filter((t) => t.status !== "closed").length}
+                  {customersData.filter((c) => c.status !== "closed").length}
                 </p>
               </div>
               <AlertCircle className="w-8 h-8 text-orange-600" />
@@ -447,21 +492,38 @@ export default function CustomersManagement() {
             <CardContent>
               <div className="space-y-4">
                 {automatedCampaigns.map((campaign) => (
-                  <div key={campaign.id} className="flex items-center justify-between p-4 border rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <div className={`w-3 h-3 rounded-full ${campaign.is_active ? "bg-green-500" : "bg-gray-400"}`} />
-                      <div>
-                        <h4 className="font-semibold">{campaign.name}</h4>
-                        <p className="text-sm text-gray-600">อัตราสำเร็จ: {campaign.success_rate}%</p>
+                  <div key={campaign.id} className="p-4 border rounded-lg">
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex items-center gap-3">
+                        <div
+                          className={`w-3 h-3 rounded-full ${campaign.is_active ? "bg-green-500" : "bg-gray-400"}`}
+                        />
+                        <div>
+                          <h4 className="font-semibold">{campaign.name}</h4>
+                          <p className="text-sm text-gray-600">{campaign.message_template}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Badge variant={campaign.is_active ? "default" : "secondary"}>
+                          {campaign.is_active ? "ใช้งาน" : "ปิด"}
+                        </Badge>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Badge variant={campaign.is_active ? "default" : "secondary"}>
-                        {campaign.is_active ? "ใช้งาน" : "ปิด"}
-                      </Badge>
-                      <Button size="sm" variant="outline">
-                        <Edit className="w-4 h-4" />
-                      </Button>
+                    <div className="grid md:grid-cols-3 gap-4 text-center">
+                      <div className="p-3 bg-green-50 rounded-lg">
+                        <div className="text-lg font-bold text-green-600">{campaign.success_rate}%</div>
+                        <div className="text-sm text-green-700">อัตราสำเร็จ</div>
+                      </div>
+                      <div className="p-3 bg-blue-50 rounded-lg">
+                        <div className="text-lg font-bold text-blue-600">{campaign.type}</div>
+                        <div className="text-sm text-blue-700">ประเภท</div>
+                      </div>
+                      <div className="p-3 bg-purple-50 rounded-lg">
+                        <div className="text-lg font-bold text-purple-600">
+                          {new Date(campaign.last_sent).toLocaleDateString("th-TH")}
+                        </div>
+                        <div className="text-sm text-purple-700">ส่งล่าสุด</div>
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -640,32 +702,7 @@ export default function CustomersManagement() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {communicationHistory.map((comm) => (
-                  <div key={comm.id} className="flex items-start gap-4 p-4 border rounded-lg">
-                    <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-                      {comm.type === "email" && <Mail className="w-5 h-5 text-blue-600" />}
-                      {comm.type === "phone" && <Phone className="w-5 h-5 text-green-600" />}
-                      {comm.type === "sms" && <MessageSquare className="w-5 h-5 text-purple-600" />}
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between mb-2">
-                        <h4 className="font-semibold">{comm.subject || `${comm.type.toUpperCase()} Communication`}</h4>
-                        <div className="flex items-center gap-2">
-                          <Badge variant={comm.status === "read" ? "default" : "secondary"}>
-                            {comm.status === "read" ? "อ่านแล้ว" : "ส่งแล้ว"}
-                          </Badge>
-                          <span className="text-sm text-gray-500">
-                            {new Date(comm.date).toLocaleDateString("th-TH")}
-                          </span>
-                        </div>
-                      </div>
-                      <p className="text-gray-700 mb-2">{comm.content}</p>
-                      <p className="text-sm text-gray-500">โดย: {comm.staff_member}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <div className="space-y-4">{/* Placeholder for communication history */}</div>
             </CardContent>
           </Card>
         </TabsContent>
@@ -679,50 +716,7 @@ export default function CustomersManagement() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {customerTickets.map((ticket) => (
-                  <div key={ticket.id} className="p-4 border rounded-lg">
-                    <div className="flex items-start justify-between mb-3">
-                      <div>
-                        <h4 className="font-semibold">{ticket.subject}</h4>
-                        <p className="text-sm text-gray-600 mt-1">{ticket.description}</p>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Badge
-                          variant={
-                            ticket.priority === "urgent"
-                              ? "destructive"
-                              : ticket.priority === "high"
-                                ? "default"
-                                : "secondary"
-                          }
-                        >
-                          {ticket.priority === "urgent"
-                            ? "เร่งด่วน"
-                            : ticket.priority === "high"
-                              ? "สูง"
-                              : ticket.priority === "medium"
-                                ? "กลาง"
-                                : "ต่ำ"}
-                        </Badge>
-                        <Badge variant={ticket.status === "resolved" ? "default" : "secondary"}>
-                          {ticket.status === "open"
-                            ? "เปิด"
-                            : ticket.status === "in_progress"
-                              ? "กำลังดำเนินการ"
-                              : ticket.status === "resolved"
-                                ? "แก้ไขแล้ว"
-                                : "ปิด"}
-                        </Badge>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between text-sm text-gray-500">
-                      <span>สร้างเมื่อ: {new Date(ticket.created_date).toLocaleDateString("th-TH")}</span>
-                      <span>ผู้รับผิดชอบ: {ticket.assigned_to || "ยังไม่ได้มอบหมาย"}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <div className="space-y-4">{/* Placeholder for customer tickets */}</div>
             </CardContent>
           </Card>
         </TabsContent>
@@ -843,7 +837,7 @@ export default function CustomersManagement() {
           customer={selectedCustomer}
           onClose={() => setSelectedCustomer(null)}
           loyaltyProgram={loyaltyPrograms[selectedCustomer.id]}
-          communicationHistory={communicationHistory}
+          communicationHistory={[]} // Placeholder for communication history
         />
       )}
     </div>

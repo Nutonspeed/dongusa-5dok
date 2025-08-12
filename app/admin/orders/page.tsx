@@ -23,10 +23,23 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { useToast } from "@/hooks/use-toast"
-import { type Order, OrderStatus, OrderChannel, getOrders, statusLabelTH, channelLabelTH } from "@/lib/mock-orders"
 import { toast } from "sonner"
 import Link from "next/link"
+import { DatabaseService } from "@/lib/database"
+import { createClient } from "@/lib/supabase/client"
+
+interface Order {
+  id: string
+  customer_name: string
+  customer_phone: string
+  customer_email: string
+  total_amount: number
+  status: string
+  channel: string
+  created_at: string
+  notes?: string
+  items?: any[]
+}
 
 const ORDERS_CSV_HEADERS = [
   "รหัสออร์เดอร์",
@@ -42,7 +55,7 @@ const ORDERS_CSV_HEADERS = [
 
 interface BulkStatusChangeData {
   orderIds: string[]
-  newStatus: OrderStatus
+  newStatus: string
 }
 
 interface MessagePreset {
@@ -69,45 +82,78 @@ const MESSAGE_PRESETS: MessagePreset[] = [
   },
 ]
 
-export default function OrdersManagement() {
-  const { toast: legacyToast } = useToast()
+const statusLabelTH = {
+  pending: "รอดำเนินการ",
+  confirmed: "ยืนยันแล้ว",
+  production: "กำลังผลิต",
+  ready: "พร้อมจัดส่ง",
+  shipped: "จัดส่งแล้ว",
+  delivered: "ส่งมอบแล้ว",
+  cancelled: "ยกเลิก",
+}
+
+const channelLabelTH = {
+  website: "เว็บไซต์",
+  facebook: "Facebook",
+  line: "LINE",
+  phone: "โทรศัพท์",
+  walk_in: "Walk-in",
+}
+
+export default function AdminOrdersPage() {
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
-  const [searchTerm, setSearchTerm] = useState("")
-  const [selectedStatus, setSelectedStatus] = useState<OrderStatus | "all">("all")
-  const [selectedChannel, setSelectedChannel] = useState<OrderChannel | "all">("all")
   const [selectedOrders, setSelectedOrders] = useState<string[]>([])
+  const [bulkActionLoading, setBulkActionLoading] = useState(false)
+  const [searchTerm, setSearchTerm] = useState("")
+  const [statusFilter, setStatusFilter] = useState<string>("all")
+  const [channelFilter, setChannelFilter] = useState<string>("all")
   const [dateFrom, setDateFrom] = useState("")
   const [dateTo, setDateTo] = useState("")
-
   const [isStatusModalOpen, setIsStatusModalOpen] = useState(false)
   const [isMessageModalOpen, setIsMessageModalOpen] = useState(false)
-  const [newStatus, setNewStatus] = useState<OrderStatus>(OrderStatus.PENDING)
-  const [selectedPreset, setSelectedPreset] = useState<string>("")
-  const [bulkActionLoading, setBulkActionLoading] = useState(false)
+  const [newStatus, setNewStatus] = useState<string>("pending")
+  const [selectedPreset, setSelectedPreset] = useState("")
+
+  const supabase = createClient()
+  const db = new DatabaseService(supabase)
 
   useEffect(() => {
-    loadOrders()
-  }, [selectedStatus, selectedChannel, searchTerm, dateFrom, dateTo])
-
-  const loadOrders = async () => {
-    setLoading(true)
-    try {
-      const filters: any = {}
-      if (selectedStatus !== "all") filters.status = selectedStatus
-      if (selectedChannel !== "all") filters.channel = selectedChannel
-      if (searchTerm) filters.search = searchTerm
-      if (dateFrom) filters.dateFrom = new Date(dateFrom)
-      if (dateTo) filters.dateTo = new Date(dateTo)
-
-      const ordersData = await getOrders(filters)
-      setOrders(ordersData)
-    } catch (error) {
-      toast.error("ไม่สามารถโหลดข้อมูลออร์เดอร์ได้")
-    } finally {
-      setLoading(false)
+    const loadOrders = async () => {
+      try {
+        setLoading(true)
+        const { data: ordersData } = await db.getOrders({ limit: 100 })
+        setOrders(ordersData || [])
+      } catch (error) {
+        console.error("Failed to load orders:", error)
+        toast.error("ไม่สามารถโหลดข้อมูลออร์เดอร์ได้")
+      } finally {
+        setLoading(false)
+      }
     }
-  }
+
+    loadOrders()
+  }, [])
+
+  const filteredOrders = orders.filter((order) => {
+    const matchesSearch =
+      order.customer_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      order.customer_phone.includes(searchTerm) ||
+      order.id.toLowerCase().includes(searchTerm.toLowerCase())
+
+    const matchesStatus = statusFilter === "all" || order.status === statusFilter
+    const matchesChannel = channelFilter === "all" || order.channel === channelFilter
+
+    let matchesDate = true
+    if (dateFrom) {
+      matchesDate = matchesDate && new Date(order.created_at) >= new Date(dateFrom)
+    }
+    if (dateTo) {
+      matchesDate = matchesDate && new Date(order.created_at) <= new Date(dateTo)
+    }
+
+    return matchesSearch && matchesStatus && matchesChannel && matchesDate
+  })
 
   const handleBulkExport = async () => {
     if (selectedOrders.length === 0) {
@@ -133,12 +179,12 @@ export default function OrdersManagement() {
         ...selectedOrdersData.map((order) =>
           [
             order.id,
-            `"${order.customerName}"`,
-            order.customerPhone,
-            order.totalAmount,
-            `"${statusLabelTH[order.status]}"`,
-            `"${channelLabelTH[order.channel]}"`,
-            order.createdAt.toLocaleDateString("th-TH"),
+            `"${order.customer_name}"`,
+            order.customer_phone,
+            order.total_amount,
+            `"${statusLabelTH[order.status] || order.status}"`,
+            `"${channelLabelTH[order.channel] || order.channel}"`,
+            new Date(order.created_at).toLocaleDateString("th-TH"),
             `"${order.notes || ""}"`,
             `"${order.items?.[0]?.collection || ""}"`,
           ].join(","),
@@ -170,23 +216,18 @@ export default function OrdersManagement() {
 
     setBulkActionLoading(true)
     try {
-      const response = await fetch("/api/admin/orders/bulk-status", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ orderIds: selectedOrders, newStatus }),
-      })
+      await db.updateOrdersStatus(selectedOrders, newStatus)
 
-      if (!response.ok) throw new Error("Status change failed")
-
-      // Update only affected orders in state (no full page reload)
+      // Update local state
       setOrders((prevOrders) =>
         prevOrders.map((order) => (selectedOrders.includes(order.id) ? { ...order, status: newStatus } : order)),
       )
 
-      toast.success(`อัพเดทสถานะ ${selectedOrders.length} รายการเป็น "${statusLabelTH[newStatus]}" สำเร็จ`)
+      toast.success(`อัพเดทสถานะ ${selectedOrders.length} รายการเป็น "${statusLabelTH[newStatus] || newStatus}" สำเร็จ`)
       setSelectedOrders([])
       setIsStatusModalOpen(false)
     } catch (error) {
+      console.error("Bulk status update failed:", error)
       toast.error("อัพเดทสถานะไม่สำเร็จ")
     } finally {
       setBulkActionLoading(false)
@@ -247,15 +288,19 @@ export default function OrdersManagement() {
                 <h2>ใบสั่งซื้อ #${order.id}</h2>
               </div>
               <div class="details">
-                <p><strong>ลูกค้า:</strong> ${order.customerName}</p>
-                <p><strong>เบอร์โทร:</strong> ${order.customerPhone}</p>
-                <p><strong>ยอดรวม:</strong> ${order.totalAmount.toLocaleString()} บาท</p>
-                <p><strong>สถานะ:</strong> ${statusLabelTH[order.status]}</p>
-                <p><strong>ช่องทาง:</strong> ${channelLabelTH[order.channel]}</p>
-                <p><strong>วันที่:</strong> ${order.createdAt.toLocaleDateString("th-TH")}</p>
-              </div>
-            </div>
-          `,
+                <p><strong>ลูกค้า:</strong> ${order.customer_name}</p>
+                <p><strong>เบอร์โทร:</strong> ${order.customer_phone}</p>
+                <p><strong>ยอดรวม:</strong> ${order.total_amount.toLocaleString()} บาท</p>
+                <p><strong>สถานะ:</strong> ${statusLabelTH[order.status] || order.status}</p>
+                <p><strong>ช่องทาง:</strong> ${channelLabelTH[order.channel] || order.channel}</p>
+                <p><strong>วันที่:</strong> ${new Date(order.created_at).toLocaleDateString("th-TH", {
+                  month: "short",
+                  day: "numeric",
+                })}
+                      </p>
+                    </div>
+                  </div>
+                `,
             )
             .join("")}
         </body>
@@ -303,44 +348,31 @@ export default function OrdersManagement() {
   }
 
   const toggleAllOrders = () => {
-    setSelectedOrders(selectedOrders.length === orders.length ? [] : orders.map((order) => order.id))
+    setSelectedOrders(selectedOrders.length === filteredOrders.length ? [] : filteredOrders.map((order) => order.id))
   }
 
-  const getStatusBadge = (status: OrderStatus) => {
-    const colors = {
-      [OrderStatus.PENDING]: "bg-yellow-100 text-yellow-800",
-      [OrderStatus.PENDING_PAYMENT]: "bg-orange-100 text-orange-800",
-      [OrderStatus.PAID]: "bg-green-100 text-green-800",
-      [OrderStatus.IN_PRODUCTION]: "bg-blue-100 text-blue-800",
-      [OrderStatus.READY_TO_SHIP]: "bg-purple-100 text-purple-800",
-      [OrderStatus.SHIPPED]: "bg-indigo-100 text-indigo-800",
-      [OrderStatus.DONE]: "bg-gray-100 text-gray-800",
-      [OrderStatus.CANCELLED]: "bg-red-100 text-red-800",
+  const getStatusBadge = (status: string) => {
+    const statusColors = {
+      pending: "bg-yellow-100 text-yellow-800",
+      confirmed: "bg-blue-100 text-blue-800",
+      production: "bg-purple-100 text-purple-800",
+      ready: "bg-green-100 text-green-800",
+      shipped: "bg-indigo-100 text-indigo-800",
+      delivered: "bg-green-100 text-green-800",
+      cancelled: "bg-red-100 text-red-800",
     }
-    return <Badge className={colors[status]}>{statusLabelTH[status]}</Badge>
-  }
 
-  const getStatusIcon = (status: OrderStatus) => {
-    const icons = {
-      [OrderStatus.PENDING]: Clock,
-      [OrderStatus.PENDING_PAYMENT]: Clock,
-      [OrderStatus.PAID]: CheckCircle,
-      [OrderStatus.IN_PRODUCTION]: Package,
-      [OrderStatus.READY_TO_SHIP]: Package,
-      [OrderStatus.SHIPPED]: Truck,
-      [OrderStatus.DONE]: CheckCircle,
-      [OrderStatus.CANCELLED]: AlertCircle,
-    }
-    const Icon = icons[status]
-    return <Icon className="w-4 h-4" />
+    return (
+      <Badge className={statusColors[status] || "bg-gray-100 text-gray-800"}>{statusLabelTH[status] || status}</Badge>
+    )
   }
 
   if (loading) {
     return (
-      <div className="space-y-6">
-        <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-gray-200 rounded w-1/4"></div>
-          <div className="h-64 bg-gray-200 rounded"></div>
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="flex items-center gap-2">
+          <RefreshCw className="w-6 h-6 animate-spin" />
+          <span>กำลังโหลดข้อมูลออร์เดอร์...</span>
         </div>
       </div>
     )
@@ -351,9 +383,13 @@ export default function OrdersManagement() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-burgundy-800">จัดการออร์เดอร์</h1>
-          <p className="text-gray-600 mt-1">ติดตามและจัดการออร์เดอร์ทั้งหมด</p>
+          <h1 className="text-3xl font-bold text-gray-900">จัดการออร์เดอร์</h1>
+          <p className="text-gray-600 mt-1">จัดการคำสั่งซื้อและติดตามสถานะ</p>
         </div>
+        <Button onClick={() => window.location.reload()} variant="outline">
+          <RefreshCw className="w-4 h-4 mr-2" />
+          รีเฟรช
+        </Button>
       </div>
 
       {/* Stats Cards */}
@@ -362,10 +398,10 @@ export default function OrdersManagement() {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">ทั้งหมด</p>
+                <p className="text-sm text-gray-600">ออร์เดอร์ทั้งหมด</p>
                 <p className="text-2xl font-bold text-gray-900">{orders.length}</p>
               </div>
-              <Package className="w-8 h-8 text-gray-600" />
+              <Package className="w-8 h-8 text-blue-600" />
             </div>
           </CardContent>
         </Card>
@@ -375,7 +411,7 @@ export default function OrdersManagement() {
               <div>
                 <p className="text-sm text-gray-600">รอดำเนินการ</p>
                 <p className="text-2xl font-bold text-yellow-600">
-                  {orders.filter((o) => o.status === OrderStatus.PENDING).length}
+                  {orders.filter((o) => o.status === "pending").length}
                 </p>
               </div>
               <Clock className="w-8 h-8 text-yellow-600" />
@@ -387,11 +423,11 @@ export default function OrdersManagement() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">กำลังผลิต</p>
-                <p className="text-2xl font-bold text-blue-600">
-                  {orders.filter((o) => o.status === OrderStatus.IN_PRODUCTION).length}
+                <p className="text-2xl font-bold text-purple-600">
+                  {orders.filter((o) => o.status === "production").length}
                 </p>
               </div>
-              <Package className="w-8 h-8 text-blue-600" />
+              <AlertCircle className="w-8 h-8 text-purple-600" />
             </div>
           </CardContent>
         </Card>
@@ -401,7 +437,7 @@ export default function OrdersManagement() {
               <div>
                 <p className="text-sm text-gray-600">เสร็จสิ้น</p>
                 <p className="text-2xl font-bold text-green-600">
-                  {orders.filter((o) => o.status === OrderStatus.DONE).length}
+                  {orders.filter((o) => o.status === "delivered").length}
                 </p>
               </div>
               <CheckCircle className="w-8 h-8 text-green-600" />
@@ -427,13 +463,13 @@ export default function OrdersManagement() {
                 />
               </div>
 
-              <Select value={selectedStatus} onValueChange={(value) => setSelectedStatus(value as OrderStatus)}>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
                 <SelectTrigger>
                   <SelectValue placeholder="เลือกสถานะ" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">ทุกสถานะ</SelectItem>
-                  {Object.values(OrderStatus).map((status) => (
+                  {Object.keys(statusLabelTH).map((status) => (
                     <SelectItem key={status} value={status}>
                       {statusLabelTH[status]}
                     </SelectItem>
@@ -441,13 +477,13 @@ export default function OrdersManagement() {
                 </SelectContent>
               </Select>
 
-              <Select value={selectedChannel} onValueChange={(value) => setSelectedChannel(value as OrderChannel)}>
+              <Select value={channelFilter} onValueChange={setChannelFilter}>
                 <SelectTrigger>
                   <SelectValue placeholder="เลือกช่องทาง" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">ทุกช่องทาง</SelectItem>
-                  {Object.values(OrderChannel).map((channel) => (
+                  {Object.keys(channelLabelTH).map((channel) => (
                     <SelectItem key={channel} value={channel}>
                       {channelLabelTH[channel]}
                     </SelectItem>
@@ -507,7 +543,7 @@ export default function OrdersManagement() {
       {/* Orders Table */}
       <Card>
         <CardHeader>
-          <CardTitle>รายการออร์เดอร์</CardTitle>
+          <CardTitle>รายการออร์เดอร์ ({filteredOrders.length})</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
@@ -515,9 +551,12 @@ export default function OrdersManagement() {
               <thead>
                 <tr className="border-b border-gray-200">
                   <th className="text-left py-3 px-4">
-                    <Checkbox checked={selectedOrders.length === orders.length} onCheckedChange={toggleAllOrders} />
+                    <Checkbox
+                      checked={selectedOrders.length === filteredOrders.length && filteredOrders.length > 0}
+                      onCheckedChange={toggleAllOrders}
+                    />
                   </th>
-                  <th className="text-left py-3 px-4 font-semibold text-gray-700">รหัส</th>
+                  <th className="text-left py-3 px-4 font-semibold text-gray-700">ออร์เดอร์</th>
                   <th className="text-left py-3 px-4 font-semibold text-gray-700">ลูกค้า</th>
                   <th className="text-left py-3 px-4 font-semibold text-gray-700">ยอดรวม</th>
                   <th className="text-left py-3 px-4 font-semibold text-gray-700">สถานะ</th>
@@ -527,7 +566,7 @@ export default function OrdersManagement() {
                 </tr>
               </thead>
               <tbody>
-                {orders.map((order) => (
+                {filteredOrders.map((order) => (
                   <tr key={order.id} className="border-b border-gray-100 hover:bg-gray-50">
                     <td className="py-4 px-4">
                       <Checkbox
@@ -536,27 +575,27 @@ export default function OrdersManagement() {
                       />
                     </td>
                     <td className="py-4 px-4">
-                      <div className="flex items-center space-x-2">
-                        {getStatusIcon(order.status)}
-                        <span className="font-semibold text-gray-900">{order.id}</span>
+                      <div>
+                        <h4 className="font-semibold text-gray-900">#{order.id.slice(-8)}</h4>
+                        <p className="text-xs text-gray-500">{order.id}</p>
                       </div>
                     </td>
                     <td className="py-4 px-4">
                       <div>
-                        <h4 className="font-semibold text-gray-900">{order.customerName}</h4>
-                        <p className="text-sm text-gray-500">{order.customerPhone}</p>
+                        <h4 className="font-medium text-gray-900">{order.customer_name}</h4>
+                        <p className="text-sm text-gray-500">{order.customer_phone}</p>
                       </div>
                     </td>
                     <td className="py-4 px-4">
-                      <span className="font-bold text-burgundy-600">{order.totalAmount.toLocaleString()} บาท</span>
+                      <span className="font-bold text-burgundy-600">฿{order.total_amount.toLocaleString()}</span>
                     </td>
                     <td className="py-4 px-4">{getStatusBadge(order.status)}</td>
                     <td className="py-4 px-4">
-                      <Badge variant="secondary">{channelLabelTH[order.channel]}</Badge>
+                      <Badge variant="outline">{channelLabelTH[order.channel] || order.channel}</Badge>
                     </td>
                     <td className="py-4 px-4">
                       <span className="text-sm text-gray-600">
-                        {order.createdAt.toLocaleDateString("th-TH", {
+                        {new Date(order.created_at).toLocaleDateString("th-TH", {
                           month: "short",
                           day: "numeric",
                         })}
@@ -564,11 +603,11 @@ export default function OrdersManagement() {
                     </td>
                     <td className="py-4 px-4">
                       <div className="flex items-center space-x-2">
-                        <Link href={`/orders/${order.id}`}>
-                          <Button variant="ghost" size="sm">
+                        <Button variant="ghost" size="sm" asChild>
+                          <Link href={`/admin/orders/${order.id}`}>
                             <Eye className="w-4 h-4" />
-                          </Button>
-                        </Link>
+                          </Link>
+                        </Button>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button variant="ghost" size="sm">
@@ -585,8 +624,8 @@ export default function OrdersManagement() {
                               ส่งข้อความ
                             </DropdownMenuItem>
                             <DropdownMenuItem>
-                              <Printer className="w-4 h-4 mr-2" />
-                              พิมพ์
+                              <Truck className="w-4 h-4 mr-2" />
+                              จัดส่ง
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -598,16 +637,29 @@ export default function OrdersManagement() {
             </table>
           </div>
 
-          {orders.length === 0 && (
+          {filteredOrders.length === 0 && (
             <div className="text-center py-12">
               <Package className="w-12 h-12 text-gray-400 mx-auto mb-4" />
               <h3 className="text-lg font-semibold text-gray-900 mb-2">ไม่พบออร์เดอร์</h3>
-              <p className="text-gray-600">ลองเปลี่ยนคำค้นหาหรือตัวกรองดู</p>
+              <p className="text-gray-600 mb-4">ลองเปลี่ยนคำค้นหาหรือตัวกรองดู</p>
+              <Button
+                onClick={() => {
+                  setSearchTerm("")
+                  setStatusFilter("all")
+                  setChannelFilter("all")
+                  setDateFrom("")
+                  setDateTo("")
+                }}
+                variant="outline"
+              >
+                ล้างตัวกรอง
+              </Button>
             </div>
           )}
         </CardContent>
       </Card>
 
+      {/* Status Change Modal */}
       <Dialog open={isStatusModalOpen} onOpenChange={setIsStatusModalOpen}>
         <DialogContent>
           <DialogHeader>
@@ -615,12 +667,12 @@ export default function OrdersManagement() {
           </DialogHeader>
           <div className="space-y-4">
             <p className="text-sm text-gray-600">เปลี่ยนสถานะสำหรับ {selectedOrders.length} รายการที่เลือก</p>
-            <Select value={newStatus} onValueChange={(value) => setNewStatus(value as OrderStatus)}>
+            <Select value={newStatus} onValueChange={setNewStatus}>
               <SelectTrigger>
                 <SelectValue placeholder="เลือกสถานะใหม่" />
               </SelectTrigger>
               <SelectContent>
-                {Object.values(OrderStatus).map((status) => (
+                {Object.keys(statusLabelTH).map((status) => (
                   <SelectItem key={status} value={status}>
                     {statusLabelTH[status]}
                   </SelectItem>
@@ -639,6 +691,7 @@ export default function OrdersManagement() {
         </DialogContent>
       </Dialog>
 
+      {/* Message Modal */}
       <Dialog open={isMessageModalOpen} onOpenChange={setIsMessageModalOpen}>
         <DialogContent>
           <DialogHeader>

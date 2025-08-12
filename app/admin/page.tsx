@@ -1,161 +1,16 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import {
-  TrendingUp,
-  TrendingDown,
-  Users,
-  Package,
-  ShoppingCart,
-  DollarSign,
-  Eye,
-  MessageCircle,
-  Star,
-  Clock,
-} from "lucide-react"
+import { TrendingUp, TrendingDown, Users, Package, ShoppingCart, Eye, Clock } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { DatabaseService } from "@/lib/database"
+import { createClient } from "@/lib/supabase/server"
 
-// Mock data for dashboard
-const dashboardStats = [
-  {
-    title: "ยอดขายวันนี้",
-    value: "฿45,230",
-    change: "+12.5%",
-    changeType: "increase" as const,
-    icon: DollarSign,
-    color: "text-green-600",
-    bgColor: "bg-green-100",
-  },
-  {
-    title: "คำสั่งซื้อใหม่",
-    value: "23",
-    change: "+8.2%",
-    changeType: "increase" as const,
-    icon: ShoppingCart,
-    color: "text-blue-600",
-    bgColor: "bg-blue-100",
-  },
-  {
-    title: "ลูกค้าใหม่",
-    value: "12",
-    change: "-2.1%",
-    changeType: "decrease" as const,
-    icon: Users,
-    color: "text-purple-600",
-    bgColor: "bg-purple-100",
-  },
-  {
-    title: "สินค้าในสต็อก",
-    value: "156",
-    change: "+5.3%",
-    changeType: "increase" as const,
-    icon: Package,
-    color: "text-orange-600",
-    bgColor: "bg-orange-100",
-  },
-]
-
-const recentOrders = [
-  {
-    id: "ORD-001",
-    customer: "คุณสมชาย ใจดี",
-    product: "ผ้าคลุมโซฟากำมะหยี่พรีเมียม",
-    amount: "฿2,890",
-    status: "รอดำเนินการ",
-    statusColor: "bg-yellow-100 text-yellow-800",
-    time: "10 นาทีที่แล้ว",
-  },
-  {
-    id: "ORD-002",
-    customer: "คุณสมหญิง รักสวย",
-    product: "ผ้าคลุมโซฟากันน้ำ + หมอนอิง",
-    amount: "฿1,950",
-    status: "กำลังผลิต",
-    statusColor: "bg-blue-100 text-blue-800",
-    time: "25 นาทีที่แล้ว",
-  },
-  {
-    id: "ORD-003",
-    customer: "คุณสมศักดิ์ มีเงิน",
-    product: "ผ้าคลุมโซฟาเซ็กชั่นแนล",
-    amount: "฿4,200",
-    status: "จัดส่งแล้ว",
-    statusColor: "bg-green-100 text-green-800",
-    time: "1 ชั่วโมงที่แล้ว",
-  },
-  {
-    id: "ORD-004",
-    customer: "คุณสมปอง ชอบช้อป",
-    product: "น้ำยาทำความสะอาดผ้า",
-    amount: "฿280",
-    status: "เสร็จสิ้น",
-    statusColor: "bg-gray-100 text-gray-800",
-    time: "2 ชั่วโมงที่แล้ว",
-  },
-]
-
-const topProducts = [
-  {
-    name: "ผ้าคลุมโซฟากำมะหยี่พรีเมียม",
-    sales: 45,
-    revenue: "฿130,050",
-    trend: "up",
-  },
-  {
-    name: "ผ้าคลุมโซฟากันน้ำ",
-    sales: 38,
-    revenue: "฿74,100",
-    trend: "up",
-  },
-  {
-    name: "หมอนอิงลายเดียวกัน",
-    sales: 67,
-    revenue: "฿23,450",
-    trend: "down",
-  },
-  {
-    name: "ผ้าคลุมโซฟาเซ็กชั่นแนล",
-    sales: 12,
-    revenue: "฿50,400",
-    trend: "up",
-  },
-]
-
-const recentActivities = [
-  {
-    type: "order",
-    message: "คำสั่งซื้อใหม่ #ORD-001 จากคุณสมชาย",
-    time: "5 นาทีที่แล้ว",
-    icon: ShoppingCart,
-    color: "text-blue-600",
-  },
-  {
-    type: "review",
-    message: "รีวิว 5 ดาวจากคุณสมหญิง",
-    time: "15 นาทีที่แล้ว",
-    icon: Star,
-    color: "text-yellow-600",
-  },
-  {
-    type: "inquiry",
-    message: "คำถามใหม่เกี่ยวกับผ้าคลุมโซฟาลินิน",
-    time: "30 นาทีที่แล้ว",
-    icon: MessageCircle,
-    color: "text-green-600",
-  },
-  {
-    type: "stock",
-    message: "สินค้า 'คลิปยึดผ้า' ใกล้หมด (เหลือ 5 ชิ้น)",
-    time: "1 ชั่วโมงที่แล้ว",
-    icon: Package,
-    color: "text-red-600",
-  },
-]
-
-export default function AdminDashboard() {
+const AdminDashboardClient = ({ analytics, recentOrders, topProducts }) => {
   const [currentTime, setCurrentTime] = useState(new Date())
+  const [dashboardStats, setDashboardStats] = useState(analytics || {})
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -165,7 +20,7 @@ export default function AdminDashboard() {
     return () => clearInterval(timer)
   }, [])
 
-  const formatTime = (date: Date) => {
+  const formatTime = (date) => {
     return date.toLocaleString("th-TH", {
       weekday: "long",
       year: "numeric",
@@ -195,36 +50,39 @@ export default function AdminDashboard() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {dashboardStats.map((stat, index) => (
-          <Card key={index} className="hover:shadow-lg transition-shadow">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">{stat.title}</p>
-                  <p className="text-2xl font-bold text-gray-900 mt-2">{stat.value}</p>
-                  <div className="flex items-center mt-2">
-                    {stat.changeType === "increase" ? (
-                      <TrendingUp className="w-4 h-4 text-green-600 mr-1" />
-                    ) : (
-                      <TrendingDown className="w-4 h-4 text-red-600 mr-1" />
-                    )}
-                    <span
-                      className={`text-sm font-medium ${
-                        stat.changeType === "increase" ? "text-green-600" : "text-red-600"
-                      }`}
-                    >
-                      {stat.change}
-                    </span>
-                    <span className="text-sm text-gray-500 ml-1">จากเมื่อวาน</span>
+        {Object.keys(dashboardStats).map((key, index) => {
+          const stat = dashboardStats[key]
+          return (
+            <Card key={index} className="hover:shadow-lg transition-shadow">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">{stat.title}</p>
+                    <p className="text-2xl font-bold text-gray-900 mt-2">{stat.value}</p>
+                    <div className="flex items-center mt-2">
+                      {stat.changeType === "increase" ? (
+                        <TrendingUp className="w-4 h-4 text-green-600 mr-1" />
+                      ) : (
+                        <TrendingDown className="w-4 h-4 text-red-600 mr-1" />
+                      )}
+                      <span
+                        className={`text-sm font-medium ${
+                          stat.changeType === "increase" ? "text-green-600" : "text-red-600"
+                        }`}
+                      >
+                        {stat.change}
+                      </span>
+                      <span className="text-sm text-gray-500 ml-1">จากเมื่อวาน</span>
+                    </div>
+                  </div>
+                  <div className={`w-12 h-12 ${stat.bgColor} rounded-lg flex items-center justify-center`}>
+                    <stat.icon className={`w-6 h-6 ${stat.color}`} />
                   </div>
                 </div>
-                <div className={`w-12 h-12 ${stat.bgColor} rounded-lg flex items-center justify-center`}>
-                  <stat.icon className={`w-6 h-6 ${stat.color}`} />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+              </CardContent>
+            </Card>
+          )
+        })}
       </div>
 
       <div className="grid lg:grid-cols-3 gap-6">
@@ -272,14 +130,16 @@ export default function AdminDashboard() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {recentActivities.map((activity, index) => (
+                {recentOrders.map((order, index) => (
                   <div key={index} className="flex items-start space-x-3">
                     <div className={`w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0`}>
-                      <activity.icon className={`w-4 h-4 ${activity.color}`} />
+                      <ShoppingCart className="w-4 h-4 text-blue-600" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm text-gray-900">{activity.message}</p>
-                      <p className="text-xs text-gray-500 mt-1">{activity.time}</p>
+                      <p className="text-sm text-gray-900">
+                        คำสั่งซื้อใหม่ {order.id} จาก {order.customer}
+                      </p>
+                      <p className="text-xs text-gray-500 mt-1">{order.time}</p>
                     </div>
                   </div>
                 ))}
@@ -349,5 +209,63 @@ export default function AdminDashboard() {
         </CardContent>
       </Card>
     </div>
+  )
+}
+
+export default async function AdminDashboard() {
+  const supabase = createClient()
+  const db = new DatabaseService(supabase)
+
+  const [analyticsResult, ordersResult, productsResult] = await Promise.all([
+    db.getDashboardAnalytics(),
+    db.getRecentOrders(10),
+    db.getTopProducts(5),
+  ])
+
+  const analytics = analyticsResult?.data || {
+    totalOrders: {
+      title: "คำสั่งซื้อทั้งหมด",
+      value: "0",
+      change: "0%",
+      changeType: "increase",
+      icon: ShoppingCart,
+      color: "text-blue-600",
+      bgColor: "bg-blue-100",
+    },
+    totalRevenue: {
+      title: "รายได้รวม",
+      value: "฿0",
+      change: "0%",
+      changeType: "increase",
+      icon: TrendingUp,
+      color: "text-green-600",
+      bgColor: "bg-green-100",
+    },
+    totalCustomers: {
+      title: "ลูกค้าทั้งหมด",
+      value: "0",
+      change: "0%",
+      changeType: "increase",
+      icon: Users,
+      color: "text-purple-600",
+      bgColor: "bg-purple-100",
+    },
+    totalProducts: {
+      title: "สินค้าทั้งหมด",
+      value: "0",
+      change: "0%",
+      changeType: "increase",
+      icon: Package,
+      color: "text-orange-600",
+      bgColor: "bg-orange-100",
+    },
+  }
+
+  return (
+    <AdminDashboardClient
+      analytics={analytics}
+      recentOrders={ordersResult?.data || []}
+      topProducts={productsResult?.data || []}
+    />
   )
 }

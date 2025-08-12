@@ -2,7 +2,7 @@
 
 import type React from "react"
 import { createContext, useContext, useState, useEffect } from "react"
-import { supabase } from "@/lib/supabase/client"
+import { supabase, isSupabaseConfigured } from "@/lib/supabase/client"
 import type { User } from "@supabase/supabase-js"
 
 interface Profile {
@@ -43,62 +43,104 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!isMounted) return
 
-    const getInitialSession = async () => {
+    const initializeAuth = async () => {
+      await new Promise((resolve) => setTimeout(resolve, 100))
+
       try {
-        const {
-          data: { session },
-          error,
-        } = await supabase.auth.getSession()
+        if (isSupabaseConfigured) {
+          const {
+            data: { session },
+            error,
+          } = await supabase.auth.getSession()
 
-        if (error) {
-          console.error("Error getting session:", error)
-          setIsLoading(false)
-          return
-        }
+          if (error) {
+            console.error("Error getting session:", error)
+            setIsLoading(false)
+            return
+          }
 
-        setUser(session?.user ?? null)
+          setUser(session?.user ?? null)
 
-        if (session?.user) {
-          await fetchProfile(session.user.id)
+          if (session?.user) {
+            await fetchProfile(session.user.id)
+          }
+        } else {
+          try {
+            const userData = typeof window !== "undefined" ? localStorage.getItem("user_data") : null
+            const adminToken = typeof window !== "undefined" ? localStorage.getItem("admin_token") : null
+
+            if (userData) {
+              const parsedUser = JSON.parse(userData)
+              setUser(parsedUser)
+              setProfile({
+                id: parsedUser.id,
+                email: parsedUser.email,
+                full_name: parsedUser.full_name || null,
+                phone: null,
+                role: parsedUser.role || "customer",
+                avatar_url: null,
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
+              })
+            } else if (adminToken) {
+              const mockAdmin = {
+                id: "admin-id",
+                email: "admin@sofacover.com",
+                full_name: "Admin User",
+                phone: null,
+                role: "admin" as const,
+                avatar_url: null,
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
+              }
+              setUser(mockAdmin as any)
+              setProfile(mockAdmin)
+            }
+          } catch (error) {
+            console.error("Error accessing localStorage:", error)
+          }
         }
       } catch (error) {
-        console.error("Error getting initial session:", error)
+        console.error("Error initializing auth:", error)
       } finally {
         setIsLoading(false)
       }
     }
 
-    getInitialSession()
+    initializeAuth()
 
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, session) => {
-      setUser(session?.user ?? null)
+    if (isSupabaseConfigured) {
+      const {
+        data: { subscription },
+      } = supabase.auth.onAuthStateChange(async (event, session) => {
+        setUser(session?.user ?? null)
 
-      if (session?.user) {
-        await fetchProfile(session.user.id)
-      } else {
-        setProfile(null)
-      }
+        if (session?.user) {
+          await fetchProfile(session.user.id)
+        } else {
+          setProfile(null)
+        }
 
-      setIsLoading(false)
-    })
+        setIsLoading(false)
+      })
 
-    return () => subscription.unsubscribe()
+      return () => subscription.unsubscribe()
+    }
   }, [isMounted])
 
   const fetchProfile = async (userId: string) => {
     try {
-      const { data, error } = await supabase.from("profiles").select("*").eq("id", userId).single()
+      if (isSupabaseConfigured) {
+        const { data, error } = await supabase.from("profiles").select("*").eq("id", userId).single()
 
-      if (error && error.code !== "PGRST116") {
-        // Ignore "not found" errors
-        console.error("Error fetching profile:", error)
-        return
-      }
+        if (error && error.code !== "PGRST116") {
+          console.error("Error fetching profile:", error)
+          return
+        }
 
-      if (data) {
-        setProfile(data)
+        if (data) {
+          setProfile(data)
+        }
       }
     } catch (error) {
       console.error("Error fetching profile:", error)
@@ -107,16 +149,55 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signIn = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      })
+      if (isSupabaseConfigured) {
+        const { error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        })
 
-      if (error) {
-        return { success: false, error: error.message }
+        if (error) {
+          return { success: false, error: error.message }
+        }
+
+        return { success: true }
+      } else {
+        const validCredentials = [
+          { email: "user@sofacover.com", password: "user123", role: "customer" },
+          { email: "admin@sofacover.com", password: "admin123", role: "admin" },
+        ]
+
+        const credential = validCredentials.find((c) => c.email === email && c.password === password)
+
+        if (credential) {
+          const mockUser = {
+            id: credential.role === "admin" ? "admin-id" : "user-id",
+            email: credential.email,
+            full_name: credential.role === "admin" ? "Admin User" : "Regular User",
+            role: credential.role,
+          }
+
+          localStorage.setItem("user_data", JSON.stringify(mockUser))
+          if (credential.role === "admin") {
+            localStorage.setItem("admin_token", "demo_token")
+          }
+
+          setUser(mockUser as any)
+          setProfile({
+            id: mockUser.id,
+            email: mockUser.email,
+            full_name: mockUser.full_name,
+            phone: null,
+            role: mockUser.role as "customer" | "admin",
+            avatar_url: null,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          })
+
+          return { success: true }
+        } else {
+          return { success: false, error: "Invalid email or password" }
+        }
       }
-
-      return { success: true }
     } catch (error) {
       return { success: false, error: "An unexpected error occurred" }
     }
@@ -128,29 +209,61 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     fullName?: string,
   ): Promise<{ success: boolean; error?: string }> => {
     try {
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            full_name: fullName || "",
+      if (isSupabaseConfigured) {
+        const { error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: {
+              full_name: fullName || "",
+            },
+            emailRedirectTo: process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL || window.location.origin,
           },
-          emailRedirectTo: process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL || window.location.origin,
-        },
-      })
+        })
 
-      if (error) {
-        return { success: false, error: error.message }
+        if (error) {
+          return { success: false, error: error.message }
+        }
+
+        return { success: true }
+      } else {
+        const mockUser = {
+          id: `user-${Date.now()}`,
+          email,
+          full_name: fullName || "",
+          role: "customer",
+        }
+
+        localStorage.setItem("user_data", JSON.stringify(mockUser))
+
+        setUser(mockUser as any)
+        setProfile({
+          id: mockUser.id,
+          email: mockUser.email,
+          full_name: mockUser.full_name,
+          phone: null,
+          role: "customer",
+          avatar_url: null,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        })
+
+        return { success: true }
       }
-
-      return { success: true }
     } catch (error) {
       return { success: false, error: "An unexpected error occurred" }
     }
   }
 
   const signOut = async () => {
-    await supabase.auth.signOut()
+    if (isSupabaseConfigured) {
+      await supabase.auth.signOut()
+    } else {
+      localStorage.removeItem("user_data")
+      localStorage.removeItem("admin_token")
+      setUser(null)
+      setProfile(null)
+    }
   }
 
   const refreshProfile = async () => {
@@ -174,7 +287,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   if (!isMounted) {
-    return null
+    return <div style={{ display: "none" }}>{children}</div>
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

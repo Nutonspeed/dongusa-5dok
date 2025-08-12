@@ -15,7 +15,7 @@ function SubmitButton() {
     <Button
       type="submit"
       disabled={pending}
-      className="w-full bg-[#2b725e] hover:bg-[#235e4c] text-white py-6 text-lg font-medium rounded-lg h-[60px]"
+      className="w-full bg-burgundy-600 hover:bg-burgundy-700 text-white py-6 text-lg font-medium rounded-lg h-[60px]"
     >
       {pending ? (
         <>
@@ -30,30 +30,39 @@ function SubmitButton() {
 }
 
 export default function SignUpForm() {
-  // Initialize with null as the initial state
   const [state, formAction] = useActionState(signUp, null)
 
   return (
     <div className="w-full max-w-md space-y-8">
       <div className="space-y-2 text-center">
-        <h1 className="text-4xl font-semibold tracking-tight text-white">Create an account</h1>
-        <p className="text-lg text-gray-400">Sign up to get started</p>
+        <h1 className="text-4xl font-semibold tracking-tight text-burgundy-900">Create an account</h1>
+        <p className="text-lg text-gray-600">Sign up to get started</p>
       </div>
 
       <form action={formAction} className="space-y-6">
         {state?.error && (
-          <div className="bg-red-500/10 border border-red-500/50 text-red-700 px-4 py-3 rounded">{state.error}</div>
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">{state.error}</div>
         )}
 
         {state?.success && (
-          <div className="bg-green-500/10 border border-green-500/50 text-green-700 px-4 py-3 rounded">
-            {state.success}
-          </div>
+          <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded">{state.success}</div>
         )}
 
         <div className="space-y-4">
           <div className="space-y-2">
-            <label htmlFor="email" className="block text-sm font-medium text-gray-300">
+            <label htmlFor="fullName" className="block text-sm font-medium text-gray-700">
+              Full Name
+            </label>
+            <Input
+              id="fullName"
+              name="fullName"
+              type="text"
+              placeholder="Your full name"
+              className="bg-white border-gray-300 text-gray-900 placeholder:text-gray-500"
+            />
+          </div>
+          <div className="space-y-2">
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700">
               Email
             </label>
             <Input
@@ -62,11 +71,11 @@ export default function SignUpForm() {
               type="email"
               placeholder="you@example.com"
               required
-              className="bg-[#1c1c1c] border-gray-800 text-white placeholder:text-gray-500"
+              className="bg-white border-gray-300 text-gray-900 placeholder:text-gray-500"
             />
           </div>
           <div className="space-y-2">
-            <label htmlFor="password" className="block text-sm font-medium text-gray-300">
+            <label htmlFor="password" className="block text-sm font-medium text-gray-700">
               Password
             </label>
             <Input
@@ -74,16 +83,16 @@ export default function SignUpForm() {
               name="password"
               type="password"
               required
-              className="bg-[#1c1c1c] border-gray-800 text-white"
+              className="bg-white border-gray-300 text-gray-900"
             />
           </div>
         </div>
 
         <SubmitButton />
 
-        <div className="text-center text-gray-400">
+        <div className="text-center text-gray-600">
           Already have an account?{" "}
-          <Link href="/auth/login" className="text-white hover:underline">
+          <Link href="/auth/login" className="text-burgundy-600 hover:underline">
             Log in
           </Link>
         </div>
