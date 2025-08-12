@@ -11,8 +11,7 @@ import { useLanguage } from "../contexts/LanguageContext"
 import { useCart } from "../contexts/CartContext"
 import Header from "../components/Header"
 import Footer from "../components/Footer"
-import { DatabaseService } from "@/lib/database"
-import { createClient } from "@/lib/supabase/client"
+import { clientDb } from "@/lib/database-client"
 
 interface Product {
   id: string
@@ -59,10 +58,7 @@ export default function ProductsPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const supabase = createClient()
-        const db = new DatabaseService(supabase)
-
-        const [productsResult, categoriesResult] = await Promise.all([db.getProducts(), db.getCategories()])
+        const [productsResult, categoriesResult] = await Promise.all([clientDb.getProducts(), clientDb.getCategories()])
 
         if (productsResult.data) {
           setProducts(productsResult.data)
