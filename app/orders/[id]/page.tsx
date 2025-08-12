@@ -18,6 +18,13 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { useToast } from "@/hooks/use-toast"
+import {
+  calculateSubtotal,
+  calculateTax,
+  calculateTotal,
+  formatCurrency,
+  type MoneyLineItem,
+} from "@/lib/money"
 
 const statusColors: Record<OrderStatus, string> = {
   [OrderStatus.PENDING]: "bg-yellow-100 text-yellow-800",
@@ -45,11 +52,20 @@ export default function OrderDetailPage() {
   const params = useParams()
   const router = useRouter()
   const { toast } = useToast()
-  const [order, setOrder] = useState<Order | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [updating, setUpdating] = useState(false)
-  const [newStatus, setNewStatus] = useState<OrderStatus | "">("")
-  const [statusNotes, setStatusNotes] = useState("")
+const [order, setOrder] = useState<Order | null>(null)
+const [loading, setLoading] = useState(true)
+const [updating, setUpdating] = useState(false)
+const [newStatus, setNewStatus] = useState<OrderStatus | "">("")
+const [statusNotes, setStatusNotes] = useState("")
+
+  const lineItems: MoneyLineItem[] =
+    order?.items.map((item) => ({
+      quantity: item.quantity ?? 0,
+      price: item.unitPrice ?? 0,
+    })) ?? []
+  const subtotal = calculateSubtotal(lineItems)
+  const tax = calculateTax(subtotal, (order as any)?.taxRate ?? 0)
+  const total = calculateTotal(subtotal, tax)
 
   useEffect(() => {
     loadOrder()
@@ -107,7 +123,7 @@ export default function OrderDetailPage() {
 
   const sendPresetMessage = (type: "payment" | "confirm_address" | "shipped") => {
     const messages = {
-      payment: `สวัสดีครับ/ค่ะ คุณ${order?.customerName}\n\nขอบคุณสำหรับการสั่งซื้อ ออร์เดอร์ ${order?.id}\nยอดรวม ${order?.totalAmount?.toLocaleString()} บาท\n\nกรุณาชำระเงินและแจ้งโอนกลับมาด้วยนะครับ/ค่ะ\n\nดูรายละเอียดบิล: ${window.location.origin}/bill/view/${order?.id}`,
+      payment: `สวัสดีครับ/ค่ะ คุณ${order?.customerName}\n\nขอบคุณสำหรับการสั่งซื้อ ออร์เดอร์ ${order?.id}\nยอดรวม ${formatCurrency(total)}\n\nกรุณาชำระเงินและแจ้งโอนกลับมาด้วยนะครับ/ค่ะ\n\nดูรายละเอียดบิล: ${window.location.origin}/bill/view/${order?.id}`,
       confirm_address: `สวัสดีครับ/ค่ะ คุณ${order?.customerName}\n\nออร์เดอร์ ${order?.id} กำลังเตรียมจัดส่ง\nกรุณายืนยันที่อยู่จัดส่ง:\n\n${order?.customerAddress}\n\nหากต้องการแก้ไขที่อยู่ กรุณาแจ้งกลับมาด้วยครับ/ค่ะ`,
       shipped: `สวัสดีครับ/ค่ะ คุณ${order?.customerName}\n\nออร์เดอร์ ${order?.id} จัดส่งแล้ว\nเลขพัสดุ: ${order?.shippingInfo?.trackingNumber || "รอระบบออกเลข"}\n\nติดตามสถานะ: ${window.location.origin}/bill/timeline/${order?.id}`,
     }
@@ -226,11 +242,17 @@ export default function OrderDetailPage() {
                         <p className="text-sm text-blue-600 mt-1">ปรับแต่ง: {item.customizations}</p>
                       )}
                       <p className="text-sm text-gray-500 mt-1">
-                        จำนวน: {item.quantity} ชิ้น × {item.unitPrice.toLocaleString()} บาท
+                        จำนวน: {item.quantity} ชิ้น × {formatCurrency(item.unitPrice ?? 0)}
                       </p>
                     </div>
                     <div className="text-right">
-                      <p className="font-semibold text-lg">{item.totalPrice.toLocaleString()} บาท</p>
+                      <p className="font-semibold text-lg">
+                        {formatCurrency(
+                          calculateSubtotal([
+                            { quantity: item.quantity, price: item.unitPrice ?? 0 },
+                          ])
+                        )}
+                      </p>
                     </div>
                   </div>
                 ))}
@@ -240,7 +262,7 @@ export default function OrderDetailPage() {
 
               <div className="flex justify-between items-center text-xl font-bold">
                 <span>ยอดรวมทั้งสิ้น</span>
-                <span className="text-burgundy-600">{order.totalAmount.toLocaleString()} บาท</span>
+                <span className="text-burgundy-600">{formatCurrency(total)}</span>
               </div>
             </CardContent>
           </Card>
@@ -399,7 +421,7 @@ export default function OrderDetailPage() {
 
                 <div>
                   <label className="text-sm font-medium text-gray-500">ค่าจัดส่ง</label>
-                  <p>{order.shippingInfo.shippingCost.toLocaleString()} บาท</p>
+                  <p>{formatCurrency(order.shippingInfo.shippingCost ?? 0)}</p>
                 </div>
 
                 {order.shippingInfo.estimatedDelivery && (

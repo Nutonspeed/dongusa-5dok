@@ -13,6 +13,13 @@ import { MapPin, Phone, Calendar, Package, Eye, Copy, Check, Save, CreditCard } 
 import { type Order, getOrderById, statusLabelTH, channelLabelTH } from "@/lib/mock-orders"
 import { toast } from "sonner"
 import Link from "next/link"
+import {
+  calculateSubtotal,
+  calculateTax,
+  calculateTotal,
+  formatCurrency,
+  type MoneyLineItem,
+} from "@/lib/money"
 
 export default function BillViewPage() {
   const params = useParams()
@@ -22,6 +29,23 @@ export default function BillViewPage() {
   const [newAddress, setNewAddress] = useState("")
   const [savingAddress, setSavingAddress] = useState(false)
   const [linkCopied, setLinkCopied] = useState(false)
+
+  const itemLines: MoneyLineItem[] =
+    order?.items.map((item) => ({
+      quantity: item.quantity ?? 0,
+      price: item.unitPrice ?? 0,
+    })) ?? []
+  const chargeLines: MoneyLineItem[] = [...itemLines]
+  if (order) {
+    const shipping = (order as any).shippingCost ?? 0
+    if (shipping) chargeLines.push({ quantity: 1, price: 0, shipping })
+    const discount = (order as any).discount ?? 0
+    if (discount) chargeLines.push({ quantity: 1, price: 0, discount })
+  }
+  const subtotal = calculateSubtotal(chargeLines)
+  const tax = calculateTax(subtotal, (order as any)?.taxRate ?? 0)
+  const total = calculateTotal(subtotal, tax)
+  const itemsSubtotal = calculateSubtotal(itemLines)
 
   useEffect(() => {
     loadOrder()
@@ -280,12 +304,18 @@ export default function BillViewPage() {
                             )}
                           </div>
                           <div className="text-right">
-                            <p className="font-medium">{item.totalPrice.toLocaleString()} บาท</p>
+                            <p className="font-medium">
+                              {formatCurrency(
+                                calculateSubtotal([
+                                  { quantity: item.quantity, price: item.unitPrice ?? 0 },
+                                ])
+                              )}
+                            </p>
                           </div>
                         </div>
                         <div className="flex justify-between text-sm text-gray-500">
                           <span>จำนวน: {item.quantity} ชิ้น</span>
-                          <span>ราคาต่อชิ้น: {item.unitPrice.toLocaleString()} บาท</span>
+                          <span>ราคาต่อชิ้น: {formatCurrency(item.unitPrice ?? 0)}</span>
                         </div>
                       </div>
                     </div>
@@ -300,26 +330,20 @@ export default function BillViewPage() {
             <div className="space-y-3">
               <div className="flex justify-between text-gray-700">
                 <span>ค่าของ</span>
-                  <span>
-                    {(
-                      order.totalAmount -
-                      ((order as any).shippingCost || 0) +
-                      ((order as any).discount || 0)
-                    ).toLocaleString()} บาท
-                  </span>
+                <span>{formatCurrency(itemsSubtotal)}</span>
               </div>
               
                 {(order as any).shippingCost && (
                   <div className="flex justify-between text-gray-700">
                     <span>ค่าขนส่ง</span>
-                    <span>{(order as any).shippingCost.toLocaleString()} บาท</span>
+                    <span>{formatCurrency((order as any).shippingCost ?? 0)}</span>
                   </div>
                 )}
               
                 {(order as any).discount && (
                   <div className="flex justify-between text-green-600">
                     <span>ส่วนลด</span>
-                    <span>-{(order as any).discount.toLocaleString()} บาท</span>
+                    <span>-{formatCurrency((order as any).discount ?? 0)}</span>
                   </div>
                 )}
               
@@ -328,7 +352,7 @@ export default function BillViewPage() {
               <div className="bg-burgundy-50 p-4 rounded-lg">
                 <div className="flex justify-between items-center text-xl font-bold text-burgundy-800">
                   <span>ยอดสุทธิ</span>
-                  <span>{order.totalAmount.toLocaleString()} บาท</span>
+                  <span>{formatCurrency(total)}</span>
                 </div>
               </div>
             </div>
@@ -347,7 +371,7 @@ export default function BillViewPage() {
                   <CreditCard className="w-5 h-5" />
                   <p className="font-semibold">สแกน QR Code เพื่อชำระเงิน</p>
                 </div>
-                <p className="text-sm text-burgundy-600">ยอดชำระ: {order.totalAmount.toLocaleString()} บาท</p>
+                <p className="text-sm text-burgundy-600">ยอดชำระ: {formatCurrency(total)}</p>
                 <div className="text-xs text-burgundy-500 space-y-1 mt-3">
                   <p className="font-medium">วิธีการชำระเงิน:</p>
                   <p>1. สแกน QR Code ด้วยแอปธนาคาร</p>
