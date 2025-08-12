@@ -1,4 +1,5 @@
 "use client"
+import { logger } from '@/lib/logger';
 
 import { useState, useEffect } from "react"
 import {
@@ -127,7 +128,7 @@ export default function AdminOrdersPage() {
         const { data: ordersData } = await db.getOrders({ limit: 100 })
         setOrders(ordersData || [])
       } catch (error) {
-        console.error("Failed to load orders:", error)
+        logger.error("Failed to load orders:", error)
         toast.error("ไม่สามารถโหลดข้อมูลออร์เดอร์ได้")
       } finally {
         setLoading(false)
@@ -229,7 +230,7 @@ export default function AdminOrdersPage() {
       setSelectedOrders([])
       setIsStatusModalOpen(false)
     } catch (error) {
-      console.error("Bulk status update failed:", error)
+      logger.error("Bulk status update failed:", error)
       toast.error("อัพเดทสถานะไม่สำเร็จ")
     } finally {
       setBulkActionLoading(false)

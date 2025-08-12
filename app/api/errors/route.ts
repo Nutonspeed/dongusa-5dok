@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import { type NextRequest, NextResponse } from "next/server"
 
 interface ErrorReport {
@@ -26,7 +27,7 @@ export async function POST(request: NextRequest) {
 
     // Log critical errors immediately
     if (errorData.severity === "critical") {
-      console.error("CRITICAL ERROR:", errorData)
+      logger.error("CRITICAL ERROR:", errorData)
 
       // In production, you might want to send alerts here
       // await sendSlackAlert(errorData)
@@ -38,7 +39,7 @@ export async function POST(request: NextRequest) {
       message: "Error reported successfully",
     })
   } catch (error) {
-    console.error("Error processing error report:", error)
+    logger.error("Error processing error report:", error)
     return NextResponse.json({ error: "Failed to process error report" }, { status: 500 })
   }
 }
@@ -65,7 +66,7 @@ export async function GET(request: NextRequest) {
       total: filteredErrors.length,
     })
   } catch (error) {
-    console.error("Error fetching errors:", error)
+    logger.error("Error fetching errors:", error)
     return NextResponse.json({ error: "Failed to fetch errors" }, { status: 500 })
   }
 }

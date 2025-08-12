@@ -1,4 +1,5 @@
 "use client"
+import { logger } from '@/lib/logger';
 
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -118,7 +119,7 @@ export default function InventoryManagementPage() {
 
       loadOptimizationData()
     } catch (error) {
-      console.error("Error loading inventory data:", error)
+      logger.error("Error loading inventory data:", error)
     } finally {
       setLoading(false)
     }
@@ -284,12 +285,12 @@ export default function InventoryManagementPage() {
       await inventoryService.resolveAlert(alertId)
       loadData()
     } catch (error) {
-      console.error("Error resolving alert:", error)
+      logger.error("Error resolving alert:", error)
     }
   }
 
   const applyRecommendation = async (recommendation: OptimizationRecommendation) => {
-    console.log("Applying recommendation:", recommendation)
+    logger.info("Applying recommendation:", recommendation)
     // Implementation would integrate with inventory management system
     setIsOptimizationDialogOpen(false)
     loadData()

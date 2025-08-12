@@ -1,11 +1,13 @@
 "use client"
+import { logger } from '@/lib/logger';
 
 import type React from "react"
 import { createContext, useContext, useState, useEffect } from "react"
 import { supabase, isSupabaseConfigured } from "@/lib/supabase/client"
 import type { User } from "@supabase/supabase-js"
+import type { Profile } from "@/types/entities"
 
-interface Profile {
+interface UserProfile {
   id: string
   email: string
   full_name: string | null
@@ -18,7 +20,7 @@ interface Profile {
 
 interface AuthContextType {
   user: User | null
-  profile: Profile | null
+  profile: UserProfile | null
   isLoading: boolean
   isAuthenticated: boolean
   isAdmin: boolean
@@ -44,7 +46,7 @@ const AuthContext = createContext<AuthContextType>(defaultAuthContext)
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
-  const [profile, setProfile] = useState<Profile | null>(null)
+  const [profile, setProfile] = useState<UserProfile | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isMounted, setIsMounted] = useState(false)
 
@@ -66,7 +68,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           } = await supabase.auth.getSession()
 
           if (error) {
-            console.error("Error getting session:", error)
+            logger.error("Error getting session:", error)
             setIsLoading(false)
             return
           }
@@ -109,11 +111,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               setProfile(mockAdmin)
             }
           } catch (error) {
-            console.error("Error accessing localStorage:", error)
+            logger.error("Error accessing localStorage:", error)
           }
         }
       } catch (error) {
-        console.error("Error initializing auth:", error)
+        logger.error("Error initializing auth:", error)
       } finally {
         setIsLoading(false)
       }
@@ -143,19 +145,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const fetchProfile = async (userId: string) => {
     try {
       if (isSupabaseConfigured) {
-        const { data, error } = await supabase.from("profiles").select("*").eq("id", userId).single()
+        const { data, error } = await supabase
+          .from<Profile>("profiles")
+          .select("*")
+          .eq("id", userId)
+          .single()
 
         if (error && error.code !== "PGRST116") {
-          console.error("Error fetching profile:", error)
+          logger.error("Error fetching profile:", error)
           return
         }
 
         if (data) {
-          setProfile(data)
+          setProfile(data as UserProfile)
         }
       }
     } catch (error) {
-      console.error("Error fetching profile:", error)
+      logger.error("Error fetching profile:", error)
     }
   }
 

@@ -1,4 +1,5 @@
 "use client"
+import { logger } from '@/lib/logger';
 
 import type React from "react"
 import { createContext, useContext, useState, useEffect } from "react"
@@ -194,7 +195,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
           setLanguage(savedLanguage)
         }
       } catch (error) {
-        console.error("Error loading language from localStorage:", error)
+        logger.error("Error loading language from localStorage:", error)
       }
     }
 
@@ -207,7 +208,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
       try {
         localStorage.setItem("language", lang)
       } catch (error) {
-        console.error("Error saving language to localStorage:", error)
+        logger.error("Error saving language to localStorage:", error)
       }
     }
   }

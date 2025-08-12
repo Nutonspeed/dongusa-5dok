@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import { createServerClient } from "@supabase/ssr"
 import { cookies } from "next/headers"
 import { cache } from "react"
@@ -11,7 +12,7 @@ export const isSupabaseConfigured =
 
 export const createClient = cache(() => {
   if (!isSupabaseConfigured) {
-    console.warn("Supabase environment variables are not set. Using dummy client.")
+    logger.warn("Supabase environment variables are not set. Using dummy client.")
     return {
       auth: {
         getUser: () => Promise.resolve({ data: { user: null }, error: null }),
@@ -50,7 +51,7 @@ export const createClient = cache(() => {
       },
     })
   } catch (error) {
-    console.warn("Failed to create server client, falling back to dummy client:", error)
+    logger.warn("Failed to create server client, falling back to dummy client:", error)
     return {
       auth: {
         getUser: () => Promise.resolve({ data: { user: null }, error: null }),

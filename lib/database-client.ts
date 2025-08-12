@@ -1,12 +1,13 @@
 import { createClient } from "@/lib/supabase/client"
 import type { Database } from "@/lib/supabase/types"
+import type { Product, Fabric, Order, Profile } from "@/types/entities"
 
 export class ClientDatabaseService {
   private supabase = createClient()
 
   // Products
   async getProducts(filters?: { category?: string; active?: boolean }) {
-    let query = this.supabase.from("products").select(`
+    let query = this.supabase.from<Product>("products").select(`
       *,
       categories (
         id,
@@ -30,7 +31,7 @@ export class ClientDatabaseService {
 
   async getProduct(id: string) {
     const { data, error } = await this.supabase
-      .from("products")
+      .from<Product>("products")
       .select(`
         *,
         categories (
@@ -67,7 +68,7 @@ export class ClientDatabaseService {
 
   async getFabricsByCollection(collectionId: string) {
     const { data, error } = await this.supabase
-      .from("fabrics")
+      .from<Fabric>("fabrics")
       .select("*")
       .eq("collection_id", collectionId)
       .eq("is_active", true)
@@ -79,7 +80,7 @@ export class ClientDatabaseService {
   // Orders (for authenticated users)
   async getOrders(userId: string, limit = 50) {
     const { data, error } = await this.supabase
-      .from("orders")
+      .from<Order>("orders")
       .select(`
         *,
         order_items (
@@ -100,14 +101,14 @@ export class ClientDatabaseService {
 
   // Profiles
   async getProfile(userId: string) {
-    const { data, error } = await this.supabase.from("profiles").select("*").eq("id", userId).single()
+    const { data, error } = await this.supabase.from<Profile>("profiles").select("*").eq("id", userId).single()
 
     return { data, error }
   }
 
   async updateProfile(userId: string, updates: Database["public"]["Tables"]["profiles"]["Update"]) {
     const { data, error } = await this.supabase
-      .from("profiles")
+      .from<Profile>("profiles")
       .update({ ...updates, updated_at: new Date().toISOString() })
       .eq("id", userId)
       .select()

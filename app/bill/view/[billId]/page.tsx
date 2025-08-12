@@ -1,4 +1,5 @@
 "use client"
+import { logger } from '@/lib/logger';
 
 import { useState, useEffect } from "react"
 import { useParams } from "next/navigation"
@@ -32,7 +33,7 @@ export default function BillViewPage() {
       setOrder(orderData)
       setNewAddress(orderData?.customerAddress || "")
     } catch (error) {
-      console.error("Error loading order:", error)
+      logger.error("Error loading order:", error)
     } finally {
       setLoading(false)
     }

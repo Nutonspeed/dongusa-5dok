@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import { type NextRequest, NextResponse } from "next/server"
 
 export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
@@ -8,7 +9,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       return NextResponse.json({ error: "ที่อยู่ไม่ถูกต้อง" }, { status: 400 })
     }
 
-    console.log(`Updating address for order ${params.id}:`, address)
+    logger.info(`Updating address for order ${params.id}:`, address)
 
     // Simulate processing delay
     await new Promise((resolve) => setTimeout(resolve, 500))
@@ -20,7 +21,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       newAddress: address.trim(),
     })
   } catch (error) {
-    console.error("Address update error:", error)
+    logger.error("Address update error:", error)
     return NextResponse.json({ error: "เกิดข้อผิดพลาดในการอัพเดทที่อยู่" }, { status: 500 })
   }
 }

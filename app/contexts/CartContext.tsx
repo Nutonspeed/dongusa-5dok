@@ -1,4 +1,5 @@
 "use client"
+import { logger } from '@/lib/logger';
 
 import type React from "react"
 import { createContext, useContext, useState, useEffect } from "react"
@@ -79,7 +80,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           }
         }
       } catch (error) {
-        console.error("Error loading cart:", error)
+        logger.error("Error loading cart:", error)
       } finally {
         setIsLoading(false)
       }
@@ -120,7 +121,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           }
         }
       } catch (error) {
-        console.error("Error saving cart:", error)
+        logger.error("Error saving cart:", error)
       }
     }, 100)
 

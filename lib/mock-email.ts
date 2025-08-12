@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import { developmentConfig } from "./development-config"
 
 // Email types
@@ -147,11 +148,11 @@ class MockEmailService {
 
   async sendEmail(options: EmailOptions): Promise<{ success: boolean; messageId?: string }> {
     // Log the email for development purposes
-    console.log("📧 Mock Email Service - Email would be sent:")
-    console.log("To:", options.to)
-    console.log("Subject:", options.subject)
-    console.log("From:", options.from || "noreply@sofacovers.com")
-    console.log("HTML Content:", options.html.substring(0, 100) + "...")
+    logger.info("📧 Mock Email Service - Email would be sent:")
+    logger.info("To:", options.to)
+    logger.info("Subject:", options.subject)
+    logger.info("From:", options.from || "noreply@sofacovers.com")
+    logger.info("HTML Content:", options.html.substring(0, 100) + "...")
 
     // Simulate async operation
     await new Promise((resolve) => setTimeout(resolve, 100))
@@ -165,7 +166,7 @@ class MockEmailService {
   async sendBulkEmail(
     emails: EmailOptions[],
   ): Promise<{ success: boolean; results: Array<{ success: boolean; messageId?: string }> }> {
-    console.log(`📧 Mock Email Service - ${emails.length} bulk emails would be sent`)
+    logger.info(`📧 Mock Email Service - ${emails.length} bulk emails would be sent`)
 
     const results = emails.map(() => ({
       success: true,
@@ -201,7 +202,7 @@ class MockEmailService {
         ...template,
         id: generateId(),
       }))
-      console.log("📧 [MOCK EMAIL] Templates initialized")
+      logger.info("📧 [MOCK EMAIL] Templates initialized")
     }
   }
 
@@ -234,7 +235,7 @@ class MockEmailService {
     }
 
     if (developmentConfig.services.email.logToConsole) {
-      console.log(`📧 [MOCK EMAIL] ${success.success ? "✅ Sent" : "❌ Failed"}:`, {
+      logger.info(`📧 [MOCK EMAIL] ${success.success ? "✅ Sent" : "❌ Failed"}:`, {
         to,
         subject,
         template: templateName,
@@ -295,5 +296,5 @@ export const mockEmailService = new MockEmailService()
 
 // Auto-initialize templates
 if (developmentConfig.services.email.useMock) {
-  mockEmailService.initializeTemplates().catch(console.error)
+  mockEmailService.initializeTemplates().catch(logger.error)
 }

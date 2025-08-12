@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import { type NextRequest, NextResponse } from "next/server"
 
 // Mock bill database
@@ -6,7 +7,7 @@ const mockBills = new Map()
 // Mock email service
 const mockEmailService = {
   async sendEmail(options: { to: string; subject: string; html: string }) {
-    console.log("Mock email sent:", options)
+    logger.info("Mock email sent:", options)
     return { success: true }
   },
 }
@@ -59,7 +60,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       message: "Payment notification sent successfully",
     })
   } catch (error) {
-    console.error("Error processing payment notification:", error)
+    logger.error("Error processing payment notification:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }

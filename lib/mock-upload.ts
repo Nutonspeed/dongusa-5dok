@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import { developmentConfig } from "./development-config"
 
 // Upload types
@@ -122,7 +123,7 @@ class MockUploadService {
     }
     uploadProgress.set(uploadId, progress)
 
-    console.log("📁 [MOCK UPLOAD] Starting upload:", file.name)
+    logger.info("📁 [MOCK UPLOAD] Starting upload:", file.name)
 
     try {
       // Simulate upload process
@@ -147,11 +148,11 @@ class MockUploadService {
       this.stats.totalSize += file.size
       this.stats.successfulUploads++
 
-      console.log("📁 [MOCK UPLOAD] ✅ Upload completed:", file.name)
+      logger.info("📁 [MOCK UPLOAD] ✅ Upload completed:", file.name)
       return uploadedFile
     } catch (error) {
       uploadProgress.delete(uploadId)
-      console.log("📁 [MOCK UPLOAD] ❌ Upload failed:", file.name, error)
+      logger.info("📁 [MOCK UPLOAD] ❌ Upload failed:", file.name, error)
       this.stats.failedUploads++
       throw error
     }
@@ -173,7 +174,7 @@ class MockUploadService {
       successfulUploads: 0,
       failedUploads: 0,
     }
-    console.log("🗑️ [MOCK UPLOAD] All files cleared")
+    logger.info("🗑️ [MOCK UPLOAD] All files cleared")
   }
 
   formatFileSize(bytes: number): string {
@@ -224,7 +225,7 @@ class MockUploadService {
       this.stats.successfulUploads++
     }
 
-    console.log("🌱 [MOCK UPLOAD] Sample files seeded")
+    logger.info("🌱 [MOCK UPLOAD] Sample files seeded")
   }
 
   async initialize(): Promise<void> {
@@ -240,5 +241,5 @@ export const mockUploadService = new MockUploadService()
 
 // Auto-initialize
 if (developmentConfig.services.upload.useMock) {
-  mockUploadService.initialize().catch(console.error)
+  mockUploadService.initialize().catch(logger.error)
 }

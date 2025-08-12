@@ -14,17 +14,19 @@ export default function LoginForm() {
   const [state, setState] = useState<{ error?: string; success?: boolean } | null>(null)
 
   const handleSubmit = async (formData: FormData) => {
-    startTransition(async () => {
-      try {
-        const result = await signIn(null, formData)
-        setState(result)
+    startTransition(() => {
+      void (async () => {
+        try {
+          const result = await signIn(null, formData)
+          setState(result)
 
-        if (result?.success) {
-          router.push("/")
+          if (result?.success) {
+            router.push("/")
+          }
+        } catch (error) {
+          setState({ error: "An error occurred during sign in" })
         }
-      } catch (error) {
-        setState({ error: "An error occurred during sign in" })
-      }
+      })()
     })
   }
 

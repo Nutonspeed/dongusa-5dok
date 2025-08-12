@@ -1,4 +1,5 @@
 "use client"
+import { logger } from '@/lib/logger';
 
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -50,7 +51,7 @@ export default function OrderTracker({ orderId }: OrderTrackerProps) {
       const data = await response.json()
       setOrder(data)
     } catch (error) {
-      console.error("Failed to fetch order:", error)
+      logger.error("Failed to fetch order:", error)
     } finally {
       setLoading(false)
     }

@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 // Development Configuration for Mock Services
 import { mockDatabaseService } from "./mock-database"
 import { mockEmailService } from "./mock-email"
@@ -191,7 +192,7 @@ export const devUtils = {
     // Reseed with fresh data
     await this.generateMockData()
 
-    console.log("Demo data reset successfully")
+    logger.info("Demo data reset successfully")
   },
 
   // Generate mock data
@@ -205,19 +206,19 @@ export const devUtils = {
     await mockEmailService.sendEmail("test@example.com", "Test Email", "This is a test email")
     await mockEmailService.sendEmail("admin@example.com", "Admin Notification", "Admin test email")
 
-    console.log("Mock data generated successfully")
+    logger.info("Mock data generated successfully")
   },
 
   // Log system info
   logSystemInfo(): void {
     if (!this.isDevelopment()) return
 
-    console.group("🔧 [DEV UTILS] System Information")
-    console.log("Environment:", process.env.NODE_ENV)
-    console.log("Demo Mode:", this.isDemoMode())
-    console.log("Services:", this.getServiceStatus())
-    console.log("Config:", developmentConfig)
-    console.groupEnd()
+    logger.group("🔧 [DEV UTILS] System Information")
+    logger.info("Environment:", process.env.NODE_ENV)
+    logger.info("Demo Mode:", this.isDemoMode())
+    logger.info("Services:", this.getServiceStatus())
+    logger.info("Config:", developmentConfig)
+    logger.groupEnd()
   },
 
   // Performance monitoring
@@ -236,7 +237,7 @@ export const devUtils = {
       if (!startTime) return 0
 
       const duration = performance.now() - startTime
-      console.log(`⏱️ [PERF] ${label}: ${duration.toFixed(2)}ms`)
+      logger.info(`⏱️ [PERF] ${label}: ${duration.toFixed(2)}ms`)
       this.timers.delete(label)
 
       return duration
@@ -278,9 +279,9 @@ if (typeof window !== "undefined" && developmentConfig.demo.enabled) {
   setInterval(async () => {
     try {
       await devUtils.resetDemoData()
-      console.log("🔄 [AUTO RESET] ข้อมูลสาธิตถูกรีเซ็ตอัตโนมัติ")
+      logger.info("🔄 [AUTO RESET] ข้อมูลสาธิตถูกรีเซ็ตอัตโนมัติ")
     } catch (error) {
-      console.error("❌ [AUTO RESET] รีเซ็ตอัตโนมัติล้มเหลว:", error)
+      logger.error("❌ [AUTO RESET] รีเซ็ตอัตโนมัติล้มเหลว:", error)
     }
   }, developmentConfig.demo.resetDataInterval)
 }
@@ -310,5 +311,5 @@ export const performanceMonitoring = {
 
 // Initialize mock data in development
 if (isDevelopment && typeof window === "undefined") {
-  devUtils.generateMockData().catch(console.error)
+  devUtils.generateMockData().catch(logger.error)
 }

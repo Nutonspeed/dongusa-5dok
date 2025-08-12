@@ -53,23 +53,25 @@ export default function RegisterPage() {
       return
     }
 
-    startTransition(async () => {
-      try {
-        const formDataObj = new FormData()
-        formDataObj.append("email", formData.email)
-        formDataObj.append("password", formData.password)
-        formDataObj.append("fullName", `${formData.firstName} ${formData.lastName}`.trim())
+    startTransition(() => {
+      void (async () => {
+        try {
+          const formDataObj = new FormData()
+          formDataObj.append("email", formData.email)
+          formDataObj.append("password", formData.password)
+          formDataObj.append("fullName", `${formData.firstName} ${formData.lastName}`.trim())
 
-        const result = await signUp(null, formDataObj)
-        setState(result)
+          const result = await signUp(null, formDataObj)
+          setState(result)
 
-        if (result.success) {
-          // Redirect after successful registration
-          setTimeout(() => router.push("/auth/login"), 2000)
+          if (result.success) {
+            // Redirect after successful registration
+            setTimeout(() => router.push("/auth/login"), 2000)
+          }
+        } catch (error) {
+          setState({ error: language === "th" ? "การสมัครสมาชิกล้มเหลว" : "Registration failed" })
         }
-      } catch (error) {
-        setState({ error: language === "th" ? "การสมัครสมาชิกล้มเหลว" : "Registration failed" })
-      }
+      })()
     })
   }
 

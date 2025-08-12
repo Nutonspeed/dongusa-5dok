@@ -1,4 +1,5 @@
 "use client"
+import { logger } from '@/lib/logger';
 
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -69,7 +70,7 @@ export default function DemoControlPanel() {
         upload: uploadStats,
       })
     } catch (error) {
-      console.error("Failed to load stats:", error)
+      logger.error("Failed to load stats:", error)
     } finally {
       setLoading(false)
     }
@@ -125,7 +126,7 @@ export default function DemoControlPanel() {
       await serviceAction()
       await loadStats()
     } catch (error) {
-      console.error(`Failed to ${action}:`, error)
+      logger.error(`Failed to ${action}:`, error)
     } finally {
       setActionLoading(null)
     }

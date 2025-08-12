@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import { type NextRequest, NextResponse } from "next/server"
 
 export async function POST(request: NextRequest) {
@@ -5,7 +6,7 @@ export async function POST(request: NextRequest) {
     const { orderIds, presetId } = await request.json()
 
     // Mock message sending operation
-    console.log("Bulk message sending:", { orderIds, presetId })
+    logger.info("Bulk message sending:", { orderIds, presetId })
 
     // Simulate processing time
     await new Promise((resolve) => setTimeout(resolve, 1200))
