@@ -12,7 +12,7 @@ import { useLanguage } from "../contexts/LanguageContext"
 import { useCart } from "../contexts/CartContext"
 import Header from "../components/Header"
 import Footer from "../components/Footer"
-import { clientDb } from "@/lib/database-client"
+import clientDb from "@/lib/database-client"
 
 interface Product {
   id: string

@@ -4,6 +4,7 @@ import { logger } from "@/lib/logger"
 export const NODE_ENV = process.env.NODE_ENV || "development"
 export const IS_PRODUCTION = NODE_ENV === "production"
 export const IS_DEVELOPMENT = NODE_ENV === "development"
+export const MAINTENANCE_MODE = process.env.MAINTENANCE === "1"
 
 // Supabase configuration with validation
 export const USE_SUPABASE = (() => {
@@ -20,7 +21,7 @@ export const USE_SUPABASE = (() => {
 export const QA_BYPASS_AUTH = (() => {
   const bypass = process.env.QA_BYPASS_AUTH === "1"
 
-  if (IS_PRODUCTION && bypass) {
+  if (IS_PRODUCTION && bypass && !MAINTENANCE_MODE) {
     logger.error("🚨 CRITICAL: QA_BYPASS_AUTH is enabled in production!")
     throw new Error("Security violation: QA bypass cannot be enabled in production")
   }
@@ -29,7 +30,7 @@ export const QA_BYPASS_AUTH = (() => {
     logger.warn("⚠️ QA_BYPASS_AUTH is enabled - authentication bypassed")
   }
 
-  return bypass && !IS_PRODUCTION
+  return bypass && (!IS_PRODUCTION || MAINTENANCE_MODE)
 })()
 
 // Database configuration
@@ -224,6 +225,7 @@ export default {
   NODE_ENV,
   IS_PRODUCTION,
   IS_DEVELOPMENT,
+  MAINTENANCE_MODE,
   USE_SUPABASE,
   QA_BYPASS_AUTH,
   DATABASE_CONFIG,

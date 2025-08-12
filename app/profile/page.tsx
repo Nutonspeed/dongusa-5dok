@@ -13,7 +13,7 @@ import { useLanguage } from "../contexts/LanguageContext"
 import { useAuth } from "../contexts/AuthContext"
 import Header from "../components/Header"
 import Footer from "../components/Footer"
-import { clientDb } from "@/lib/database-client"
+import clientDb from "@/lib/database-client"
 import { useToast } from "@/hooks/use-toast"
 
 export default function ProfilePage() {

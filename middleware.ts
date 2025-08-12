@@ -2,6 +2,8 @@ import { logger } from "@/lib/logger"
 import { QA_BYPASS_AUTH, USE_SUPABASE, IS_PRODUCTION } from "@/lib/runtime"
 import { NextResponse, type NextRequest } from "next/server"
 
+export const runtime = 'nodejs'
+
 // Rate limiting
 const rateLimitMap = new Map<string, { count: number; resetTime: number }>()
 

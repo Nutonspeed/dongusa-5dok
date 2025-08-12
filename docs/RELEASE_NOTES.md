@@ -8,3 +8,5 @@
 - Edge/Node runtime incompatibilities resolved.
 - Husky guard prevents accidental deletion in UI directories.
 - Release candidate tagging script `pnpm rc:tag` added to support deployments.
+- QA smoke script and CSV export endpoint ensure core flows remain healthy.
+- DEV_MASTER_PLAN outlines architecture, data modes, and next steps.

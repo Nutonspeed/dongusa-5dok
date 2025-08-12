@@ -155,6 +155,19 @@ class DatabaseClient {
     this.connectionAttempts++
     logger.error(`❌ Failed to establish database connection after ${maxAttempts} attempts`)
     return false
+    }
+
+  // Mock helpers used by client pages
+  async getProducts() {
+    return { data: [], error: null }
+  }
+
+  async getCategories() {
+    return { data: [], error: null }
+  }
+
+  async updateProfile(..._args: any[]) {
+    return { data: null, error: null }
   }
 
   getConnectionStats() {
