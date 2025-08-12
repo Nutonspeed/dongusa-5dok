@@ -28,7 +28,19 @@ interface AuthContextType {
   refreshProfile: () => Promise<void>
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined)
+const defaultAuthContext: AuthContextType = {
+  user: null,
+  profile: null,
+  isLoading: false,
+  isAuthenticated: false,
+  isAdmin: false,
+  signIn: async () => ({ success: false, error: "Auth not initialized" }),
+  signUp: async () => ({ success: false, error: "Auth not initialized" }),
+  signOut: async () => {},
+  refreshProfile: async () => {},
+}
+
+const AuthContext = createContext<AuthContextType>(defaultAuthContext)
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
@@ -176,9 +188,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             role: credential.role,
           }
 
-          localStorage.setItem("user_data", JSON.stringify(mockUser))
-          if (credential.role === "admin") {
-            localStorage.setItem("admin_token", "demo_token")
+          if (typeof window !== "undefined") {
+            localStorage.setItem("user_data", JSON.stringify(mockUser))
+            if (credential.role === "admin") {
+              localStorage.setItem("admin_token", "demo_token")
+            }
           }
 
           setUser(mockUser as any)
@@ -217,7 +231,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             data: {
               full_name: fullName || "",
             },
-            emailRedirectTo: process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL || window.location.origin,
+            emailRedirectTo:
+              process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL ||
+              (typeof window !== "undefined" ? window.location.origin : ""),
           },
         })
 
@@ -234,7 +250,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           role: "customer",
         }
 
-        localStorage.setItem("user_data", JSON.stringify(mockUser))
+        if (typeof window !== "undefined") {
+          localStorage.setItem("user_data", JSON.stringify(mockUser))
+        }
 
         setUser(mockUser as any)
         setProfile({
@@ -259,8 +277,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (isSupabaseConfigured) {
       await supabase.auth.signOut()
     } else {
-      localStorage.removeItem("user_data")
-      localStorage.removeItem("admin_token")
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("user_data")
+        localStorage.removeItem("admin_token")
+      }
       setUser(null)
       setProfile(null)
     }
@@ -286,16 +306,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     refreshProfile,
   }
 
-  if (!isMounted) {
-    return <div style={{ display: "none" }}>{children}</div>
-  }
-
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
+  return (
+    <AuthContext.Provider value={value}>
+      <div style={{ visibility: isMounted ? "visible" : "hidden" }}>{children}</div>
+    </AuthContext.Provider>
+  )
 }
 
 export function useAuth() {
   const context = useContext(AuthContext)
   if (context === undefined) {
+    if (typeof window === "undefined") {
+      // During SSR, return default values
+      return defaultAuthContext
+    }
     throw new Error("useAuth must be used within an AuthProvider")
   }
   return context
