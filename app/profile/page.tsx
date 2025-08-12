@@ -13,11 +13,14 @@ import { useLanguage } from "../contexts/LanguageContext"
 import { useAuth } from "../contexts/AuthContext"
 import Header from "../components/Header"
 import Footer from "../components/Footer"
+import { clientDb } from "@/lib/database-client"
+import { useToast } from "@/hooks/use-toast"
 
 export default function ProfilePage() {
   const router = useRouter()
   const { language } = useLanguage()
-  const { user, profile, isAuthenticated } = useAuth() // removed updateProfile since it doesn't exist
+  const { user, profile, isAuthenticated, refreshProfile } = useAuth()
+  const { toast } = useToast()
   const [isEditing, setIsEditing] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [profileData, setProfileData] = useState({
@@ -58,18 +61,40 @@ export default function ProfilePage() {
   }, [isAuthenticated, user, profile, router])
 
   const handleSave = async () => {
+    if (!user) return
     setIsLoading(true)
 
     try {
-      // In a real implementation, this would call a Supabase update
-      await new Promise((resolve) => setTimeout(resolve, 1000)) // Simulate API call
+      const { error } = await clientDb.updateProfile(user.id, {
+        full_name: editForm.fullName,
+        phone: editForm.phone,
+      })
+
+      if (error) throw error
+
       setProfileData(editForm)
       setIsEditing(false)
+      toast({
+        title: language === "th" ? "บันทึกสำเร็จ" : "Profile Updated",
+        description:
+          language === "th"
+            ? "อัปเดตข้อมูลโปรไฟล์เรียบร้อยแล้ว"
+            : "Your profile has been updated.",
+      })
+      await refreshProfile()
     } catch (error) {
       logger.error("Profile update failed:", error)
+      toast({
+        title: language === "th" ? "เกิดข้อผิดพลาด" : "Update Failed",
+        description:
+          language === "th"
+            ? "ไม่สามารถอัปเดตโปรไฟล์ได้"
+            : "Could not update your profile.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsLoading(false)
     }
-
-    setIsLoading(false)
   }
 
   const handleCancel = () => {
