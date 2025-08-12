@@ -1,5 +1,6 @@
 // Database adapter that switches between mock and Supabase
-import { createClient as createSupabaseClient, isSupabaseConfigured } from "./supabase/server"
+import { createClient as createSupabaseClient } from "./supabase/server"
+import { USE_SUPABASE } from "./runtime"
 import type { Product, Order } from "@/types/entities"
 
 // Mock database for development
@@ -35,7 +36,7 @@ const mockDatabase = {
       updated_at: new Date().toISOString(),
     },
   ],
-  orders: [],
+  orders: [] as Order[],
   users: [],
 }
 
@@ -44,7 +45,7 @@ export class DatabaseAdapter {
   private useMock: boolean
 
   constructor() {
-    this.useMock = !isSupabaseConfigured
+    this.useMock = !USE_SUPABASE
     if (!this.useMock) {
       this.supabase = createSupabaseClient()
     }

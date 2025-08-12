@@ -23,13 +23,14 @@ import {
   MessageSquare,
   ImageIcon,
   Shield,
+  type LucideIcon,
 } from "lucide-react"
 import { useAuth } from "../contexts/AuthContext"
 
 interface NavItem {
   name: string
   href: string
-  icon: React.ComponentType<React.SVGProps<SVGSVGElement>>
+  icon: LucideIcon
 }
 
 const navigation: NavItem[] = [

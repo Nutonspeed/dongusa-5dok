@@ -19,7 +19,8 @@ import Image from "next/image"
 import Link from "next/link"
 
 // Same fabric collections data as above
-const fabricCollections = [
+// Placeholder array typed as any[] to satisfy strict type checking without altering UI
+const fabricCollections: any[] = [
   // ... (same data as in the enhanced FabricCollections component)
 ]
 
@@ -34,12 +35,14 @@ export default function FabricGalleryPage() {
   const [showFilters, setShowFilters] = useState(false)
 
   // Get all unique tags
-  const allTags = Array.from(new Set(fabricCollections.flatMap((collection) => collection.tags)))
+  const allTags: any[] = Array.from(
+    new Set(fabricCollections.flatMap((collection: any) => collection.tags)),
+  )
 
   // Filter and sort patterns
   const getAllPatterns = () => {
-    let allPatterns = fabricCollections.flatMap((collection) =>
-      collection.samples.map((sample) => ({
+    let allPatterns = fabricCollections.flatMap((collection: any) =>
+      collection.samples.map((sample: any) => ({
         ...sample,
         collectionName: collection.name,
         collectionId: collection.id,
@@ -50,7 +53,7 @@ export default function FabricGalleryPage() {
     // Apply filters
     if (searchTerm) {
       allPatterns = allPatterns.filter(
-        (pattern) =>
+        (pattern: any) =>
           pattern.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
           pattern.collectionName.toLowerCase().includes(searchTerm.toLowerCase()) ||
           pattern.texture.toLowerCase().includes(searchTerm.toLowerCase()),
@@ -58,20 +61,22 @@ export default function FabricGalleryPage() {
     }
 
     if (selectedTags.length > 0) {
-      allPatterns = allPatterns.filter((pattern) => selectedTags.some((tag) => pattern.tags.includes(tag)))
+      allPatterns = allPatterns.filter((pattern: any) =>
+        selectedTags.some((tag: any) => pattern.tags.includes(tag)),
+      )
     }
 
     if (selectedCollection) {
-      allPatterns = allPatterns.filter((pattern) => pattern.collectionId === selectedCollection)
+      allPatterns = allPatterns.filter((pattern: any) => pattern.collectionId === selectedCollection)
     }
 
     // Apply sorting
     switch (sortBy) {
       case "name":
-        allPatterns.sort((a, b) => a.name.localeCompare(b.name))
+        allPatterns.sort((a: any, b: any) => a.name.localeCompare(b.name))
         break
       case "price":
-        allPatterns.sort((a, b) => {
+        allPatterns.sort((a: any, b: any) => {
           const aPrice = Number.parseInt(a.price.match(/\d+/)?.[0] || "0")
           const bPrice = Number.parseInt(b.price.match(/\d+/)?.[0] || "0")
           return aPrice - bPrice
@@ -115,7 +120,7 @@ export default function FabricGalleryPage() {
   const navigateImage = (direction: "prev" | "next") => {
     if (!zoomedImage) return
 
-    const currentIndex = filteredPatterns.findIndex((p) => p.id === zoomedImage.id)
+    const currentIndex = filteredPatterns.findIndex((p: any) => p.id === zoomedImage.id)
     let newIndex
 
     if (direction === "prev") {
@@ -179,7 +184,7 @@ export default function FabricGalleryPage() {
                   className="w-full p-2 border border-gray-300 rounded-lg"
                 >
                   <option value="">All Collections</option>
-                  {fabricCollections.map((collection) => (
+                  {fabricCollections.map((collection: any) => (
                     <option key={collection.id} value={collection.id}>
                       {collection.name}
                     </option>
@@ -191,11 +196,11 @@ export default function FabricGalleryPage() {
               <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-700 mb-2">Style Tags</label>
                 <div className="flex flex-wrap gap-2">
-                  {allTags.map((tag) => (
+                  {allTags.map((tag: any) => (
                     <button
                       key={tag}
                       onClick={() =>
-                        setSelectedTags((prev) => (prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]))
+                        setSelectedTags((prev: any) => (prev.includes(tag) ? prev.filter((t: any) => t !== tag) : [...prev, tag]))
                       }
                       className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
                         selectedTags.includes(tag)
@@ -244,7 +249,7 @@ export default function FabricGalleryPage() {
       <div className="container mx-auto px-4 py-6">
         {viewMode === "grid" ? (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-            {filteredPatterns.map((pattern) => (
+            {filteredPatterns.map((pattern: any) => (
               <div
                 key={`${pattern.collectionId}-${pattern.id}`}
                 className="bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow"
@@ -305,7 +310,7 @@ export default function FabricGalleryPage() {
           </div>
         ) : (
           <div className="space-y-4">
-            {filteredPatterns.map((pattern) => (
+            {filteredPatterns.map((pattern: any) => (
               <div
                 key={`${pattern.collectionId}-${pattern.id}`}
                 className="bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow flex"

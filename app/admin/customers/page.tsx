@@ -64,8 +64,8 @@ const customerSegments = [
   },
 ]
 
-const loyaltyPrograms = {
-  "CUST-001": {
+  const loyaltyPrograms: Record<string, any> = {
+    "CUST-001": {
     customer_id: "CUST-001",
     points_balance: 1245,
     tier_level: "gold",
@@ -140,15 +140,16 @@ export default function CustomersManagement() {
         setLoading(true)
         const db = new DatabaseService()
 
-        const customers = await db.getCustomers()
+        const customers = await (db as any).getCustomers()
         const analytics = await db.getAnalytics()
 
         setCustomersData(customers)
         setStats({
           totalCustomers: customers.length,
-          activeCustomers: customers.filter((c) => c.status === "active").length,
-          vipCustomers: customers.filter((c) => c.customerType === "vip").length,
-          averageOrderValue: analytics.averageOrderValue || 0,
+          activeCustomers: customers.filter((c: any) => c.status === "active").length,
+          vipCustomers: customers.filter((c: any) => c.customerType === "vip").length,
+          averageOrderValue:
+            (analytics.totalRevenue || 0) / Math.max(analytics.totalOrders || 1, 1),
         })
       } catch (err) {
         logger.error("Error loading customer data:", err)
@@ -238,25 +239,25 @@ export default function CustomersManagement() {
     )
   }
 
-  const getCustomerTypeBadge = (type: string) => {
-    const badgeColors = {
-      vip: "bg-blue-100 text-blue-800",
-      new: "bg-green-100 text-green-800",
-      all: "bg-gray-100 text-gray-800",
+    const getCustomerTypeBadge = (type: string) => {
+      const badgeColors: Record<string, string> = {
+        vip: "bg-blue-100 text-blue-800",
+        new: "bg-green-100 text-green-800",
+        all: "bg-gray-100 text-gray-800",
+      }
+      return <Badge className={(badgeColors as Record<string, string>)[type] || badgeColors.all}>{type.toUpperCase()}</Badge>
     }
-    return <Badge className={badgeColors[type] || badgeColors.all}>{type.toUpperCase()}</Badge>
-  }
 
   const formatDate = (date: string) => new Date(date).toLocaleDateString("th-TH")
 
-  const getStatusBadge = (status: string) => {
-    const badgeColors = {
-      active: "bg-green-100 text-green-800",
-      inactive: "bg-red-100 text-red-800",
-      all: "bg-gray-100 text-gray-800",
+    const getStatusBadge = (status: string) => {
+      const badgeColors: Record<string, string> = {
+        active: "bg-green-100 text-green-800",
+        inactive: "bg-red-100 text-red-800",
+        all: "bg-gray-100 text-gray-800",
+      }
+      return <Badge className={(badgeColors as Record<string, string>)[status] || badgeColors.all}>{status.toUpperCase()}</Badge>
     }
-    return <Badge className={badgeColors[status] || badgeColors.all}>{status.toUpperCase()}</Badge>
-  }
 
   return (
     <div className="space-y-6">
@@ -839,7 +840,7 @@ export default function CustomersManagement() {
         <CustomerDetailModal
           customer={selectedCustomer}
           onClose={() => setSelectedCustomer(null)}
-          loyaltyProgram={loyaltyPrograms[selectedCustomer.id]}
+            loyaltyProgram={(loyaltyPrograms as Record<string, any>)[selectedCustomer.id]}
           communicationHistory={[]} // Placeholder for communication history
         />
       )}

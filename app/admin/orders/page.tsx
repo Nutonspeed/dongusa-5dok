@@ -83,7 +83,7 @@ const MESSAGE_PRESETS: MessagePreset[] = [
   },
 ]
 
-const statusLabelTH = {
+  const statusLabelTH: Record<string, string> = {
   pending: "รอดำเนินการ",
   confirmed: "ยืนยันแล้ว",
   production: "กำลังผลิต",
@@ -93,7 +93,7 @@ const statusLabelTH = {
   cancelled: "ยกเลิก",
 }
 
-const channelLabelTH = {
+  const channelLabelTH: Record<string, string> = {
   website: "เว็บไซต์",
   facebook: "Facebook",
   line: "LINE",
@@ -125,8 +125,8 @@ export default function AdminOrdersPage() {
     const loadOrders = async () => {
       try {
         setLoading(true)
-        const { data: ordersData } = await db.getOrders({ limit: 100 })
-        setOrders(ordersData || [])
+          const ordersData = await (db as any).getOrders(undefined, 100)
+          setOrders(ordersData || [])
       } catch (error) {
         logger.error("Failed to load orders:", error)
         toast.error("ไม่สามารถโหลดข้อมูลออร์เดอร์ได้")
@@ -219,7 +219,7 @@ export default function AdminOrdersPage() {
 
     setBulkActionLoading(true)
     try {
-      await db.updateOrdersStatus(selectedOrders, newStatus)
+        await (db as any).updateOrdersStatus(selectedOrders, newStatus)
 
       // Update local state
       setOrders((prevOrders) =>
@@ -355,20 +355,22 @@ export default function AdminOrdersPage() {
   }
 
   const getStatusBadge = (status: string) => {
-    const statusColors = {
-      pending: "bg-yellow-100 text-yellow-800",
-      confirmed: "bg-blue-100 text-blue-800",
-      production: "bg-purple-100 text-purple-800",
-      ready: "bg-green-100 text-green-800",
-      shipped: "bg-indigo-100 text-indigo-800",
-      delivered: "bg-green-100 text-green-800",
-      cancelled: "bg-red-100 text-red-800",
-    }
+      const statusColors: Record<string, string> = {
+        pending: "bg-yellow-100 text-yellow-800",
+        confirmed: "bg-blue-100 text-blue-800",
+        production: "bg-purple-100 text-purple-800",
+        ready: "bg-green-100 text-green-800",
+        shipped: "bg-indigo-100 text-indigo-800",
+        delivered: "bg-green-100 text-green-800",
+        cancelled: "bg-red-100 text-red-800",
+      }
 
-    return (
-      <Badge className={statusColors[status] || "bg-gray-100 text-gray-800"}>{statusLabelTH[status] || status}</Badge>
-    )
-  }
+      return (
+        <Badge className={(statusColors as Record<string, string>)[status] || "bg-gray-100 text-gray-800"}>
+          {statusLabelTH[status] || status}
+        </Badge>
+      )
+    }
 
   if (loading) {
     return (
@@ -474,7 +476,7 @@ export default function AdminOrdersPage() {
                   <SelectItem value="all">ทุกสถานะ</SelectItem>
                   {Object.keys(statusLabelTH).map((status) => (
                     <SelectItem key={status} value={status}>
-                      {statusLabelTH[status]}
+                      {(statusLabelTH as Record<string, string>)[status]}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -488,7 +490,7 @@ export default function AdminOrdersPage() {
                   <SelectItem value="all">ทุกช่องทาง</SelectItem>
                   {Object.keys(channelLabelTH).map((channel) => (
                     <SelectItem key={channel} value={channel}>
-                      {channelLabelTH[channel]}
+                      {(channelLabelTH as Record<string, string>)[channel]}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -594,7 +596,9 @@ export default function AdminOrdersPage() {
                     </td>
                     <td className="py-4 px-4">{getStatusBadge(order.status)}</td>
                     <td className="py-4 px-4">
-                      <Badge variant="outline">{channelLabelTH[order.channel] || order.channel}</Badge>
+                      <Badge variant="outline">
+                        {(channelLabelTH as Record<string, string>)[order.channel] || order.channel}
+                      </Badge>
                     </td>
                     <td className="py-4 px-4">
                       <span className="text-sm text-gray-600">

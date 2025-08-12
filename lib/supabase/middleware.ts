@@ -2,15 +2,10 @@ import { logger } from '@/lib/logger';
 import { createServerClient } from "@supabase/ssr"
 import { NextResponse, type NextRequest } from "next/server"
 import type { Database } from "@/types/database"
-
-export const isSupabaseConfigured =
-  typeof process.env.NEXT_PUBLIC_SUPABASE_URL === "string" &&
-  process.env.NEXT_PUBLIC_SUPABASE_URL.length > 0 &&
-  typeof process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY === "string" &&
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY.length > 0
+import { USE_SUPABASE } from "@/lib/runtime"
 
 export async function updateSession(request: NextRequest) {
-  if (!isSupabaseConfigured) {
+  if (!USE_SUPABASE) {
     const isAdminRoute = request.nextUrl.pathname.startsWith("/admin")
     const isAuthRoute =
       request.nextUrl.pathname.startsWith("/auth/") ||
