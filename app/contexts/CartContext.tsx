@@ -7,7 +7,8 @@ import { createClient } from "@/lib/supabase/client"
 import { useAuth } from "./AuthContext"
 
 interface CartItem {
-  id: string
+  id: string // Composite key for cart item
+  productId: string // Original product ID
   name: string
   price: number
   quantity: number
@@ -18,9 +19,14 @@ interface CartItem {
   customizations?: string
 }
 
+type AddItemInput = Omit<CartItem, "quantity" | "id" | "productId"> & {
+  id: string // Product ID
+  quantity?: number
+}
+
 interface CartContextType {
   items: CartItem[]
-  addItem: (item: Omit<CartItem, "quantity"> & { quantity?: number }) => void
+  addItem: (item: AddItemInput) => void
   removeItem: (id: string) => void
   updateQuantity: (id: string, quantity: number) => void
   clearCart: () => void
@@ -54,17 +60,21 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           const { data: cartData, error } = await supabase.from("cart_items").select("*").eq("user_id", user.id)
 
           if (!error && cartData) {
-            const cartItems = cartData.map((item: any) => ({
-              id: item.product_id,
-              name: item.product_name,
-              price: item.price,
-              quantity: item.quantity,
-              image: item.image_url,
-              size: item.size,
-              color: item.color,
-              fabricPattern: item.fabric_pattern,
-              customizations: item.customizations,
-            }))
+            const cartItems = cartData.map((item: any) => {
+              const itemKey = `${item.product_id}${item.size ? `-${item.size}` : ""}${item.color ? `-${item.color}` : ""}${item.fabric_pattern ? `-${item.fabric_pattern}` : ""}`
+              return {
+                id: itemKey,
+                productId: item.product_id,
+                name: item.product_name,
+                price: item.price,
+                quantity: item.quantity,
+                image: item.image_url,
+                size: item.size,
+                color: item.color,
+                fabricPattern: item.fabric_pattern,
+                customizations: item.customizations,
+              }
+            })
             setItems(cartItems)
           }
         } else {
@@ -75,7 +85,11 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           if (savedCart) {
             const parsedCart = JSON.parse(savedCart)
             if (Array.isArray(parsedCart)) {
-              setItems(parsedCart)
+              const cartItems = parsedCart.map((item: any) => ({
+                ...item,
+                productId: item.productId ?? item.id,
+              }))
+              setItems(cartItems)
             }
           }
         }
@@ -101,7 +115,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           if (items.length > 0) {
             const cartData = items.map((item) => ({
               user_id: user.id,
-              product_id: item.id,
+              product_id: item.productId,
               product_name: item.name,
               price: item.price,
               quantity: item.quantity,
@@ -128,14 +142,11 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     return () => clearTimeout(saveTimeout)
   }, [items, isLoading, isMounted, user, supabase])
 
-  const addItem = (newItem: Omit<CartItem, "quantity"> & { quantity?: number }) => {
+  const addItem = (newItem: AddItemInput) => {
     setItems((prevItems) => {
       const itemKey = `${newItem.id}${newItem.size ? `-${newItem.size}` : ""}${newItem.color ? `-${newItem.color}` : ""}${newItem.fabricPattern ? `-${newItem.fabricPattern}` : ""}`
 
-      const existingItemIndex = prevItems.findIndex((item) => {
-        const existingKey = `${item.id}${item.size ? `-${item.size}` : ""}${item.color ? `-${item.color}` : ""}${item.fabricPattern ? `-${item.fabricPattern}` : ""}`
-        return existingKey === itemKey
-      })
+      const existingItemIndex = prevItems.findIndex((item) => item.id === itemKey)
 
       if (existingItemIndex > -1) {
         // Item exists, update quantity
@@ -144,7 +155,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         return updatedItems
       } else {
         // New item, add to cart with composite key as id
-        return [...prevItems, { ...newItem, id: itemKey, quantity: newItem.quantity || 1 }]
+        return [
+          ...prevItems,
+          { ...newItem, productId: newItem.id, id: itemKey, quantity: newItem.quantity || 1 },
+        ]
       }
     })
   }
