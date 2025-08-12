@@ -62,7 +62,7 @@ export default function SettingsPage() {
     }
 
     if (user || profile) {
-      const fullName = user?.full_name || profile?.full_name || ""
+      const fullName = profile?.full_name || user?.full_name || ""
       const nameParts = fullName.split(" ")
       setProfileSettings({
         firstName: nameParts[0] || "",
@@ -189,7 +189,9 @@ export default function SettingsPage() {
                     <input
                       type="text"
                       value={profileSettings.firstName}
-                      onChange={(e) => setProfileSettings({ ...profileSettings, firstName: e.target.value })}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                        setProfileSettings({ ...profileSettings, firstName: e.target.value })
+                      }
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                     />
                   </div>
@@ -200,7 +202,9 @@ export default function SettingsPage() {
                     <input
                       type="text"
                       value={profileSettings.lastName}
-                      onChange={(e) => setProfileSettings({ ...profileSettings, lastName: e.target.value })}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                        setProfileSettings({ ...profileSettings, lastName: e.target.value })
+                      }
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                     />
                   </div>
@@ -214,7 +218,9 @@ export default function SettingsPage() {
                     <input
                       type="email"
                       value={profileSettings.email}
-                      onChange={(e) => setProfileSettings({ ...profileSettings, email: e.target.value })}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                        setProfileSettings({ ...profileSettings, email: e.target.value })
+                      }
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                     />
                   </div>
@@ -225,7 +231,9 @@ export default function SettingsPage() {
                     <input
                       type="tel"
                       value={profileSettings.phone}
-                      onChange={(e) => setProfileSettings({ ...profileSettings, phone: e.target.value })}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                        setProfileSettings({ ...profileSettings, phone: e.target.value })
+                      }
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                     />
                   </div>
@@ -237,7 +245,9 @@ export default function SettingsPage() {
                   </label>
                   <textarea
                     value={profileSettings.address}
-                    onChange={(e) => setProfileSettings({ ...profileSettings, address: e.target.value })}
+                    onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+                      setProfileSettings({ ...profileSettings, address: e.target.value })
+                    }
                     rows={2}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                   />
@@ -251,7 +261,9 @@ export default function SettingsPage() {
                     <input
                       type="text"
                       value={profileSettings.city}
-                      onChange={(e) => setProfileSettings({ ...profileSettings, city: e.target.value })}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                        setProfileSettings({ ...profileSettings, city: e.target.value })
+                      }
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                     />
                   </div>
@@ -262,7 +274,9 @@ export default function SettingsPage() {
                     <input
                       type="text"
                       value={profileSettings.postalCode}
-                      onChange={(e) => setProfileSettings({ ...profileSettings, postalCode: e.target.value })}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                        setProfileSettings({ ...profileSettings, postalCode: e.target.value })
+                      }
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                     />
                   </div>
@@ -300,7 +314,9 @@ export default function SettingsPage() {
                     <input
                       type={showCurrentPassword ? "text" : "password"}
                       value={passwordSettings.currentPassword}
-                      onChange={(e) => setPasswordSettings({ ...passwordSettings, currentPassword: e.target.value })}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                        setPasswordSettings({ ...passwordSettings, currentPassword: e.target.value })
+                      }
                       className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                       required
                     />
@@ -322,7 +338,9 @@ export default function SettingsPage() {
                     <input
                       type={showNewPassword ? "text" : "password"}
                       value={passwordSettings.newPassword}
-                      onChange={(e) => setPasswordSettings({ ...passwordSettings, newPassword: e.target.value })}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                        setPasswordSettings({ ...passwordSettings, newPassword: e.target.value })
+                      }
                       className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                       required
                     />
@@ -343,7 +361,9 @@ export default function SettingsPage() {
                   <input
                     type="password"
                     value={passwordSettings.confirmPassword}
-                    onChange={(e) => setPasswordSettings({ ...passwordSettings, confirmPassword: e.target.value })}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      setPasswordSettings({ ...passwordSettings, confirmPassword: e.target.value })
+                    }
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                     required
                   />
@@ -383,7 +403,9 @@ export default function SettingsPage() {
                 </div>
                 <Switch
                   checked={notificationSettings.emailNotifications}
-                  onCheckedChange={(checked) => handleNotificationUpdate("emailNotifications", checked)}
+                  onCheckedChange={(checked: boolean) =>
+                    handleNotificationUpdate("emailNotifications", checked)
+                  }
                 />
               </div>
 
@@ -398,7 +420,9 @@ export default function SettingsPage() {
                 </div>
                 <Switch
                   checked={notificationSettings.smsNotifications}
-                  onCheckedChange={(checked) => handleNotificationUpdate("smsNotifications", checked)}
+                  onCheckedChange={(checked: boolean) =>
+                    handleNotificationUpdate("smsNotifications", checked)
+                  }
                 />
               </div>
 
@@ -411,7 +435,9 @@ export default function SettingsPage() {
                 </div>
                 <Switch
                   checked={notificationSettings.orderUpdates}
-                  onCheckedChange={(checked) => handleNotificationUpdate("orderUpdates", checked)}
+                  onCheckedChange={(checked: boolean) =>
+                    handleNotificationUpdate("orderUpdates", checked)
+                  }
                 />
               </div>
 
@@ -424,7 +450,9 @@ export default function SettingsPage() {
                 </div>
                 <Switch
                   checked={notificationSettings.promotions}
-                  onCheckedChange={(checked) => handleNotificationUpdate("promotions", checked)}
+                  onCheckedChange={(checked: boolean) =>
+                    handleNotificationUpdate("promotions", checked)
+                  }
                 />
               </div>
 
@@ -437,7 +465,9 @@ export default function SettingsPage() {
                 </div>
                 <Switch
                   checked={notificationSettings.newsletter}
-                  onCheckedChange={(checked) => handleNotificationUpdate("newsletter", checked)}
+                  onCheckedChange={(checked: boolean) =>
+                    handleNotificationUpdate("newsletter", checked)
+                  }
                 />
               </div>
             </CardContent>
@@ -463,7 +493,9 @@ export default function SettingsPage() {
                 </div>
                 <Switch
                   checked={privacySettings.analytics}
-                  onCheckedChange={(checked) => handlePrivacyUpdate("analytics", checked)}
+                  onCheckedChange={(checked: boolean) =>
+                    handlePrivacyUpdate("analytics", checked)
+                  }
                 />
               </div>
 
@@ -478,7 +510,9 @@ export default function SettingsPage() {
                 </div>
                 <Switch
                   checked={privacySettings.dataSharing}
-                  onCheckedChange={(checked) => handlePrivacyUpdate("dataSharing", checked)}
+                  onCheckedChange={(checked: boolean) =>
+                    handlePrivacyUpdate("dataSharing", checked)
+                  }
                 />
               </div>
             </CardContent>

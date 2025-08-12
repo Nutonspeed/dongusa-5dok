@@ -54,7 +54,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           const { data: cartData, error } = await supabase.from("cart_items").select("*").eq("user_id", user.id)
 
           if (!error && cartData) {
-            const cartItems = cartData.map((item) => ({
+            const cartItems = cartData.map((item: any) => ({
               id: item.product_id,
               name: item.product_name,
               price: item.price,
@@ -195,7 +195,16 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 export function useCart() {
   const context = useContext(CartContext)
   if (context === undefined) {
-    throw new Error("useCart must be used within a CartProvider")
+    return {
+      items: [],
+      addItem: () => {},
+      removeItem: () => {},
+      updateQuantity: () => {},
+      clearCart: () => {},
+      getTotalItems: () => 0,
+      getTotalPrice: () => 0,
+      isLoading: false,
+    }
   }
   return context
 }
