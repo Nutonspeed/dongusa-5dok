@@ -1,6 +1,8 @@
 import { logger } from '@/lib/logger';
 import { type NextRequest, NextResponse } from "next/server"
 
+export const runtime = 'nodejs'
+
 export async function GET(request: NextRequest) {
   try {
     const healthCheck = {
