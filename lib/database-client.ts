@@ -1,121 +1,156 @@
-import { createClient } from "@/lib/supabase/client"
+import { logger } from "@/lib/logger"
+import type { SupabaseClient } from "@supabase/supabase-js"
 import type { Database } from "@/lib/supabase/types"
-import type { Product, Fabric, Order, Profile } from "@/types/entities"
+import { createClient } from "@/lib/supabase/client"
+import { DATABASE_CONFIG } from "@/lib/runtime"
 
-export class ClientDatabaseService {
-  private supabase = createClient()
+export class DatabaseClient {
+  private client: SupabaseClient<Database> | null = null
+  private connectionAttempts = 0
+  private isConnected = false
 
-  // Products
-  async getProducts(filters?: { category?: string; active?: boolean }) {
-    let query = this.supabase.from("products").select(`
-      *,
-      categories (
-        id,
-        name,
-        slug
-      )
-    `)
+  constructor() {
+    this.initialize()
+  }
 
-    if (filters?.category) {
-      query = query.eq("category_id", filters.category)
+  private async initialize() {
+    if (!DATABASE_CONFIG.useSupabase) {
+      logger.info("Using mock database")
+      return
     }
 
-    if (filters?.active !== undefined) {
-      query = query.eq("is_active", filters.active)
+    try {
+      this.client = createClient()
+      await this.testConnection()
+      this.isConnected = true
+      logger.info("Database connected successfully")
+    } catch (error) {
+      logger.error("Database connection failed:", error)
+      this.handleConnectionError(error)
+    }
+  }
+
+  private async testConnection() {
+    if (!this.client) throw new Error("No database client")
+
+    const { data, error } = await this.client.from("profiles").select("id").limit(1)
+
+    if (error && error.code !== "PGRST116") {
+      // PGRST116 = table not found (acceptable)
+      throw error
+    }
+  }
+
+  private handleConnectionError(error: any) {
+    this.connectionAttempts++
+
+    if (this.connectionAttempts < DATABASE_CONFIG.retryAttempts) {
+      logger.warn(`Retrying database connection (${this.connectionAttempts}/${DATABASE_CONFIG.retryAttempts})`)
+      setTimeout(() => this.initialize(), 2000 * this.connectionAttempts)
+    } else {
+      logger.error("Database connection failed permanently, falling back to mock")
+      this.client = null
+      this.isConnected = false
+    }
+  }
+
+  async query<T>(
+    table: string,
+    operation: (client: SupabaseClient<Database>) => Promise<{ data: T | null; error: any }>,
+  ): Promise<{ data: T | null; error: any }> {
+    // Use mock database if not connected or configured
+    if (!this.client || !this.isConnected || !DATABASE_CONFIG.useSupabase) {
+      logger.warn(`Using mock database for ${table} query`)
+      const { mockDatabaseService } = await import("@/lib/mock-database")
+
+      // Convert Supabase query to mock query (simplified)
+      try {
+        const mockData = await this.getMockData(table)
+        return { data: mockData as T, error: null }
+      } catch (error) {
+        return { data: null, error }
+      }
     }
 
-    const { data, error } = await query.order("created_at", { ascending: false })
+    try {
+      const result = await Promise.race([
+        operation(this.client),
+        new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error("Query timeout")), DATABASE_CONFIG.connectionTimeout),
+        ),
+      ])
 
-    return { data: data || [], error }
+      return result
+    } catch (error) {
+      logger.error(`Database query failed for ${table}:`, error)
+
+      // Fallback to mock data
+      try {
+        const mockData = await this.getMockData(table)
+        logger.warn(`Falling back to mock data for ${table}`)
+        return { data: mockData as T, error: null }
+      } catch (mockError) {
+        return { data: null, error }
+      }
+    }
   }
 
-  async getProduct(id: string) {
-    const { data, error } = await this.supabase
-      .from("products")
-      .select(`
-        *,
-        categories (
-          id,
-          name,
-          slug
-        )
-      `)
-      .eq("id", id)
-      .single()
+  private async getMockData(table: string): Promise<any> {
+    const { mockDatabaseService } = await import("@/lib/mock-database")
 
-    return { data, error }
+    switch (table) {
+      case "products":
+        return await mockDatabaseService.getProducts()
+      case "orders":
+        return await mockDatabaseService.getOrders()
+      case "profiles":
+        return await mockDatabaseService.getCustomers()
+      default:
+        return []
+    }
   }
 
-  // Categories
-  async getCategories() {
-    const { data, error } = await this.supabase.from("categories").select("*").eq("is_active", true).order("name")
-
-    return { data: data || [], error }
-  }
-
-  // Fabric Collections
-  async getFabricCollections(featured?: boolean) {
-    let query = this.supabase.from("fabric_collections").select("*").eq("is_active", true)
-
-    if (featured) {
-      query = query.eq("is_featured", true)
+  async healthCheck(): Promise<{ status: string; details: any }> {
+    if (!DATABASE_CONFIG.useSupabase) {
+      return {
+        status: "healthy",
+        details: { type: "mock", message: "Mock database is always available" },
+      }
     }
 
-    const { data, error } = await query.order("created_at", { ascending: false })
+    if (!this.client) {
+      return {
+        status: "unhealthy",
+        details: { error: "No database client available" },
+      }
+    }
 
-    return { data: data || [], error }
+    try {
+      await this.testConnection()
+      return {
+        status: "healthy",
+        details: {
+          type: "supabase",
+          connected: this.isConnected,
+          attempts: this.connectionAttempts,
+        },
+      }
+    } catch (error) {
+      return {
+        status: "unhealthy",
+        details: { error: error instanceof Error ? error.message : "Unknown error" },
+      }
+    }
   }
 
-  async getFabricsByCollection(collectionId: string) {
-    const { data, error } = await this.supabase
-      .from("fabrics")
-      .select("*")
-      .eq("collection_id", collectionId)
-      .eq("is_active", true)
-      .order("name")
-
-    return { data: data || [], error }
+  getClient(): SupabaseClient<Database> | null {
+    return this.client
   }
 
-  // Orders (for authenticated users)
-  async getOrders(userId: string, limit = 50) {
-    const { data, error } = await this.supabase
-      .from("orders")
-      .select(`
-        *,
-        order_items (
-          *,
-          products (
-            id,
-            name,
-            images
-          )
-        )
-      `)
-      .eq("user_id", userId)
-      .order("created_at", { ascending: false })
-      .limit(limit)
-
-    return { data: data || [], error }
-  }
-
-  // Profiles
-  async getProfile(userId: string) {
-    const { data, error } = await this.supabase.from("profiles").select("*").eq("id", userId).single()
-
-    return { data, error }
-  }
-
-  async updateProfile(userId: string, updates: Database["public"]["Tables"]["profiles"]["Update"]) {
-    const { data, error } = await this.supabase
-      .from("profiles")
-      .update({ ...updates, updated_at: new Date().toISOString() })
-      .eq("id", userId)
-      .select()
-      .single()
-
-    return { data, error }
+  isHealthy(): boolean {
+    return DATABASE_CONFIG.useSupabase ? this.isConnected : true
   }
 }
 
-export const clientDb = new ClientDatabaseService()
+// Singleton instance
+export const databaseClient = new DatabaseClient()

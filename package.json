@@ -6,10 +6,10 @@
     "build": "node scripts/strict-build.js",
     "dev": "next dev",
     "lint": "next lint --no-cache --max-warnings=0",
-    "start": "next start",
-    "typecheck": "tsc --noEmit",
     "prepare": "husky",
-    "rc:tag": "node -e \"console.log('v'+new Date().toISOString().slice(0,10))\""
+    "rc:tag": "node -e \"console.log('v'+new Date().toISOString().slice(0,10))\"",
+    "start": "next start",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",
@@ -43,6 +43,7 @@
     "@supabase/ssr": "latest",
     "@supabase/supabase-js": "latest",
     "autoprefixer": "^10.4.20",
+    "child_process": "latest",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "latest",
