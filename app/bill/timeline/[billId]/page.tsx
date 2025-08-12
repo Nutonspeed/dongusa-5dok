@@ -1,35 +1,39 @@
 "use client"
-import { logger } from '@/lib/logger';
 
 import { useState, useEffect } from "react"
 import { useParams } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { ArrowLeft, CheckCircle, Clock, Package, Truck, XCircle } from "lucide-react"
-import { type Order, OrderStatus, getOrderById } from "@/lib/mock-orders"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
+import { toast } from "sonner"
+import { statusBadgeVariant, toStatusLabelTH } from "@/lib/i18n/status"
 
-const statusIcons: Record<OrderStatus, any> = {
-  [OrderStatus.PENDING]: Clock,
-  [OrderStatus.PENDING_PAYMENT]: Clock,
-  [OrderStatus.PAID]: CheckCircle,
-  [OrderStatus.IN_PRODUCTION]: Package,
-  [OrderStatus.READY_TO_SHIP]: Package,
-  [OrderStatus.SHIPPED]: Truck,
-  [OrderStatus.DONE]: CheckCircle,
-  [OrderStatus.CANCELLED]: XCircle,
+type TimelineEvent = {
+  id: string
+  status: string
+  timestamp: string
+  notes?: string
 }
 
-const statusColors: Record<OrderStatus, string> = {
-  [OrderStatus.PENDING]: "bg-yellow-100 text-yellow-800 border-yellow-200",
-  [OrderStatus.PENDING_PAYMENT]: "bg-orange-100 text-orange-800 border-orange-200",
-  [OrderStatus.PAID]: "bg-green-100 text-green-800 border-green-200",
-  [OrderStatus.IN_PRODUCTION]: "bg-blue-100 text-blue-800 border-blue-200",
-  [OrderStatus.READY_TO_SHIP]: "bg-purple-100 text-purple-800 border-purple-200",
-  [OrderStatus.SHIPPED]: "bg-indigo-100 text-indigo-800 border-indigo-200",
-  [OrderStatus.DONE]: "bg-gray-100 text-gray-800 border-gray-200",
-  [OrderStatus.CANCELLED]: "bg-red-100 text-red-800 border-red-200",
+type Bill = {
+  id: string
+  code?: string
+  customer_name: string
+  status: string
+  updated_at: string
+  history?: TimelineEvent[]
+}
+
+const statusIcons: Record<string, any> = {
+  pending: Clock,
+  confirmed: CheckCircle,
+  production: Package,
+  ready: Package,
+  shipped: Truck,
+  delivered: CheckCircle,
+  cancelled: XCircle,
 }
 
 const productionSubSteps = [
@@ -39,36 +43,32 @@ const productionSubSteps = [
   { id: "packing", name: "พร้อมแพ็ก", icon: "📦", completed: false },
 ]
 
-const statusLabelTH: Record<OrderStatus, string> = {
-  [OrderStatus.PENDING]: "รอดำเนินการ",
-  [OrderStatus.PENDING_PAYMENT]: "รอชำระเงิน",
-  [OrderStatus.PAID]: "ชำระเงินแล้ว",
-  [OrderStatus.IN_PRODUCTION]: "กำลังผลิต",
-  [OrderStatus.READY_TO_SHIP]: "พร้อมจัดส่ง",
-  [OrderStatus.SHIPPED]: "จัดส่งแล้ว",
-  [OrderStatus.DONE]: "เสร็จสิ้น",
-  [OrderStatus.CANCELLED]: "ยกเลิก",
-}
-
 export default function BillTimelinePage() {
-  const params = useParams()
-  const [order, setOrder] = useState<Order | null>(null)
+  const { billId } = useParams() as { billId: string }
+  const [bill, setBill] = useState<Bill | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    loadOrder()
-  }, [params.billId])
-
-  const loadOrder = async () => {
-    try {
-      const orderData = await getOrderById(params.billId as string)
-      setOrder(orderData)
-    } catch (error) {
-      logger.error("Error loading order:", error)
-    } finally {
-      setLoading(false)
+    let alive = true
+    async function loadBill() {
+      try {
+        setLoading(true)
+        const res = await fetch(`/api/bills/${billId}`, { cache: "no-store" })
+        if (!res.ok) throw new Error("Failed to load bill")
+        const data = await res.json()
+        if (alive) setBill(data)
+      } catch (error) {
+        console.error("Error loading bill:", error)
+        toast.error("โหลดข้อมูลไม่สำเร็จ")
+      } finally {
+        if (alive) setLoading(false)
+      }
     }
-  }
+    loadBill()
+    return () => {
+      alive = false
+    }
+  }, [billId])
 
   if (loading) {
     return (
@@ -83,7 +83,7 @@ export default function BillTimelinePage() {
     )
   }
 
-  if (!order) {
+  if (!bill) {
     return (
       <div className="min-h-screen bg-gray-50 py-8">
         <div className="container mx-auto px-4 text-center">
@@ -94,14 +94,15 @@ export default function BillTimelinePage() {
     )
   }
 
-  const StatusIcon = statusIcons[order.status]
+  const StatusIcon = statusIcons[bill.status] || Clock
+  const timeline = bill.history || []
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="container mx-auto px-4 max-w-2xl">
         {/* Header */}
         <div className="text-center mb-8">
-          <Link href={`/bill/view/${order.id}`}>
+          <Link href={`/bill/view/${bill.id}`}>
             <Button variant="ghost" className="mb-4">
               <ArrowLeft className="w-4 h-4 mr-2" />
               กลับไปดูบิล
@@ -109,11 +110,11 @@ export default function BillTimelinePage() {
           </Link>
 
           <h1 className="text-3xl font-bold text-burgundy-800 mb-2">ติดตามสถานะออร์เดอร์</h1>
-          <p className="text-gray-600">ออร์เดอร์ {order.id}</p>
+          <p className="text-gray-600">ออร์เดอร์ {bill.code || bill.id}</p>
 
           <div className="flex items-center justify-center gap-2 mt-4">
             <StatusIcon className="w-5 h-5" />
-            <Badge className={statusColors[order.status]}>{statusLabelTH[order.status]}</Badge>
+            <Badge variant={statusBadgeVariant(bill.status)}>{toStatusLabelTH(bill.status)}</Badge>
           </div>
         </div>
 
@@ -124,14 +125,12 @@ export default function BillTimelinePage() {
           </CardHeader>
           <CardContent className="p-6">
             <div className="text-center">
-              <div
-                className={`inline-flex items-center gap-2 px-4 py-2 rounded-full border-2 ${statusColors[order.status]}`}
-              >
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border-2 bg-burgundy-100 text-burgundy-800 border-burgundy-200">
                 <StatusIcon className="w-6 h-6" />
-                <span className="font-semibold text-lg">{statusLabelTH[order.status]}</span>
+                <span className="font-semibold text-lg">{toStatusLabelTH(bill.status)}</span>
               </div>
 
-              {order.status === OrderStatus.IN_PRODUCTION && (
+              {bill.status === "production" && (
                 <div className="mt-6 p-4 bg-blue-50 rounded-lg">
                   <h4 className="font-medium text-blue-800 mb-3">ขั้นตอนการผลิต</h4>
                   <div className="grid grid-cols-2 gap-3">
@@ -153,7 +152,7 @@ export default function BillTimelinePage() {
 
               <p className="text-gray-600 mt-4">
                 อัปเดตล่าสุด:{" "}
-                {order.updatedAt.toLocaleDateString("th-TH", {
+                {new Date(bill.updated_at).toLocaleDateString("th-TH", {
                   year: "numeric",
                   month: "long",
                   day: "numeric",
@@ -161,14 +160,6 @@ export default function BillTimelinePage() {
                   minute: "2-digit",
                 })}
               </p>
-
-              {order.shippingInfo?.trackingNumber && (
-                <div className="mt-4 p-4 bg-blue-50 rounded-lg">
-                  <p className="font-medium text-blue-800">เลขพัสดุ</p>
-                  <p className="font-mono text-lg text-blue-900">{order.shippingInfo.trackingNumber}</p>
-                  <p className="text-sm text-blue-600 mt-1">ขนส่งโดย {order.shippingInfo.provider}</p>
-                </div>
-              )}
             </div>
           </CardContent>
         </Card>
@@ -179,58 +170,68 @@ export default function BillTimelinePage() {
             <CardTitle className="text-burgundy-800">ประวัติการดำเนินงาน</CardTitle>
           </CardHeader>
           <CardContent className="p-6">
-            <div className="space-y-6">
-              {order.timeline.map((event, index) => {
-                const EventIcon = statusIcons[event.status]
-                const isLatest = index === 0
+            {timeline.length > 0 ? (
+              <div className="space-y-6">
+                {timeline.map((event, index) => {
+                  const EventIcon = statusIcons[event.status] || Clock
+                  const isLatest = index === 0
 
-                return (
-                  <div key={event.id} className="relative">
-                    {/* Timeline line */}
-                    {index < order.timeline.length - 1 && (
-                      <div className="absolute left-6 top-12 w-0.5 h-6 bg-gray-300"></div>
-                    )}
+                  return (
+                    <div key={event.id} className="relative">
+                      {/* Timeline line */}
+                      {index < timeline.length - 1 && (
+                        <div className="absolute left-6 top-12 w-0.5 h-6 bg-gray-300"></div>
+                      )}
 
-                    <div className="flex items-start gap-4">
-                      <div
-                        className={`p-3 rounded-full border-2 ${
-                          isLatest ? statusColors[event.status] : "bg-gray-100 text-gray-500 border-gray-300"
-                        }`}
-                      >
-                        <EventIcon className="w-5 h-5" />
-                      </div>
-
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <h3 className={`font-semibold ${isLatest ? "text-burgundy-800" : "text-gray-700"}`}>
-                            {statusLabelTH[event.status]}
-                          </h3>
-                          {isLatest && (
-                            <Badge variant="secondary" className="text-xs">
-                              ล่าสุด
-                            </Badge>
-                          )}
+                      <div className="flex items-start gap-4">
+                        <div
+                          className={`p-3 rounded-full border-2 ${
+                            isLatest
+                              ? "bg-burgundy-100 text-burgundy-800 border-burgundy-200"
+                              : "bg-gray-100 text-gray-500 border-gray-300"
+                          }`}
+                        >
+                          <EventIcon className="w-5 h-5" />
                         </div>
 
-                        <p className="text-sm text-gray-600 mb-2">
-                          {event.timestamp.toLocaleDateString("th-TH", {
-                            year: "numeric",
-                            month: "long",
-                            day: "numeric",
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
-                        </p>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <h3 className={`font-semibold ${isLatest ? "text-burgundy-800" : "text-gray-700"}`}>
+                              {toStatusLabelTH(event.status)}
+                            </h3>
+                            {isLatest && (
+                              <Badge variant="secondary" className="text-xs">
+                                ล่าสุด
+                              </Badge>
+                            )}
+                          </div>
 
-                        {event.notes && (
-                          <p className="text-gray-700 text-sm bg-gray-50 p-3 rounded-lg">{event.notes}</p>
-                        )}
+                          <p className="text-sm text-gray-600 mb-2">
+                            {new Date(event.timestamp).toLocaleDateString("th-TH", {
+                              year: "numeric",
+                              month: "long",
+                              day: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </p>
+
+                          {event.notes && (
+                            <p className="text-gray-700 text-sm bg-gray-50 p-3 rounded-lg">{event.notes}</p>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                )
-              })}
-            </div>
+                  )
+                })}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <Clock className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">ยังไม่มีประวัติการดำเนินงาน</h3>
+                <p className="text-gray-600">ประวัติจะแสดงเมื่อมีการอัปเดตสถานะ</p>
+              </div>
+            )}
           </CardContent>
         </Card>
 

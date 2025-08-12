@@ -1,5 +1,5 @@
 "use client"
-import { logger } from '@/lib/logger';
+import { logger } from "@/lib/logger"
 
 import { useState, useEffect } from "react"
 import {
@@ -29,6 +29,7 @@ import Link from "next/link"
 import { DatabaseService } from "@/lib/database"
 import { createClient } from "@/lib/supabase/client"
 import { formatCurrency } from "@/lib/money"
+import { statusBadgeVariant, toStatusLabelTH, toChannelLabelTH } from "@/lib/i18n/status"
 
 interface Order {
   id: string
@@ -84,24 +85,6 @@ const MESSAGE_PRESETS: MessagePreset[] = [
   },
 ]
 
-  const statusLabelTH: Record<string, string> = {
-  pending: "รอดำเนินการ",
-  confirmed: "ยืนยันแล้ว",
-  production: "กำลังผลิต",
-  ready: "พร้อมจัดส่ง",
-  shipped: "จัดส่งแล้ว",
-  delivered: "ส่งมอบแล้ว",
-  cancelled: "ยกเลิก",
-}
-
-  const channelLabelTH: Record<string, string> = {
-  website: "เว็บไซต์",
-  facebook: "Facebook",
-  line: "LINE",
-  phone: "โทรศัพท์",
-  walk_in: "Walk-in",
-}
-
 export const dynamic = "force-dynamic"
 
 export default function AdminOrdersPage() {
@@ -126,8 +109,8 @@ export default function AdminOrdersPage() {
     const loadOrders = async () => {
       try {
         setLoading(true)
-          const ordersData = await (db as any).getOrders(undefined, 100)
-          setOrders(ordersData || [])
+        const ordersData = await (db as any).getOrders(undefined, 100)
+        setOrders(ordersData || [])
       } catch (error) {
         logger.error("Failed to load orders:", error)
         toast.error("ไม่สามารถโหลดข้อมูลออร์เดอร์ได้")
@@ -186,8 +169,8 @@ export default function AdminOrdersPage() {
             `"${order.customer_name}"`,
             order.customer_phone,
             order.total_amount,
-            `"${statusLabelTH[order.status] || order.status}"`,
-            `"${channelLabelTH[order.channel] || order.channel}"`,
+            `"${toStatusLabelTH(order.status)}"`,
+            `"${toChannelLabelTH(order.channel)}"`,
             new Date(order.created_at).toLocaleDateString("th-TH"),
             `"${order.notes || ""}"`,
             `"${order.items?.[0]?.collection || ""}"`,
@@ -220,14 +203,14 @@ export default function AdminOrdersPage() {
 
     setBulkActionLoading(true)
     try {
-        await (db as any).updateOrdersStatus(selectedOrders, newStatus)
+      await (db as any).updateOrdersStatus(selectedOrders, newStatus)
 
       // Update local state
       setOrders((prevOrders) =>
         prevOrders.map((order) => (selectedOrders.includes(order.id) ? { ...order, status: newStatus } : order)),
       )
 
-      toast.success(`อัพเดทสถานะ ${selectedOrders.length} รายการเป็น "${statusLabelTH[newStatus] || newStatus}" สำเร็จ`)
+      toast.success(`อัพเดทสถานะ ${selectedOrders.length} รายการเป็น "${toStatusLabelTH(newStatus)}" สำเร็จ`)
       setSelectedOrders([])
       setIsStatusModalOpen(false)
     } catch (error) {
@@ -295,8 +278,8 @@ export default function AdminOrdersPage() {
                 <p><strong>ลูกค้า:</strong> ${order.customer_name}</p>
                 <p><strong>เบอร์โทร:</strong> ${order.customer_phone}</p>
                 <p><strong>ยอดรวม:</strong> ${formatCurrency(order.total_amount ?? 0)}</p>
-                <p><strong>สถานะ:</strong> ${statusLabelTH[order.status] || order.status}</p>
-                <p><strong>ช่องทาง:</strong> ${channelLabelTH[order.channel] || order.channel}</p>
+                <p><strong>สถานะ:</strong> ${toStatusLabelTH(order.status)}</p>
+                <p><strong>ช่องทาง:</strong> ${toChannelLabelTH(order.channel)}</p>
                 <p><strong>วันที่:</strong> ${new Date(order.created_at).toLocaleDateString("th-TH", {
                   month: "short",
                   day: "numeric",
@@ -356,22 +339,8 @@ export default function AdminOrdersPage() {
   }
 
   const getStatusBadge = (status: string) => {
-      const statusColors: Record<string, string> = {
-        pending: "bg-yellow-100 text-yellow-800",
-        confirmed: "bg-blue-100 text-blue-800",
-        production: "bg-purple-100 text-purple-800",
-        ready: "bg-green-100 text-green-800",
-        shipped: "bg-indigo-100 text-indigo-800",
-        delivered: "bg-green-100 text-green-800",
-        cancelled: "bg-red-100 text-red-800",
-      }
-
-      return (
-        <Badge className={(statusColors as Record<string, string>)[status] || "bg-gray-100 text-gray-800"}>
-          {statusLabelTH[status] || status}
-        </Badge>
-      )
-    }
+    return <Badge variant={statusBadgeVariant(status)}>{toStatusLabelTH(status)}</Badge>
+  }
 
   if (loading) {
     return (
@@ -475,9 +444,9 @@ export default function AdminOrdersPage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">ทุกสถานะ</SelectItem>
-                  {Object.keys(statusLabelTH).map((status) => (
+                  {Object.keys(statusBadgeVariant()).map((status) => (
                     <SelectItem key={status} value={status}>
-                      {(statusLabelTH as Record<string, string>)[status]}
+                      {toStatusLabelTH(status)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -489,9 +458,9 @@ export default function AdminOrdersPage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">ทุกช่องทาง</SelectItem>
-                  {Object.keys(channelLabelTH).map((channel) => (
+                  {Object.keys(toChannelLabelTH()).map((channel) => (
                     <SelectItem key={channel} value={channel}>
-                      {(channelLabelTH as Record<string, string>)[channel]}
+                      {toChannelLabelTH(channel)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -597,9 +566,7 @@ export default function AdminOrdersPage() {
                     </td>
                     <td className="py-4 px-4">{getStatusBadge(order.status)}</td>
                     <td className="py-4 px-4">
-                      <Badge variant="outline">
-                        {(channelLabelTH as Record<string, string>)[order.channel] || order.channel}
-                      </Badge>
+                      <Badge variant="outline">{toChannelLabelTH(order.channel)}</Badge>
                     </td>
                     <td className="py-4 px-4">
                       <span className="text-sm text-gray-600">
@@ -680,9 +647,9 @@ export default function AdminOrdersPage() {
                 <SelectValue placeholder="เลือกสถานะใหม่" />
               </SelectTrigger>
               <SelectContent>
-                {Object.keys(statusLabelTH).map((status) => (
+                {Object.keys(statusBadgeVariant()).map((status) => (
                   <SelectItem key={status} value={status}>
-                    {statusLabelTH[status]}
+                    {toStatusLabelTH(status)}
                   </SelectItem>
                 ))}
               </SelectContent>

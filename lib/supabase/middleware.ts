@@ -1,10 +1,8 @@
-import { logger } from '@/lib/logger';
+import { logger } from "@/lib/logger"
 import { createServerClient } from "@supabase/ssr"
 import { NextResponse, type NextRequest } from "next/server"
 import type { Database } from "@/types/database"
 import { USE_SUPABASE } from "@/lib/runtime"
-
-export const runtime = "nodejs"
 
 export async function updateSession(request: NextRequest) {
   if (!USE_SUPABASE) {
@@ -76,11 +74,7 @@ export async function updateSession(request: NextRequest) {
 
       // Check admin role
       try {
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("role")
-          .eq("id", session.user.id)
-          .single()
+        const { data: profile } = await supabase.from("profiles").select("role").eq("id", session.user.id).single()
 
         if (profile?.role !== "admin") {
           return NextResponse.redirect(new URL("/", request.url))

@@ -1,156 +1,189 @@
+import { createClient, type SupabaseClient } from "@supabase/supabase-js"
 import { logger } from "@/lib/logger"
-import type { SupabaseClient } from "@supabase/supabase-js"
-import type { Database } from "@/lib/supabase/types"
-import { createClient } from "@/lib/supabase/client"
-import { DATABASE_CONFIG } from "@/lib/runtime"
+import { DATABASE_CONFIG, USE_SUPABASE } from "@/lib/runtime"
+import type { Database } from "@/types/database"
 
-export class DatabaseClient {
-  private client: SupabaseClient<Database> | null = null
+interface HealthCheckResult {
+  status: "healthy" | "unhealthy" | "degraded"
+  timestamp: string
+  details: {
+    database: string
+    latency?: number
+    error?: string
+  }
+}
+
+class DatabaseClient {
+  private supabase: SupabaseClient<Database> | null = null
   private connectionAttempts = 0
-  private isConnected = false
+  private lastHealthCheck: HealthCheckResult | null = null
 
   constructor() {
-    this.initialize()
+    if (USE_SUPABASE) {
+      this.initializeSupabase()
+    } else {
+      logger.info("🔧 Using mock database for development")
+    }
   }
 
-  private async initialize() {
-    if (!DATABASE_CONFIG.useSupabase) {
-      logger.info("Using mock database")
-      return
-    }
-
+  private initializeSupabase() {
     try {
-      this.client = createClient()
-      await this.testConnection()
-      this.isConnected = true
-      logger.info("Database connected successfully")
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+      const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+      if (!supabaseUrl || !supabaseKey) {
+        throw new Error("Missing Supabase credentials")
+      }
+
+      this.supabase = createClient<Database>(supabaseUrl, supabaseKey, {
+        auth: {
+          autoRefreshToken: true,
+          persistSession: true,
+        },
+        db: {
+          schema: "public",
+        },
+        global: {
+          headers: {
+            "x-application-name": "sofa-cover-website",
+          },
+        },
+      })
+
+      logger.info("✅ Supabase client initialized")
     } catch (error) {
-      logger.error("Database connection failed:", error)
-      this.handleConnectionError(error)
-    }
-  }
-
-  private async testConnection() {
-    if (!this.client) throw new Error("No database client")
-
-    const { data, error } = await this.client.from("profiles").select("id").limit(1)
-
-    if (error && error.code !== "PGRST116") {
-      // PGRST116 = table not found (acceptable)
+      logger.error("❌ Failed to initialize Supabase:", error)
       throw error
     }
   }
 
-  private handleConnectionError(error: any) {
-    this.connectionAttempts++
-
-    if (this.connectionAttempts < DATABASE_CONFIG.retryAttempts) {
-      logger.warn(`Retrying database connection (${this.connectionAttempts}/${DATABASE_CONFIG.retryAttempts})`)
-      setTimeout(() => this.initialize(), 2000 * this.connectionAttempts)
-    } else {
-      logger.error("Database connection failed permanently, falling back to mock")
-      this.client = null
-      this.isConnected = false
-    }
-  }
-
-  async query<T>(
-    table: string,
-    operation: (client: SupabaseClient<Database>) => Promise<{ data: T | null; error: any }>,
-  ): Promise<{ data: T | null; error: any }> {
-    // Use mock database if not connected or configured
-    if (!this.client || !this.isConnected || !DATABASE_CONFIG.useSupabase) {
-      logger.warn(`Using mock database for ${table} query`)
-      const { mockDatabaseService } = await import("@/lib/mock-database")
-
-      // Convert Supabase query to mock query (simplified)
-      try {
-        const mockData = await this.getMockData(table)
-        return { data: mockData as T, error: null }
-      } catch (error) {
-        return { data: null, error }
-      }
-    }
+  async healthCheck(): Promise<HealthCheckResult> {
+    const startTime = Date.now()
 
     try {
-      const result = await Promise.race([
-        operation(this.client),
-        new Promise<never>((_, reject) =>
-          setTimeout(() => reject(new Error("Query timeout")), DATABASE_CONFIG.connectionTimeout),
-        ),
-      ])
-
-      return result
-    } catch (error) {
-      logger.error(`Database query failed for ${table}:`, error)
-
-      // Fallback to mock data
-      try {
-        const mockData = await this.getMockData(table)
-        logger.warn(`Falling back to mock data for ${table}`)
-        return { data: mockData as T, error: null }
-      } catch (mockError) {
-        return { data: null, error }
+      if (!USE_SUPABASE) {
+        // Mock database health check
+        return {
+          status: "healthy",
+          timestamp: new Date().toISOString(),
+          details: {
+            database: "mock",
+            latency: 1,
+          },
+        }
       }
-    }
-  }
 
-  private async getMockData(table: string): Promise<any> {
-    const { mockDatabaseService } = await import("@/lib/mock-database")
+      if (!this.supabase) {
+        throw new Error("Supabase client not initialized")
+      }
 
-    switch (table) {
-      case "products":
-        return await mockDatabaseService.getProducts()
-      case "orders":
-        return await mockDatabaseService.getOrders()
-      case "profiles":
-        return await mockDatabaseService.getCustomers()
-      default:
-        return []
-    }
-  }
+      // Simple query to test connection
+      const { error } = await this.supabase.from("customers").select("id").limit(1)
 
-  async healthCheck(): Promise<{ status: string; details: any }> {
-    if (!DATABASE_CONFIG.useSupabase) {
-      return {
+      const latency = Date.now() - startTime
+
+      if (error) {
+        throw error
+      }
+
+      this.lastHealthCheck = {
         status: "healthy",
-        details: { type: "mock", message: "Mock database is always available" },
-      }
-    }
-
-    if (!this.client) {
-      return {
-        status: "unhealthy",
-        details: { error: "No database client available" },
-      }
-    }
-
-    try {
-      await this.testConnection()
-      return {
-        status: "healthy",
+        timestamp: new Date().toISOString(),
         details: {
-          type: "supabase",
-          connected: this.isConnected,
-          attempts: this.connectionAttempts,
+          database: "supabase",
+          latency,
         },
       }
+
+      return this.lastHealthCheck
     } catch (error) {
-      return {
+      const latency = Date.now() - startTime
+
+      this.lastHealthCheck = {
         status: "unhealthy",
-        details: { error: error instanceof Error ? error.message : "Unknown error" },
+        timestamp: new Date().toISOString(),
+        details: {
+          database: USE_SUPABASE ? "supabase" : "mock",
+          latency,
+          error: error instanceof Error ? error.message : "Unknown error",
+        },
       }
+
+      logger.error("❌ Database health check failed:", error)
+      return this.lastHealthCheck
+    }
+  }
+
+  async testConnection(): Promise<boolean> {
+    try {
+      const health = await this.healthCheck()
+      return health.status === "healthy"
+    } catch {
+      return false
     }
   }
 
   getClient(): SupabaseClient<Database> | null {
-    return this.client
+    return this.supabase
   }
 
-  isHealthy(): boolean {
-    return DATABASE_CONFIG.useSupabase ? this.isConnected : true
+  isConnected(): boolean {
+    return this.lastHealthCheck?.status === "healthy" || !USE_SUPABASE
+  }
+
+  async retryConnection(maxAttempts = 3): Promise<boolean> {
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      logger.info(`🔄 Database connection attempt ${attempt}/${maxAttempts}`)
+
+      try {
+        const isHealthy = await this.testConnection()
+        if (isHealthy) {
+          logger.info("✅ Database connection restored")
+          this.connectionAttempts = 0
+          return true
+        }
+      } catch (error) {
+        logger.warn(`⚠️ Connection attempt ${attempt} failed:`, error)
+      }
+
+      if (attempt < maxAttempts) {
+        const delay = Math.min(1000 * Math.pow(2, attempt), 10000) // Exponential backoff
+        await new Promise((resolve) => setTimeout(resolve, delay))
+      }
+    }
+
+    this.connectionAttempts++
+    logger.error(`❌ Failed to establish database connection after ${maxAttempts} attempts`)
+    return false
+  }
+
+  getConnectionStats() {
+    return {
+      isConnected: this.isConnected(),
+      useSupabase: USE_SUPABASE,
+      connectionAttempts: this.connectionAttempts,
+      lastHealthCheck: this.lastHealthCheck,
+      config: {
+        timeout: DATABASE_CONFIG.connectionTimeout,
+        maxConnections: DATABASE_CONFIG.maxConnections,
+        retryAttempts: DATABASE_CONFIG.retryAttempts,
+      },
+    }
   }
 }
 
-// Singleton instance
+// Create singleton instance
 export const databaseClient = new DatabaseClient()
+
+// Export for use in other modules
+export default databaseClient
+
+// Health check endpoint helper
+export async function getDatabaseHealth(): Promise<HealthCheckResult> {
+  return await databaseClient.healthCheck()
+}
+
+// Connection test helper
+export async function testDatabaseConnection(): Promise<boolean> {
+  return await databaseClient.testConnection()
+}

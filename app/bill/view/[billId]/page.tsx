@@ -1,5 +1,4 @@
 "use client"
-import { logger } from '@/lib/logger';
 
 import { useState, useEffect } from "react"
 import { useParams } from "next/navigation"
@@ -9,68 +8,86 @@ import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { MapPin, Phone, Calendar, Package, Eye, Copy, Check, Save, CreditCard } from 'lucide-react'
-import { type Order, getOrderById, statusLabelTH, channelLabelTH } from "@/lib/mock-orders"
+import { MapPin, Phone, Calendar, Package, Eye, Copy, Check, Save, CreditCard, Bell } from "lucide-react"
 import { toast } from "sonner"
 import Link from "next/link"
-import {
-  calculateSubtotal,
-  calculateTax,
-  calculateTotal,
-  formatCurrency,
-  type MoneyLineItem,
-} from "@/lib/money"
+import { formatCurrency } from "@/lib/money"
+import { statusBadgeVariant, toStatusLabelTH, toChannelLabelTH } from "@/lib/i18n/status"
+
+type BillItem = {
+  id: string
+  name: string
+  fabricPattern?: string
+  productName?: string
+  customizations?: string
+  quantity: number
+  unitPrice: number
+  image?: string
+  fabricCode?: string
+}
+
+type Bill = {
+  id: string
+  code?: string
+  customer_name: string
+  customer_phone: string
+  customer_email?: string
+  customer_address?: string
+  channel: string
+  status: string
+  items: BillItem[]
+  subtotal: number
+  shipping_fee?: number
+  discount?: number
+  tax?: number
+  total: number
+  notes?: string
+  created_at: string
+  updated_at: string
+}
 
 export default function BillViewPage() {
-  const params = useParams()
-  const [order, setOrder] = useState<Order | null>(null)
+  const { billId } = useParams() as { billId: string }
+  const [bill, setBill] = useState<Bill | null>(null)
   const [loading, setLoading] = useState(true)
   const [editingAddress, setEditingAddress] = useState(false)
   const [newAddress, setNewAddress] = useState("")
   const [savingAddress, setSavingAddress] = useState(false)
   const [linkCopied, setLinkCopied] = useState(false)
-
-  const itemLines: MoneyLineItem[] =
-    order?.items.map((item) => ({
-      quantity: item.quantity ?? 0,
-      price: item.unitPrice ?? 0,
-    })) ?? []
-  const chargeLines: MoneyLineItem[] = [...itemLines]
-  if (order) {
-    const shipping = (order as any).shippingCost ?? 0
-    if (shipping) chargeLines.push({ quantity: 1, price: 0, shipping })
-    const discount = (order as any).discount ?? 0
-    if (discount) chargeLines.push({ quantity: 1, price: 0, discount })
-  }
-  const subtotal = calculateSubtotal(chargeLines)
-  const tax = calculateTax(subtotal, (order as any)?.taxRate ?? 0)
-  const total = calculateTotal(subtotal, tax)
-  const itemsSubtotal = calculateSubtotal(itemLines)
+  const [notifyingPayment, setNotifyingPayment] = useState(false)
 
   useEffect(() => {
-    loadOrder()
-  }, [params.billId])
-
-  const loadOrder = async () => {
-    try {
-      const orderData = await getOrderById(params.billId as string)
-      setOrder(orderData)
-      setNewAddress(orderData?.customerAddress || "")
-    } catch (error) {
-      logger.error("Error loading order:", error)
-    } finally {
-      setLoading(false)
+    let alive = true
+    async function loadBill() {
+      try {
+        setLoading(true)
+        const res = await fetch(`/api/bills/${billId}`, { cache: "no-store" })
+        if (!res.ok) throw new Error("Failed to load bill")
+        const data = await res.json()
+        if (alive) {
+          setBill(data)
+          setNewAddress(data.customer_address || "")
+        }
+      } catch (error) {
+        console.error("Error loading bill:", error)
+        toast.error("โหลดบิลไม่สำเร็จ")
+      } finally {
+        if (alive) setLoading(false)
+      }
     }
-  }
+    loadBill()
+    return () => {
+      alive = false
+    }
+  }, [billId])
 
-  // <CHANGE> Added copy bill link functionality
   const handleCopyBillLink = async () => {
     try {
-      const billUrl = `${window.location.origin}/bill/view/${params.billId}`
+      const billUrl = `${window.location.origin}/bill/view/${billId}`
       await navigator.clipboard.writeText(billUrl)
       setLinkCopied(true)
       toast.success("คัดลอกลิงก์บิลแล้ว")
-      
+
       setTimeout(() => {
         setLinkCopied(false)
       }, 2000)
@@ -79,16 +96,15 @@ export default function BillViewPage() {
     }
   }
 
-  // <CHANGE> Added address saving functionality with mock PUT request
   const handleSaveAddress = async () => {
-    if (!order || !newAddress.trim()) {
+    if (!bill || !newAddress.trim()) {
       toast.error("กรุณากรอกที่อยู่")
       return
     }
 
     setSavingAddress(true)
     try {
-      const response = await fetch(`/api/orders/${order.id}/address`, {
+      const response = await fetch(`/api/orders/${bill.id}/address`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ address: newAddress.trim() }),
@@ -96,14 +112,34 @@ export default function BillViewPage() {
 
       if (!response.ok) throw new Error("Address update failed")
 
-      // <CHANGE> Update only the address block, not full page reload
-      setOrder(prev => prev ? { ...prev, customerAddress: newAddress.trim() } : null)
+      setBill((prev) => (prev ? { ...prev, customer_address: newAddress.trim() } : null))
       setEditingAddress(false)
       toast.success("บันทึกที่อยู่สำเร็จ")
     } catch (error) {
       toast.error("บันทึกที่อยู่ไม่สำเร็จ")
     } finally {
       setSavingAddress(false)
+    }
+  }
+
+  const handleNotifyPayment = async () => {
+    if (!bill) return
+
+    setNotifyingPayment(true)
+    try {
+      const res = await fetch(`/api/bills/${billId}/notify-payment`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ note: "ลูกค้าแจ้งชำระผ่านหน้าใบเสร็จ" }),
+      })
+
+      if (!res.ok) throw new Error("Notify payment failed")
+
+      toast.success("ส่งการแจ้งชำระแล้ว")
+    } catch (error) {
+      toast.error("ส่งการแจ้งชำระไม่สำเร็จ")
+    } finally {
+      setNotifyingPayment(false)
     }
   }
 
@@ -120,7 +156,7 @@ export default function BillViewPage() {
     )
   }
 
-  if (!order) {
+  if (!bill) {
     return (
       <div className="min-h-screen bg-gray-50 py-8">
         <div className="container mx-auto px-4 text-center">
@@ -137,7 +173,7 @@ export default function BillViewPage() {
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-burgundy-800 mb-2">ใบเสร็จรับเงิน</h1>
-          <p className="text-gray-600">บิลเลขที่ {order.id}</p>
+          <p className="text-gray-600">บิลเลขที่ {bill.code || bill.id}</p>
         </div>
 
         {/* Bill Card */}
@@ -149,8 +185,8 @@ export default function BillViewPage() {
                 <p className="text-sm text-gray-600 mt-1">โทร: 02-123-4567 | Line: @sofacover</p>
               </div>
               <div className="flex items-center gap-2">
-                <Badge variant="secondary" className="bg-burgundy-100 text-burgundy-800">
-                  {statusLabelTH[order.status]}
+                <Badge variant={statusBadgeVariant(bill.status)} className="bg-burgundy-100 text-burgundy-800">
+                  {toStatusLabelTH(bill.status)}
                 </Badge>
                 <Button size="sm" variant="outline" onClick={handleCopyBillLink}>
                   {linkCopied ? (
@@ -178,13 +214,13 @@ export default function BillViewPage() {
               </h3>
               <div className="bg-gray-50 p-4 rounded-lg space-y-2">
                 <p>
-                  <span className="font-medium">ชื่อ:</span> {order.customerName}
+                  <span className="font-medium">ชื่อ:</span> {bill.customer_name}
                 </p>
                 <p>
-                  <span className="font-medium">เบอร์:</span> {order.customerPhone}
+                  <span className="font-medium">เบอร์:</span> {bill.customer_phone}
                 </p>
                 <p>
-                  <span className="font-medium">ช่องทาง:</span> {channelLabelTH[order.channel]}
+                  <span className="font-medium">ช่องทาง:</span> {toChannelLabelTH(bill.channel)}
                 </p>
               </div>
             </div>
@@ -207,21 +243,21 @@ export default function BillViewPage() {
                       className="w-full"
                     />
                     <div className="flex gap-2">
-                      <Button 
-                        size="sm" 
-                        onClick={handleSaveAddress} 
+                      <Button
+                        size="sm"
+                        onClick={handleSaveAddress}
                         disabled={savingAddress}
                         className="bg-burgundy-600 hover:bg-burgundy-700"
                       >
                         <Save className="w-4 h-4 mr-1" />
                         {savingAddress ? "กำลังบันทึก..." : "บันทึก"}
                       </Button>
-                      <Button 
-                        size="sm" 
-                        variant="outline" 
+                      <Button
+                        size="sm"
+                        variant="outline"
                         onClick={() => {
                           setEditingAddress(false)
-                          setNewAddress(order.customerAddress || "")
+                          setNewAddress(bill.customer_address || "")
                         }}
                       >
                         ยกเลิก
@@ -230,10 +266,10 @@ export default function BillViewPage() {
                   </div>
                 ) : (
                   <div className="flex justify-between items-start">
-                    <p className="text-sm text-gray-700">{order.customerAddress}</p>
-                    <Button 
-                      size="sm" 
-                      variant="ghost" 
+                    <p className="text-sm text-gray-700">{bill.customer_address || "ไม่ระบุที่อยู่"}</p>
+                    <Button
+                      size="sm"
+                      variant="ghost"
                       onClick={() => setEditingAddress(true)}
                       className="text-burgundy-600 hover:text-burgundy-700"
                     >
@@ -253,7 +289,7 @@ export default function BillViewPage() {
               <div className="bg-gray-50 p-4 rounded-lg space-y-2">
                 <p>
                   <span className="font-medium">วันที่สั่ง:</span>{" "}
-                  {order.createdAt.toLocaleDateString("th-TH", {
+                  {new Date(bill.created_at).toLocaleDateString("th-TH", {
                     year: "numeric",
                     month: "long",
                     day: "numeric",
@@ -261,61 +297,59 @@ export default function BillViewPage() {
                 </p>
                 <p>
                   <span className="font-medium">เวลา:</span>{" "}
-                  {order.createdAt.toLocaleTimeString("th-TH", {
+                  {new Date(bill.created_at).toLocaleTimeString("th-TH", {
                     hour: "2-digit",
                     minute: "2-digit",
                   })}
                 </p>
-                {order.notes && (
+                {bill.notes && (
                   <p>
-                    <span className="font-medium">หมายเหตุ:</span> {order.notes}
+                    <span className="font-medium">หมายเหตุ:</span> {bill.notes}
                   </p>
                 )}
               </div>
             </div>
 
-            {/* Items with Enhanced Display */}
+            {/* Items */}
             <div>
               <h3 className="font-semibold text-gray-900 mb-3 flex items-center">
                 <Package className="w-4 h-4 mr-2" />
                 รายการผ้า
               </h3>
               <div className="space-y-3">
-                {order.items.map((item, index) => (
+                {bill.items.map((item, index) => (
                   <div key={item.id} className="border rounded-lg p-4">
                     <div className="flex gap-4">
-                      {/* Small fabric image */}
-                        <div className="w-16 h-16 bg-gray-200 rounded-lg flex-shrink-0 overflow-hidden">
-                          <img
-                            src={(item as any).image || `/placeholder.svg?height=64&width=64&query=${(item as any).fabricPattern} fabric`}
-                            alt={(item as any).fabricPattern}
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                      
+                      <div className="w-16 h-16 bg-gray-200 rounded-lg flex-shrink-0 overflow-hidden">
+                        <img
+                          src={
+                            item.image ||
+                            `/placeholder.svg?height=64&width=64&query=${item.fabricPattern || item.name} fabric`
+                          }
+                          alt={item.fabricPattern || item.name}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+
                       <div className="flex-1">
                         <div className="flex justify-between items-start mb-2">
                           <div>
-                              <p className="font-mono text-sm text-gray-600">{(item as any).fabricCode || `FB${String(index + 1).padStart(3, '0')}`}</p>
-                            <h4 className="font-medium text-gray-900">{item.fabricPattern}</h4>
+                            <p className="font-mono text-sm text-gray-600">
+                              {item.fabricCode || `FB${String(index + 1).padStart(3, "0")}`}
+                            </p>
+                            <h4 className="font-medium text-gray-900">{item.fabricPattern || item.name}</h4>
                             <p className="text-sm text-gray-600">{item.productName}</p>
                             {item.customizations && (
                               <p className="text-sm text-burgundy-600 mt-1">ปรับแต่ง: {item.customizations}</p>
                             )}
                           </div>
                           <div className="text-right">
-                            <p className="font-medium">
-                              {formatCurrency(
-                                calculateSubtotal([
-                                  { quantity: item.quantity, price: item.unitPrice ?? 0 },
-                                ])
-                              )}
-                            </p>
+                            <p className="font-medium">{formatCurrency(item.quantity * item.unitPrice)}</p>
                           </div>
                         </div>
                         <div className="flex justify-between text-sm text-gray-500">
                           <span>จำนวน: {item.quantity} ชิ้น</span>
-                          <span>ราคาต่อชิ้น: {formatCurrency(item.unitPrice ?? 0)}</span>
+                          <span>ราคาต่อชิ้น: {formatCurrency(item.unitPrice)}</span>
                         </div>
                       </div>
                     </div>
@@ -326,71 +360,75 @@ export default function BillViewPage() {
 
             <Separator />
 
-            {/* Enhanced Summary */}
+            {/* Summary */}
             <div className="space-y-3">
               <div className="flex justify-between text-gray-700">
                 <span>ค่าของ</span>
-                <span>{formatCurrency(itemsSubtotal)}</span>
+                <span>{formatCurrency(bill.subtotal)}</span>
               </div>
-              
-                {(order as any).shippingCost && (
-                  <div className="flex justify-between text-gray-700">
-                    <span>ค่าขนส่ง</span>
-                    <span>{formatCurrency((order as any).shippingCost ?? 0)}</span>
-                  </div>
-                )}
-              
-                {(order as any).discount && (
-                  <div className="flex justify-between text-green-600">
-                    <span>ส่วนลด</span>
-                    <span>-{formatCurrency((order as any).discount ?? 0)}</span>
-                  </div>
-                )}
-              
+
+              {bill.shipping_fee && (
+                <div className="flex justify-between text-gray-700">
+                  <span>ค่าขนส่ง</span>
+                  <span>{formatCurrency(bill.shipping_fee)}</span>
+                </div>
+              )}
+
+              {bill.discount && (
+                <div className="flex justify-between text-green-600">
+                  <span>ส่วนลด</span>
+                  <span>-{formatCurrency(bill.discount)}</span>
+                </div>
+              )}
+
               <Separator />
-              
+
               <div className="bg-burgundy-50 p-4 rounded-lg">
                 <div className="flex justify-between items-center text-xl font-bold text-burgundy-800">
                   <span>ยอดสุทธิ</span>
-                  <span>{formatCurrency(total)}</span>
+                  <span>{formatCurrency(bill.total)}</span>
                 </div>
               </div>
             </div>
 
-            {/* QR Payment with Instructions */}
+            {/* QR Payment */}
             <div className="text-center py-6 border-2 border-dashed border-burgundy-300 rounded-lg bg-burgundy-50">
               <div className="w-32 h-32 bg-white mx-auto rounded-lg flex items-center justify-center mb-4 border-2 border-burgundy-200">
-                <img
-                  src="/placeholder.svg?key=oulmw"
-                  alt="QR Code สำหรับชำระเงิน"
-                  className="w-28 h-28"
-                />
+                <img src="/placeholder-c5vnd.png" alt="QR Code สำหรับชำระเงิน" className="w-28 h-28" />
               </div>
               <div className="space-y-2">
                 <div className="flex items-center justify-center gap-2 text-burgundy-800">
                   <CreditCard className="w-5 h-5" />
                   <p className="font-semibold">สแกน QR Code เพื่อชำระเงิน</p>
                 </div>
-                <p className="text-sm text-burgundy-600">ยอดชำระ: {formatCurrency(total)}</p>
+                <p className="text-sm text-burgundy-600">ยอดชำระ: {formatCurrency(bill.total)}</p>
                 <div className="text-xs text-burgundy-500 space-y-1 mt-3">
                   <p className="font-medium">วิธีการชำระเงิน:</p>
                   <p>1. สแกน QR Code ด้วยแอปธนาคาร</p>
                   <p>2. ตรวจสอบยอดเงินให้ถูกต้อง</p>
                   <p>3. กดยืนยันการโอนเงิน</p>
-                  <p>4. แจ้งการโอนเงินผ่าน Line: @sofacover</p>
+                  <p>4. กดปุ่ม "แจ้งชำระเงิน" ด้านล่าง</p>
                 </div>
               </div>
             </div>
 
             {/* Actions */}
             <div className="flex gap-3">
-              <Link href={`/bill/timeline/${order.id}`} className="flex-1">
+              <Button
+                onClick={handleNotifyPayment}
+                disabled={notifyingPayment}
+                className="flex-1 bg-green-600 hover:bg-green-700"
+              >
+                <Bell className="w-4 h-4 mr-2" />
+                {notifyingPayment ? "กำลังส่ง..." : "แจ้งชำระเงิน"}
+              </Button>
+              <Link href={`/bill/timeline/${bill.id}`} className="flex-1">
                 <Button variant="outline" className="w-full bg-transparent">
                   <Eye className="w-4 h-4 mr-2" />
                   ติดตามสถานะ
                 </Button>
               </Link>
-              <Button onClick={() => window.print()} className="flex-1 bg-burgundy-600 hover:bg-burgundy-700">
+              <Button onClick={() => window.print()} variant="outline" className="flex-1">
                 พิมพ์บิล
               </Button>
             </div>

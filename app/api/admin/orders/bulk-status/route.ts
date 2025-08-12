@@ -1,22 +1,83 @@
-import { logger } from '@/lib/logger';
-import { type NextRequest, NextResponse } from "next/server"
+import { NextResponse, type NextRequest } from "next/server"
+import { USE_SUPABASE } from "@/lib/runtime"
+import { DatabaseService } from "@/lib/database"
+import { createClient } from "@/lib/supabase/client"
+import { logger } from "@/lib/logger"
 
 export async function POST(request: NextRequest) {
   try {
-    const { orderIds, newStatus } = await request.json()
+    const body = await request.json()
+    const orderIds: string[] = body?.orderIds || []
+    const newStatus: string = body?.status || body?.newStatus
 
-    // Mock status update operation
-    logger.info("Bulk status change:", { orderIds, newStatus })
+    if (!Array.isArray(orderIds) || orderIds.length === 0 || !newStatus) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Invalid request body. Expected orderIds array and status string.",
+        },
+        { status: 400 },
+      )
+    }
 
-    // Simulate processing time
+    if (USE_SUPABASE) {
+      try {
+        const supabase = createClient()
+        const db = new DatabaseService(supabase)
+
+        // Update orders status in database
+        const { error } = await supabase
+          .from("orders")
+          .update({
+            status: newStatus,
+            updated_at: new Date().toISOString(),
+          })
+          .in("id", orderIds)
+
+        if (error) {
+          logger.error("Database update failed:", error)
+          throw error
+        }
+
+        logger.info(`Updated ${orderIds.length} orders to status: ${newStatus}`)
+
+        return NextResponse.json({
+          success: true,
+          message: `Updated ${orderIds.length} orders to ${newStatus}`,
+          updated: orderIds.length,
+          mode: "database",
+        })
+      } catch (error) {
+        logger.error("Bulk status update failed:", error)
+        return NextResponse.json(
+          {
+            success: false,
+            message: "Database update failed",
+          },
+          { status: 500 },
+        )
+      }
+    }
+
+    // Mock mode - simulate processing time
     await new Promise((resolve) => setTimeout(resolve, 800))
+
+    logger.info("Mock bulk status change:", { orderIds, newStatus })
 
     return NextResponse.json({
       success: true,
       message: `Updated ${orderIds.length} orders to ${newStatus}`,
-      updatedOrders: orderIds.map((id: string) => ({ id, status: newStatus })),
+      updated: orderIds.length,
+      mode: "mock",
     })
   } catch (error) {
-    return NextResponse.json({ success: false, error: "Status update failed" }, { status: 500 })
+    logger.error("Bulk status update error:", error)
+    return NextResponse.json(
+      {
+        success: false,
+        message: "Internal server error",
+      },
+      { status: 500 },
+    )
   }
 }
