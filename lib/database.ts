@@ -1,9 +1,11 @@
-import { createClient } from "@/lib/supabase/server"
+import type { SupabaseClient } from "@supabase/supabase-js"
 import type { Database } from "@/lib/supabase/types"
+import { supabase } from "@/lib/supabase/client"
 
 export class DatabaseService {
+  constructor(private client: SupabaseClient<Database> = supabase) {}
   private getClient() {
-    return createClient()
+    return this.client
   }
 
   // Products
