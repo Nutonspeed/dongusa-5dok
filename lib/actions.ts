@@ -4,8 +4,6 @@ import { logger } from '@/lib/logger';
 import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
 
-export const runtime = "nodejs"
-
 export async function signIn(prevState: any, formData: FormData) {
   if (!formData) {
     return { error: "Form data is missing" }
