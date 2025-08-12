@@ -68,7 +68,7 @@ export async function signUp(prevState: any, formData: FormData) {
       return { error: error.message }
     }
 
-    return { success: "Check your email to confirm your account." }
+    return { success: "โปรดตรวจอีเมลยืนยัน" }
   } catch (error) {
     logger.error("Sign up error:", error)
     return { error: "An unexpected error occurred. Please try again." }

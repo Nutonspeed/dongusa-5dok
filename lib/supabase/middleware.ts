@@ -4,6 +4,8 @@ import { NextResponse, type NextRequest } from "next/server"
 import type { Database } from "@/types/database"
 import { USE_SUPABASE } from "@/lib/runtime"
 
+export const runtime = "nodejs"
+
 export async function updateSession(request: NextRequest) {
   if (!USE_SUPABASE) {
     const isAdminRoute = request.nextUrl.pathname.startsWith("/admin")

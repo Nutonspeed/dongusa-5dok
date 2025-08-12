@@ -10,6 +10,7 @@ import { Eye, EyeOff, Lock, Mail, UserIcon, Shield } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { useToast } from "@/hooks/use-toast"
 import { useLanguage } from "../contexts/LanguageContext"
 import { useAuth } from "../contexts/AuthContext"
 import Header from "../components/Header"
@@ -21,6 +22,7 @@ export default function LoginPage() {
   const router = useRouter()
   const { language } = useLanguage()
   const { signIn, isAuthenticated, user, isAdmin } = useAuth()
+  const { toast } = useToast()
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -66,7 +68,12 @@ export default function LoginPage() {
         }
       }
     } else {
-      setError(result.error || (language === "th" ? "อีเมลหรือรหัสผ่านไม่ถูกต้อง" : "Invalid email or password"))
+      const message =
+        result.error?.toLowerCase().includes("email not confirmed")
+          ? "โปรดตรวจอีเมลยืนยัน"
+          : result.error || (language === "th" ? "อีเมลหรือรหัสผ่านไม่ถูกต้อง" : "Invalid email or password")
+      setError(message)
+      toast({ variant: "destructive", description: message })
     }
 
     setIsLoading(false)

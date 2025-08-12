@@ -41,6 +41,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [profile, setProfile] = useState<ProfileRow | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isMounted, setIsMounted] = useState(false)
+  const QA_BYPASS_AUTH = process.env.QA_BYPASS_AUTH === "1"
 
   useEffect(() => {
     setIsMounted(true)
@@ -53,7 +54,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       await new Promise((resolve) => setTimeout(resolve, 100))
 
       try {
-        if (USE_SUPABASE) {
+        if (USE_SUPABASE && !QA_BYPASS_AUTH) {
           const {
             data: { session },
             error,
@@ -74,44 +75,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             await fetchProfile(mappedUser.id)
           }
         } else {
-          try {
-            const userData = typeof window !== "undefined" ? localStorage.getItem("user_data") : null
-            const adminToken = typeof window !== "undefined" ? localStorage.getItem("admin_token") : null
-
-            if (userData) {
-              const parsedUser = JSON.parse(userData)
-              const appUser: AppUser = {
-                ...parsedUser,
-                full_name: parsedUser.full_name || undefined,
-              }
-              setUser(appUser)
-              setProfile({
-                id: parsedUser.id,
-                email: parsedUser.email,
-                full_name: parsedUser.full_name || null,
-                phone: null,
-                role: parsedUser.role || "customer",
-                avatar_url: null,
-                created_at: new Date().toISOString(),
-                updated_at: new Date().toISOString(),
-              })
-            } else if (adminToken) {
-              const mockAdmin = {
-                id: "admin-id",
-                email: "admin@sofacover.com",
-                full_name: "Admin User",
-                phone: null,
-                role: "admin",
-                avatar_url: null,
-                created_at: new Date().toISOString(),
-                updated_at: new Date().toISOString(),
-              } as unknown as AppUser & ProfileRow
-              setUser(mockAdmin)
-              setProfile(mockAdmin)
-            }
-          } catch (error) {
-            logger.error("Error accessing localStorage:", error)
+          const mockUser: AppUser = {
+            id: "mock-user",
+            email: "mock@local",
+            full_name: "Mock User",
+            app_metadata: {},
+            user_metadata: {},
+            aud: "",
+            created_at: "",
+            confirmed_at: undefined,
+            email_confirmed_at: undefined,
+            phone: "",
+            role: "authenticated",
+            last_sign_in_at: undefined,
+            identities: [],
+            factors: undefined,
           }
+          setUser(mockUser)
+          setProfile({
+            id: mockUser.id,
+            email: mockUser.email || "",
+            full_name: mockUser.full_name || null,
+            phone: null,
+            role: "admin",
+            avatar_url: null,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          })
         }
       } catch (error) {
         logger.error("Error initializing auth:", error)
@@ -122,7 +112,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     initializeAuth()
 
-    if (USE_SUPABASE) {
+    if (USE_SUPABASE && !QA_BYPASS_AUTH) {
         const {
           data: { subscription },
         } = supabase.auth.onAuthStateChange(async (event: any, session: any) => {
@@ -146,7 +136,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const fetchProfile = async (userId: string) => {
     try {
-      if (USE_SUPABASE) {
+      if (USE_SUPABASE && !QA_BYPASS_AUTH) {
         const { data, error } = await supabase
           .from("profiles")
           .select("*")
@@ -169,7 +159,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signIn = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
     try {
-      if (USE_SUPABASE) {
+      if (USE_SUPABASE && !QA_BYPASS_AUTH) {
         const { error } = await supabase.auth.signInWithPassword({
           email,
           password,
@@ -241,7 +231,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     fullName?: string,
   ): Promise<{ success: boolean; error?: string }> => {
     try {
-      if (USE_SUPABASE) {
+      if (USE_SUPABASE && !QA_BYPASS_AUTH) {
         const { error } = await supabase.auth.signUp({
           email,
           password,
@@ -302,7 +292,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const signOut = async () => {
-    if (USE_SUPABASE) {
+    if (USE_SUPABASE && !QA_BYPASS_AUTH) {
       await supabase.auth.signOut()
     } else {
       if (typeof window !== "undefined") {
