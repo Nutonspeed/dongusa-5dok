@@ -1,5 +1,6 @@
 import { logger } from '@/lib/logger';
 import { createServerClient } from "@supabase/ssr"
+import type { Database } from "@/types/database"
 import { cookies } from "next/headers"
 import { cache } from "react"
 
@@ -18,7 +19,7 @@ export const createClient = cache(() => {
         getUser: () => Promise.resolve({ data: { user: null }, error: null }),
         getSession: () => Promise.resolve({ data: { session: null }, error: null }),
       },
-      from: (table: string) => ({
+      from: (_table: string) => ({
         select: () => ({
           eq: () => ({ single: () => Promise.resolve({ data: null, error: null }) }),
           order: () => ({ limit: () => Promise.resolve({ data: [], error: null }) }),
@@ -32,7 +33,10 @@ export const createClient = cache(() => {
 
   try {
     const cookieStore = cookies()
-    return createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
+    return createServerClient<Database>(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
       cookies: {
         getAll() {
           return cookieStore.getAll()
@@ -57,7 +61,7 @@ export const createClient = cache(() => {
         getUser: () => Promise.resolve({ data: { user: null }, error: null }),
         getSession: () => Promise.resolve({ data: { session: null }, error: null }),
       },
-      from: (table: string) => ({
+      from: (_table: string) => ({
         select: () => ({
           eq: () => ({ single: () => Promise.resolve({ data: null, error: null }) }),
           order: () => ({ limit: () => Promise.resolve({ data: [], error: null }) }),

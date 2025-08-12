@@ -12,7 +12,7 @@ export class DatabaseService {
   // Products
   async getProducts(filters?: { category?: string; active?: boolean }) {
     const supabase = this.getClient()
-    let query = supabase.from<Product>("products").select(`
+    let query = supabase.from("products").select(`
       *,
       categories (
         id,
@@ -38,7 +38,7 @@ export class DatabaseService {
   async getProduct(id: string) {
     const supabase = this.getClient()
     const { data, error } = await supabase
-      .from<Product>("products")
+      .from("products")
       .select(`
         *,
         categories (
@@ -72,7 +72,7 @@ export class DatabaseService {
   async getFabricsByCollection(collectionId: string) {
     const supabase = this.getClient()
     const { data, error } = await supabase
-      .from<Fabric>("fabrics")
+      .from("fabrics")
       .select("*")
       .eq("collection_id", collectionId)
       .eq("is_active", true)
@@ -85,7 +85,7 @@ export class DatabaseService {
   // Orders
   async createOrder(orderData: Database["public"]["Tables"]["orders"]["Insert"]) {
     const supabase = this.getClient()
-    const { data, error } = await supabase.from<Order>("orders").insert(orderData).select().single()
+    const { data, error } = await supabase.from("orders").insert(orderData).select().single()
 
     if (error) throw error
     return data
@@ -93,7 +93,7 @@ export class DatabaseService {
 
   async getOrders(userId?: string, limit = 50) {
     const supabase = this.getClient()
-    let query = supabase.from<Order>("orders").select(`
+    let query = supabase.from("orders").select(`
         *,
         order_items (
           *,
@@ -123,7 +123,7 @@ export class DatabaseService {
   async updateOrderStatus(orderId: string, status: Database["public"]["Tables"]["orders"]["Row"]["status"]) {
     const supabase = this.getClient()
     const { data, error } = await supabase
-      .from<Order>("orders")
+      .from("orders")
       .update({ status, updated_at: new Date().toISOString() })
       .eq("id", orderId)
       .select()
@@ -136,7 +136,7 @@ export class DatabaseService {
   // Profiles
   async getProfile(userId: string) {
     const supabase = this.getClient()
-    const { data, error } = await supabase.from<Profile>("profiles").select("*").eq("id", userId).single()
+    const { data, error } = await supabase.from("profiles").select("*").eq("id", userId).single()
 
     if (error) throw error
     return data
@@ -145,7 +145,7 @@ export class DatabaseService {
   async updateProfile(userId: string, updates: Database["public"]["Tables"]["profiles"]["Update"]) {
     const supabase = this.getClient()
     const { data, error } = await supabase
-      .from<Profile>("profiles")
+      .from("profiles")
       .update({ ...updates, updated_at: new Date().toISOString() })
       .eq("id", userId)
       .select()
@@ -160,12 +160,12 @@ export class DatabaseService {
     const supabase = this.getClient()
 
     const [ordersResult, profilesResult, revenueResult] = await Promise.all([
-      supabase.from<Order>("orders").select("id", { count: "exact" }),
+      supabase.from("orders").select("id", { count: "exact" }),
       supabase
-        .from<Profile>("profiles")
+        .from("profiles")
         .select("id", { count: "exact" })
         .eq("role", "customer"),
-      supabase.from<Order>("orders").select("total_amount").eq("payment_status", "paid"),
+      supabase.from("orders").select("total_amount").eq("payment_status", "paid"),
     ])
 
     const totalRevenue = revenueResult.data?.reduce((sum, order) => sum + order.total_amount, 0) || 0

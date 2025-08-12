@@ -16,7 +16,7 @@ interface ServiceStatus {
 
 export function MockServiceIndicator() {
   const [isVisible, setIsVisible] = useState(false)
-  const [services, setServices] = useState<ServiceStatus[]>([
+  const [services, _setServices] = useState<ServiceStatus[]>([
     {
       name: "Database",
       status: "mock",

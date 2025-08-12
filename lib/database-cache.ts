@@ -1,5 +1,5 @@
 import { createClient } from "@supabase/supabase-js"
-import type { Product } from "@/types/entities"
+import type { Database } from "@/types/database"
 
 // Simple in-memory cache for frequently accessed data
 class DatabaseCache {
@@ -51,9 +51,12 @@ export async function getCachedProducts(categoryId?: string) {
   }
 
   // This would be replaced with actual Supabase query
-  const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
+  const supabase = createClient<Database>(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+  )
 
-  let query = supabase.from<Product>("products").select("*")
+  let query = supabase.from("products").select("*")
 
   if (categoryId) {
     query = query.eq("category_id", categoryId)
@@ -76,7 +79,10 @@ export async function getCachedCategories() {
     return cached
   }
 
-  const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
+  const supabase = createClient<Database>(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+  )
 
   const { data, error } = await supabase.from("categories").select("*")
 
