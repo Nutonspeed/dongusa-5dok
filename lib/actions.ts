@@ -4,6 +4,8 @@ import { logger } from '@/lib/logger';
 import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
 
+export const runtime = "nodejs"
+
 export async function signIn(prevState: any, formData: FormData) {
   if (!formData) {
     return { error: "Form data is missing" }
@@ -68,7 +70,7 @@ export async function signUp(prevState: any, formData: FormData) {
       return { error: error.message }
     }
 
-    return { success: "Check your email to confirm your account." }
+    return { success: "โปรดตรวจอีเมลยืนยัน" }
   } catch (error) {
     logger.error("Sign up error:", error)
     return { error: "An unexpected error occurred. Please try again." }

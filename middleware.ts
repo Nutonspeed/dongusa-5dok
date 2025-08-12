@@ -1,8 +1,10 @@
 import { USE_SUPABASE } from "@/lib/runtime"
 import { NextResponse, type NextRequest } from "next/server"
 
+const QA_BYPASS_AUTH = process.env.QA_BYPASS_AUTH === "1"
+
 export async function middleware(request: NextRequest) {
-  if (USE_SUPABASE) {
+  if (USE_SUPABASE && !QA_BYPASS_AUTH) {
     const { updateSession } = await import("@/lib/supabase/middleware")
     return await updateSession(request)
   }

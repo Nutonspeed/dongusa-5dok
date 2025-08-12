@@ -2,7 +2,7 @@
 
 export const dynamic = "force-dynamic"
 
-import { useState, useTransition } from "react"
+import { useState } from "react"
 import type React from "react"
 import { useEffect } from "react"
 import { useRouter } from "next/navigation"
@@ -10,6 +10,7 @@ import Link from "next/link"
 import { Eye, EyeOff, Lock, Mail, UserIcon, Phone, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { useToast } from "@/hooks/use-toast"
 import { useLanguage } from "../contexts/LanguageContext"
 import { useAuth } from "../contexts/AuthContext"
 import { signUp } from "@/lib/actions"
@@ -20,7 +21,8 @@ export default function RegisterPage() {
   const router = useRouter()
   const { language } = useLanguage()
   const { isAuthenticated } = useAuth()
-  const [isPending, startTransition] = useTransition()
+  const [isLoading, setIsLoading] = useState(false)
+  const { toast } = useToast()
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -53,26 +55,28 @@ export default function RegisterPage() {
       return
     }
 
-    startTransition(() => {
-      void (async () => {
-        try {
-          const formDataObj = new FormData()
-          formDataObj.append("email", formData.email)
-          formDataObj.append("password", formData.password)
-          formDataObj.append("fullName", `${formData.firstName} ${formData.lastName}`.trim())
+    setIsLoading(true)
+    try {
+      const formDataObj = new FormData()
+      formDataObj.append("email", formData.email)
+      formDataObj.append("password", formData.password)
+      formDataObj.append("fullName", `${formData.firstName} ${formData.lastName}`.trim())
 
-          const result = await signUp(null, formDataObj)
-          setState(result)
+      const result = await signUp(null, formDataObj)
+      setState(result)
 
-          if (result.success) {
-            // Redirect after successful registration
-            setTimeout(() => router.push("/auth/login"), 2000)
-          }
-        } catch (error) {
-          setState({ error: language === "th" ? "การสมัครสมาชิกล้มเหลว" : "Registration failed" })
-        }
-      })()
-    })
+      if (result.error) {
+        toast({ variant: "destructive", description: result.error })
+      } else if (result.success) {
+        toast({ description: "โปรดตรวจอีเมลยืนยัน" })
+      }
+    } catch (error) {
+      const message = language === "th" ? "การสมัครสมาชิกล้มเหลว" : "Registration failed"
+      setState({ error: message })
+      toast({ variant: "destructive", description: message })
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -231,10 +235,10 @@ export default function RegisterPage() {
 
               <Button
                 type="submit"
-                disabled={isPending}
+                disabled={isLoading}
                 className="w-full bg-burgundy-gradient hover:opacity-90 text-white"
               >
-                {isPending ? (
+                {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     {language === "th" ? "กำลังสมัครสมาชิก..." : "Creating account..."}

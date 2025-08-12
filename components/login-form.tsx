@@ -1,33 +1,41 @@
 "use client"
 
-import { useState, useTransition } from "react"
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Loader2 } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { signIn } from "@/lib/actions"
+import { useToast } from "@/hooks/use-toast"
 
 export default function LoginForm() {
   const router = useRouter()
-  const [isPending, startTransition] = useTransition()
+  const [isLoading, setIsLoading] = useState(false)
   const [state, setState] = useState<{ error?: string; success?: boolean } | null>(null)
+  const { toast } = useToast()
 
   const handleSubmit = async (formData: FormData) => {
-    startTransition(() => {
-      void (async () => {
-        try {
-          const result = await signIn(null, formData)
-          setState(result)
+    setIsLoading(true)
+    try {
+      const result = await signIn(null, formData)
+      setState(result)
 
-          if (result?.success) {
-            router.push("/")
-          }
-        } catch (error) {
-          setState({ error: "An error occurred during sign in" })
-        }
-      })()
-    })
+      if (result?.success) {
+        router.push("/")
+      } else if (result?.error) {
+        const message = result.error.toLowerCase().includes("email not confirmed")
+          ? "โปรดตรวจอีเมลยืนยัน"
+          : result.error
+        toast({ variant: "destructive", description: message })
+      }
+    } catch {
+      const message = "An error occurred during sign in"
+      setState({ error: message })
+      toast({ variant: "destructive", description: message })
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -72,10 +80,10 @@ export default function LoginForm() {
 
         <Button
           type="submit"
-          disabled={isPending}
+          disabled={isLoading}
           className="w-full bg-burgundy-600 hover:bg-burgundy-700 text-white py-6 text-lg font-medium rounded-lg h-[60px]"
         >
-          {isPending ? (
+          {isLoading ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               Signing in...
