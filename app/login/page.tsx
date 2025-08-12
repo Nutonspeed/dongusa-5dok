@@ -6,9 +6,10 @@ import type React from "react"
 import { useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { Eye, EyeOff, Lock, Mail, UserIcon } from "lucide-react"
+import { Eye, EyeOff, Lock, Mail, UserIcon, Shield } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
 import { useLanguage } from "../contexts/LanguageContext"
 import { useAuth } from "../contexts/AuthContext"
 import Header from "../components/Header"
@@ -17,7 +18,7 @@ import Footer from "../components/Footer"
 export default function LoginPage() {
   const router = useRouter()
   const { language } = useLanguage()
-  const { login, isAuthenticated } = useAuth()
+  const { login, isAuthenticated, user, isAdmin } = useAuth()
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -29,9 +30,13 @@ export default function LoginPage() {
   useEffect(() => {
     if (isAuthenticated) {
       const redirect = new URLSearchParams(window.location.search).get("redirect")
-      router.push(redirect || "/")
+      if (isAdmin && !redirect) {
+        router.push("/admin")
+      } else {
+        router.push(redirect || "/")
+      }
     }
-  }, [isAuthenticated, router])
+  }, [isAuthenticated, isAdmin, router])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -42,7 +47,22 @@ export default function LoginPage() {
 
     if (result.success) {
       const redirect = new URLSearchParams(window.location.search).get("redirect")
-      router.push(redirect || "/")
+      if (redirect) {
+        router.push(redirect)
+      } else {
+        // Check if user is admin after successful login
+        const userData = localStorage.getItem("user_data")
+        if (userData) {
+          const parsedUser = JSON.parse(userData)
+          if (parsedUser.role === "admin") {
+            router.push("/admin")
+          } else {
+            router.push("/")
+          }
+        } else {
+          router.push("/")
+        }
+      }
     } else {
       setError(result.error || (language === "th" ? "อีเมลหรือรหัสผ่านไม่ถูกต้อง" : "Invalid email or password"))
     }
@@ -147,12 +167,32 @@ export default function LoginPage() {
               </p>
             </div>
 
-            <div className="mt-6 p-4 bg-accent border border-primary/20 rounded-lg">
-              <h4 className="font-semibold text-primary mb-2">
-                {language === "th" ? "ข้อมูลสำหรับทดสอบ:" : "Demo Credentials:"}
-              </h4>
-              <p className="text-sm text-primary/80">{language === "th" ? "อีเมล:" : "Email:"} user@sofacover.com</p>
-              <p className="text-sm text-primary/80">{language === "th" ? "รหัสผ่าน:" : "Password:"} user123</p>
+            <div className="mt-6 space-y-3">
+              <div className="p-4 bg-accent border border-primary/20 rounded-lg">
+                <h4 className="font-semibold text-primary mb-2 flex items-center">
+                  <UserIcon className="w-4 h-4 mr-2" />
+                  {language === "th" ? "บัญชีผู้ใช้ทั่วไป:" : "Regular User Account:"}
+                </h4>
+                <p className="text-sm text-primary/80">{language === "th" ? "อีเมล:" : "Email:"} user@sofacover.com</p>
+                <p className="text-sm text-primary/80">{language === "th" ? "รหัสผ่าน:" : "Password:"} user123</p>
+              </div>
+
+              <div className="p-4 bg-primary/5 border border-primary/30 rounded-lg">
+                <h4 className="font-semibold text-primary mb-2 flex items-center">
+                  <Shield className="w-4 h-4 mr-2" />
+                  {language === "th" ? "บัญชีแอดมิน:" : "Admin Account:"}
+                  <Badge variant="secondary" className="ml-2 text-xs">
+                    Admin
+                  </Badge>
+                </h4>
+                <p className="text-sm text-primary/80">{language === "th" ? "อีเมล:" : "Email:"} admin@sofacover.com</p>
+                <p className="text-sm text-primary/80">{language === "th" ? "รหัสผ่าน:" : "Password:"} admin123</p>
+                <p className="text-xs text-primary/60 mt-1">
+                  {language === "th"
+                    ? "เข้าถึงแดชบอร์ดแอดมินและฟีเจอร์การจัดการ"
+                    : "Access admin dashboard and management features"}
+                </p>
+              </div>
             </div>
           </CardContent>
         </Card>

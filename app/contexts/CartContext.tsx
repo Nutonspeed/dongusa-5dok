@@ -11,6 +11,8 @@ interface CartItem {
   image: string
   size?: string
   color?: string
+  fabricPattern?: string
+  customizations?: string
 }
 
 interface CartContextType {
@@ -61,7 +63,11 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const addItem = (newItem: Omit<CartItem, "quantity"> & { quantity?: number }) => {
     setItems((prevItems) => {
       const existingItemIndex = prevItems.findIndex(
-        (item) => item.id === newItem.id && item.size === newItem.size && item.color === newItem.color,
+        (item) =>
+          item.id === newItem.id &&
+          item.size === newItem.size &&
+          item.color === newItem.color &&
+          item.fabricPattern === newItem.fabricPattern,
       )
 
       if (existingItemIndex > -1) {

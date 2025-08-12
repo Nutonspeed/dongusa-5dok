@@ -16,12 +16,15 @@ interface User {
   totalOrders: number
   totalSpent: number
   role: "user" | "admin"
+  permissions?: string[]
 }
 
 interface AuthContextType {
   user: User | null
   isLoading: boolean
   isAuthenticated: boolean
+  isAdmin: boolean
+  hasPermission: (permission: string) => boolean
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>
   register: (userData: RegisterData) => Promise<{ success: boolean; error?: string }>
   logout: () => void
@@ -79,6 +82,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           totalOrders: 12,
           totalSpent: 45680,
           role: "user",
+          permissions: ["view_orders", "create_orders", "view_profile", "edit_profile"],
         }
 
         localStorage.setItem("user_token", "demo_user_token")
@@ -96,6 +100,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           totalOrders: 0,
           totalSpent: 0,
           role: "admin",
+          permissions: [
+            "view_orders",
+            "create_orders",
+            "edit_orders",
+            "delete_orders",
+            "view_customers",
+            "edit_customers",
+            "delete_customers",
+            "view_products",
+            "create_products",
+            "edit_products",
+            "delete_products",
+            "view_analytics",
+            "view_settings",
+            "edit_settings",
+            "manage_fabric_gallery",
+            "manage_bills",
+            "manage_shipping",
+          ],
         }
 
         localStorage.setItem("user_token", "demo_admin_token")
@@ -168,10 +191,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
+  const isAdmin = user?.role === "admin"
+
+  const hasPermission = (permission: string): boolean => {
+    if (!user) return false
+    if (user.role === "admin") return true // Admins have all permissions
+    return user.permissions?.includes(permission) || false
+  }
+
   const value: AuthContextType = {
     user,
     isLoading,
     isAuthenticated: !!user,
+    isAdmin,
+    hasPermission,
     login,
     register,
     logout,

@@ -5,7 +5,7 @@ import type React from "react"
 import { useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { Menu, X, ShoppingCart, User, Search, Globe, LogOut, Settings } from "lucide-react"
+import { Menu, X, ShoppingCart, User, Search, Globe, LogOut, Settings, Shield } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import {
@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { useLanguage } from "../contexts/LanguageContext"
 import { useCart } from "../contexts/CartContext"
+import { useAuth } from "../contexts/AuthContext"
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -24,6 +25,7 @@ export default function Header() {
   const [searchQuery, setSearchQuery] = useState("")
   const { language, setLanguage } = useLanguage()
   const { items } = useCart()
+  const { user, isAuthenticated, isAdmin, logout } = useAuth()
   const router = useRouter()
 
   const navigation = [
@@ -72,13 +74,9 @@ export default function Header() {
     }
   }
 
-  const isLoggedIn = typeof window !== "undefined" && localStorage.getItem("user_token")
-
   const handleLogout = () => {
-    if (typeof window !== "undefined") {
-      localStorage.removeItem("user_token")
-      router.push("/")
-    }
+    logout()
+    router.push("/")
   }
 
   return (
@@ -159,13 +157,27 @@ export default function Header() {
             {/* User Account */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm">
+                <Button variant="ghost" size="sm" className="flex items-center space-x-1">
                   <User className="w-4 h-4" />
+                  {isAuthenticated && (
+                    <span className="hidden sm:block text-sm">
+                      {user?.firstName}
+                      {isAdmin && <Shield className="w-3 h-3 ml-1 text-primary inline" />}
+                    </span>
+                  )}
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48">
-                {isLoggedIn ? (
+                {isAuthenticated ? (
                   <>
+                    <div className="px-2 py-1.5 text-sm text-gray-500 border-b">
+                      {user?.email}
+                      {isAdmin && (
+                        <Badge variant="secondary" className="ml-2 text-xs">
+                          Admin
+                        </Badge>
+                      )}
+                    </div>
                     <DropdownMenuItem asChild>
                       <Link href="/profile" className="flex items-center">
                         <User className="w-4 h-4 mr-2" />
@@ -184,6 +196,17 @@ export default function Header() {
                         {language === "en" ? "Settings" : "ตั้งค่า"}
                       </Link>
                     </DropdownMenuItem>
+                    {isAdmin && (
+                      <>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem asChild>
+                          <Link href="/admin" className="flex items-center text-primary">
+                            <Shield className="w-4 h-4 mr-2" />
+                            {language === "en" ? "Admin Dashboard" : "แดชบอร์ดแอดมิน"}
+                          </Link>
+                        </DropdownMenuItem>
+                      </>
+                    )}
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={handleLogout} className="text-red-600">
                       <LogOut className="w-4 h-4 mr-2" />
