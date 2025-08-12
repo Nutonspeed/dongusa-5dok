@@ -1,490 +1,358 @@
-import type {
-  DynamicConfigField,
-  DynamicConfigValue,
-  ConfigCategory,
-  ConfigValidationResult,
-} from "./types/dynamic-config"
+"use client"
+
+import type { ConfigField, ConfigCategory, ConfigValidationResult, ConfigAuditLog } from "./types/dynamic-config"
 
 class DynamicConfigSystem {
-  private fields: DynamicConfigField[] = []
-  private values: DynamicConfigValue[] = []
-  private categories: ConfigCategory[] = []
+  private configs: Map<string, ConfigField> = new Map()
+  private categories: Map<string, ConfigCategory> = new Map()
+  private cache: Map<string, any> = new Map()
+  private auditLogs: ConfigAuditLog[] = []
+  private subscribers: Set<(config: ConfigField) => void> = new Set()
 
   constructor() {
     this.initializeDefaultCategories()
-    this.initializeDefaultFields()
+    this.loadFromStorage()
   }
 
   private initializeDefaultCategories() {
-    this.categories = [
+    const defaultCategories: ConfigCategory[] = [
+      {
+        id: "pricing",
+        name: "ราคาและค่าบริการ",
+        description: "การตั้งค่าราคาสินค้าและค่าบริการต่างๆ",
+        icon: "DollarSign",
+        order: 1,
+        permissions: ["admin", "pricing_manager"],
+      },
       {
         id: "business",
         name: "ข้อมูลธุรกิจ",
-        nameEn: "Business Information",
-        description: "ข้อมูลพื้นฐานของธุรกิจ",
-        descriptionEn: "Basic business information",
+        description: "ข้อมูลพื้นฐานของธุรกิจและการติดต่อ",
         icon: "Building",
-        order: 1,
-        isActive: true,
-      },
-      {
-        id: "pricing",
-        name: "ราคาและต้นทุน",
-        nameEn: "Pricing & Costs",
-        description: "ข้อมูลราคาและต้นทุนต่างๆ",
-        descriptionEn: "Pricing and cost information",
-        icon: "DollarSign",
         order: 2,
-        isActive: true,
+        permissions: ["admin", "business_manager"],
       },
       {
-        id: "analytics",
-        name: "การวิเคราะห์",
-        nameEn: "Analytics",
-        description: "ข้อมูลสำหรับการวิเคราะห์",
-        descriptionEn: "Analytics and tracking data",
-        icon: "BarChart",
-        order: 3,
-        isActive: true,
-      },
-      {
-        id: "technical",
-        name: "ข้อมูลเทคนิค",
-        nameEn: "Technical Settings",
-        description: "การตั้งค่าทางเทคนิค",
-        descriptionEn: "Technical configuration",
+        id: "features",
+        name: "ฟีเจอร์และการทำงาน",
+        description: "การเปิด/ปิดฟีเจอร์และการตั้งค่าการทำงาน",
         icon: "Settings",
+        order: 3,
+        permissions: ["admin", "feature_manager"],
+      },
+      {
+        id: "ui",
+        name: "หน้าตาและการแสดงผล",
+        description: "การตั้งค่าธีม สี และการแสดงผล",
+        icon: "Palette",
         order: 4,
-        isActive: true,
+        permissions: ["admin", "ui_manager"],
       },
       {
-        id: "marketing",
-        name: "การตลาด",
-        nameEn: "Marketing",
-        description: "ข้อมูลการตลาดและโปรโมชั่น",
-        descriptionEn: "Marketing and promotion data",
-        icon: "Megaphone",
+        id: "notifications",
+        name: "การแจ้งเตือน",
+        description: "การตั้งค่าการส่งอีเมลและการแจ้งเตือน",
+        icon: "Bell",
         order: 5,
-        isActive: true,
+        permissions: ["admin", "notification_manager"],
       },
     ]
+
+    defaultCategories.forEach((category) => {
+      this.categories.set(category.id, category)
+    })
   }
 
-  private initializeDefaultFields() {
-    this.fields = [
-      // Business Information
-      {
-        id: "business-name",
-        key: "businessName",
-        label: "ชื่อธุรกิจ",
-        labelEn: "Business Name",
-        type: "text",
-        category: "business",
-        required: true,
-        description: "ชื่อทางการของธุรกิจ",
-        descriptionEn: "Official business name",
-        isActive: true,
-        order: 1,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        createdBy: "system",
-      },
-      {
-        id: "business-registration",
-        key: "businessRegistration",
-        label: "เลขทะเบียนธุรกิจ",
-        labelEn: "Business Registration Number",
-        type: "text",
-        category: "business",
-        required: false,
-        description: "เลขทะเบียนการค้าหรือเลขประจำตัวผู้เสียภาษี",
-        descriptionEn: "Business registration or tax ID number",
-        isActive: true,
-        order: 2,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        createdBy: "system",
-      },
-
-      // Pricing Information
-      {
-        id: "base-price-sofa-cover",
-        key: "basePriceSofaCover",
-        label: "ราคาพื้นฐานผ้าคลุมโซฟา",
-        labelEn: "Base Price Sofa Cover",
-        type: "number",
-        category: "pricing",
-        required: false,
-        validation: { min: 0 },
-        description: "ราคาพื้นฐานสำหรับผ้าคลุมโซฟาขนาดมาตรฐาน",
-        descriptionEn: "Base price for standard sofa cover",
-        isActive: true,
-        order: 1,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        createdBy: "system",
-      },
-      {
-        id: "material-cost-premium",
-        key: "materialCostPremium",
-        label: "ต้นทุนวัสดุพรีเมียม",
-        labelEn: "Premium Material Cost",
-        type: "number",
-        category: "pricing",
-        required: false,
-        validation: { min: 0 },
-        description: "ต้นทุนเพิ่มเติมสำหรับวัสดุพรีเมียม",
-        descriptionEn: "Additional cost for premium materials",
-        isActive: true,
-        order: 2,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        createdBy: "system",
-      },
-
-      // Analytics
-      {
-        id: "google-analytics-id",
-        key: "googleAnalyticsId",
-        label: "Google Analytics ID",
-        labelEn: "Google Analytics ID",
-        type: "text",
-        category: "analytics",
-        required: false,
-        validation: { pattern: "^G-[A-Z0-9]+$" },
-        description: "รหัส Google Analytics สำหรับติดตามผู้เยี่ยมชม",
-        descriptionEn: "Google Analytics tracking ID",
-        isActive: true,
-        order: 1,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        createdBy: "system",
-      },
-      {
-        id: "conversion-rate-target",
-        key: "conversionRateTarget",
-        label: "เป้าหมาย Conversion Rate (%)",
-        labelEn: "Target Conversion Rate (%)",
-        type: "number",
-        category: "analytics",
-        required: false,
-        validation: { min: 0, max: 100 },
-        description: "เป้าหมายอัตราการแปลงลูกค้า",
-        descriptionEn: "Target customer conversion rate",
-        isActive: true,
-        order: 2,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        createdBy: "system",
-      },
-
-      // Technical Settings
-      {
-        id: "api-rate-limit",
-        key: "apiRateLimit",
-        label: "ขีดจำกัด API (requests/minute)",
-        labelEn: "API Rate Limit (requests/minute)",
-        type: "number",
-        category: "technical",
-        required: false,
-        defaultValue: 100,
-        validation: { min: 1, max: 10000 },
-        description: "จำนวนคำขอ API สูงสุดต่อนาที",
-        descriptionEn: "Maximum API requests per minute",
-        isActive: true,
-        order: 1,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        createdBy: "system",
-      },
-      {
-        id: "cache-duration",
-        key: "cacheDuration",
-        label: "ระยะเวลา Cache (วินาที)",
-        labelEn: "Cache Duration (seconds)",
-        type: "number",
-        category: "technical",
-        required: false,
-        defaultValue: 3600,
-        validation: { min: 60, max: 86400 },
-        description: "ระยะเวลาเก็บข้อมูลใน Cache",
-        descriptionEn: "Data caching duration",
-        isActive: true,
-        order: 2,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        createdBy: "system",
-      },
-
-      // Marketing
-      {
-        id: "discount-percentage",
-        key: "discountPercentage",
-        label: "เปอร์เซ็นต์ส่วนลดมาตรฐาน",
-        labelEn: "Standard Discount Percentage",
-        type: "number",
-        category: "marketing",
-        required: false,
-        validation: { min: 0, max: 50 },
-        description: "เปอร์เซ็นต์ส่วนลดมาตรฐานสำหรับลูกค้าใหม่",
-        descriptionEn: "Standard discount for new customers",
-        isActive: true,
-        order: 1,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        createdBy: "system",
-      },
-    ]
-  }
-
-  // Field Management
-  async createField(
-    fieldData: Omit<DynamicConfigField, "id" | "createdAt" | "updatedAt">,
-  ): Promise<DynamicConfigField> {
-    const newField: DynamicConfigField = {
-      ...fieldData,
-      id: `field-${Date.now()}`,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    }
-
-    this.fields.push(newField)
-    return newField
-  }
-
-  async updateField(id: string, updates: Partial<DynamicConfigField>): Promise<DynamicConfigField | null> {
-    const fieldIndex = this.fields.findIndex((field) => field.id === id)
-    if (fieldIndex === -1) return null
-
-    this.fields[fieldIndex] = {
-      ...this.fields[fieldIndex],
-      ...updates,
-      updatedAt: new Date(),
-    }
-
-    return this.fields[fieldIndex]
-  }
-
-  async deleteField(id: string): Promise<boolean> {
-    const fieldIndex = this.fields.findIndex((field) => field.id === id)
-    if (fieldIndex === -1) return false
-
-    // Soft delete - mark as inactive
-    this.fields[fieldIndex].isActive = false
-    this.fields[fieldIndex].updatedAt = new Date()
-
-    return true
-  }
-
-  async getFields(category?: string): Promise<DynamicConfigField[]> {
-    let filteredFields = this.fields.filter((field) => field.isActive)
-
-    if (category) {
-      filteredFields = filteredFields.filter((field) => field.category === category)
-    }
-
-    return filteredFields.sort((a, b) => a.order - b.order)
-  }
-
-  // Value Management
-  async setValue(fieldId: string, value: any, userId: string): Promise<DynamicConfigValue | null> {
-    const field = this.fields.find((f) => f.id === fieldId)
-    if (!field) return null
-
-    // Validate value
-    const validation = await this.validateValue(field, value)
-    if (!validation.isValid) {
-      throw new Error(`Validation failed: ${validation.errors.join(", ")}`)
-    }
-
-    // Check if value already exists
-    const existingValueIndex = this.values.findIndex((v) => v.fieldId === fieldId && v.isActive)
-
-    if (existingValueIndex !== -1) {
-      // Update existing value
-      this.values[existingValueIndex] = {
-        ...this.values[existingValueIndex],
-        value,
-        updatedAt: new Date(),
-        validatedAt: new Date(),
-        validatedBy: userId,
-      }
-      return this.values[existingValueIndex]
-    } else {
-      // Create new value
-      const newValue: DynamicConfigValue = {
-        id: `value-${Date.now()}`,
-        fieldId,
-        value,
-        isActive: true,
-        validatedAt: new Date(),
-        validatedBy: userId,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }
-
-      this.values.push(newValue)
-      return newValue
-    }
-  }
-
-  async getValue(fieldId: string): Promise<any> {
-    const value = this.values.find((v) => v.fieldId === fieldId && v.isActive)
-    if (value) return value.value
-
-    // Return default value if no custom value set
-    const field = this.fields.find((f) => f.id === fieldId)
-    return field?.defaultValue
-  }
-
-  async getAllValues(category?: string): Promise<Record<string, any>> {
-    const fields = await this.getFields(category)
-    const result: Record<string, any> = {}
-
-    for (const field of fields) {
-      result[field.key] = await this.getValue(field.id)
-    }
-
-    return result
-  }
-
-  // Validation
-  async validateValue(field: DynamicConfigField, value: any): Promise<ConfigValidationResult> {
-    const result: ConfigValidationResult = {
-      isValid: true,
-      errors: [],
-      warnings: [],
-      suggestions: [],
-    }
-
-    // Required validation
-    if (field.required && (value === null || value === undefined || value === "")) {
-      result.isValid = false
-      result.errors.push(`${field.label} is required`)
-      return result
-    }
-
-    // Type validation
-    if (value !== null && value !== undefined) {
-      switch (field.type) {
-        case "number":
-          if (isNaN(Number(value))) {
-            result.isValid = false
-            result.errors.push(`${field.label} must be a number`)
-          } else {
-            const numValue = Number(value)
-            if (field.validation?.min !== undefined && numValue < field.validation.min) {
-              result.isValid = false
-              result.errors.push(`${field.label} must be at least ${field.validation.min}`)
-            }
-            if (field.validation?.max !== undefined && numValue > field.validation.max) {
-              result.isValid = false
-              result.errors.push(`${field.label} must be at most ${field.validation.max}`)
-            }
-          }
-          break
-
-        case "email":
-          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-          if (!emailRegex.test(value)) {
-            result.isValid = false
-            result.errors.push(`${field.label} must be a valid email address`)
-          }
-          break
-
-        case "url":
-          try {
-            new URL(value)
-          } catch {
-            result.isValid = false
-            result.errors.push(`${field.label} must be a valid URL`)
-          }
-          break
-
-        case "select":
-          if (field.validation?.options && !field.validation.options.includes(value)) {
-            result.isValid = false
-            result.errors.push(`${field.label} must be one of: ${field.validation.options.join(", ")}`)
-          }
-          break
-      }
-
-      // Pattern validation
-      if (field.validation?.pattern) {
-        const regex = new RegExp(field.validation.pattern)
-        if (!regex.test(value)) {
-          result.isValid = false
-          result.errors.push(`${field.label} format is invalid`)
+  private loadFromStorage() {
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem("dynamic-config")
+      if (stored) {
+        try {
+          const data = JSON.parse(stored)
+          data.configs?.forEach((config: ConfigField) => {
+            this.configs.set(config.key, config)
+          })
+        } catch (error) {
+          console.error("Failed to load config from storage:", error)
         }
       }
     }
-
-    return result
   }
 
-  // Categories
-  async getCategories(): Promise<ConfigCategory[]> {
-    return this.categories.filter((cat) => cat.isActive).sort((a, b) => a.order - b.order)
+  private saveToStorage() {
+    if (typeof window !== "undefined") {
+      const data = {
+        configs: Array.from(this.configs.values()),
+        categories: Array.from(this.categories.values()),
+        lastUpdated: new Date().toISOString(),
+      }
+      localStorage.setItem("dynamic-config", JSON.stringify(data))
+    }
   }
 
-  async createCategory(categoryData: Omit<ConfigCategory, "id">): Promise<ConfigCategory> {
-    const newCategory: ConfigCategory = {
-      ...categoryData,
-      id: `cat-${Date.now()}`,
+  // Configuration Management
+  async setConfig(
+    key: string,
+    value: any,
+    options?: {
+      category?: string
+      description?: string
+      validation?: ConfigField["validation"]
+      userId?: string
+    },
+  ): Promise<void> {
+    const existingConfig = this.configs.get(key)
+    const now = new Date()
+
+    const config: ConfigField = {
+      id: existingConfig?.id || this.generateId(),
+      key,
+      value,
+      type: this.inferType(value),
+      category: options?.category || "general",
+      description: options?.description,
+      validation: options?.validation,
+      metadata: {
+        createdAt: existingConfig?.metadata?.createdAt || now,
+        updatedAt: now,
+        createdBy: existingConfig?.metadata?.createdBy || options?.userId || "system",
+        updatedBy: options?.userId || "system",
+        version: (existingConfig?.metadata?.version || 0) + 1,
+      },
     }
 
-    this.categories.push(newCategory)
-    return newCategory
+    // Validate configuration
+    const validation = this.validateConfig(config)
+    if (!validation.isValid) {
+      throw new Error(`Configuration validation failed: ${validation.errors.join(", ")}`)
+    }
+
+    // Log audit trail
+    this.auditLogs.push({
+      id: this.generateId(),
+      configId: config.id,
+      action: existingConfig ? "update" : "create",
+      oldValue: existingConfig?.value,
+      newValue: value,
+      userId: options?.userId || "system",
+      timestamp: now,
+    })
+
+    this.configs.set(key, config)
+    this.cache.delete(key) // Invalidate cache
+    this.saveToStorage()
+
+    // Notify subscribers
+    this.subscribers.forEach((callback) => callback(config))
+  }
+
+  getConfig<T = any>(key: string, defaultValue?: T): T {
+    const config = this.configs.get(key)
+    return config ? config.value : defaultValue
+  }
+
+  getConfigWithMetadata(key: string): ConfigField | null {
+    return this.configs.get(key) || null
+  }
+
+  getAllConfigs(category?: string): ConfigField[] {
+    const configs = Array.from(this.configs.values())
+    return category ? configs.filter((c) => c.category === category) : configs
+  }
+
+  deleteConfig(key: string, userId?: string): boolean {
+    const config = this.configs.get(key)
+    if (!config) return false
+
+    // Log audit trail
+    this.auditLogs.push({
+      id: this.generateId(),
+      configId: config.id,
+      action: "delete",
+      oldValue: config.value,
+      newValue: null,
+      userId: userId || "system",
+      timestamp: new Date(),
+    })
+
+    this.configs.delete(key)
+    this.cache.delete(key)
+    this.saveToStorage()
+    return true
+  }
+
+  // Category Management
+  addCategory(category: ConfigCategory): void {
+    this.categories.set(category.id, category)
+    this.saveToStorage()
+  }
+
+  getCategories(): ConfigCategory[] {
+    return Array.from(this.categories.values()).sort((a, b) => a.order - b.order)
+  }
+
+  // Validation
+  private validateConfig(config: ConfigField): ConfigValidationResult {
+    const errors: string[] = []
+    const warnings: string[] = []
+
+    if (!config.key) {
+      errors.push("Configuration key is required")
+    }
+
+    if (config.validation) {
+      const { required, min, max, pattern, enum: enumValues } = config.validation
+
+      if (required && (config.value === null || config.value === undefined || config.value === "")) {
+        errors.push("Value is required")
+      }
+
+      if (typeof config.value === "string") {
+        if (min && config.value.length < min) {
+          errors.push(`Value must be at least ${min} characters`)
+        }
+        if (max && config.value.length > max) {
+          errors.push(`Value must be at most ${max} characters`)
+        }
+        if (pattern && !new RegExp(pattern).test(config.value)) {
+          errors.push("Value does not match required pattern")
+        }
+      }
+
+      if (typeof config.value === "number") {
+        if (min && config.value < min) {
+          errors.push(`Value must be at least ${min}`)
+        }
+        if (max && config.value > max) {
+          errors.push(`Value must be at most ${max}`)
+        }
+      }
+
+      if (enumValues && !enumValues.includes(config.value)) {
+        errors.push(`Value must be one of: ${enumValues.join(", ")}`)
+      }
+    }
+
+    return {
+      isValid: errors.length === 0,
+      errors,
+      warnings,
+    }
+  }
+
+  // Utility methods
+  private inferType(value: any): ConfigField["type"] {
+    if (typeof value === "string") return "string"
+    if (typeof value === "number") return "number"
+    if (typeof value === "boolean") return "boolean"
+    if (value instanceof Date) return "date"
+    if (Array.isArray(value)) return "array"
+    return "json"
+  }
+
+  private generateId(): string {
+    return `config_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+  }
+
+  // Subscription system
+  subscribe(callback: (config: ConfigField) => void): () => void {
+    this.subscribers.add(callback)
+    return () => this.subscribers.delete(callback)
   }
 
   // Export/Import
-  async exportConfig(): Promise<string> {
-    const config = {
-      categories: this.categories,
-      fields: this.fields,
-      values: this.values,
-      exportedAt: new Date().toISOString(),
-      version: "1.0",
-    }
-
-    return JSON.stringify(config, null, 2)
+  exportConfig(): string {
+    return JSON.stringify(
+      {
+        configs: Array.from(this.configs.values()),
+        categories: Array.from(this.categories.values()),
+        exportedAt: new Date().toISOString(),
+      },
+      null,
+      2,
+    )
   }
 
-  async importConfig(configJson: string): Promise<boolean> {
+  importConfig(jsonData: string, userId?: string): void {
     try {
-      const config = JSON.parse(configJson)
+      const data = JSON.parse(jsonData)
 
-      // Validate structure
-      if (!config.categories || !config.fields || !config.values) {
-        throw new Error("Invalid configuration format")
+      if (data.configs) {
+        data.configs.forEach((config: ConfigField) => {
+          this.setConfig(config.key, config.value, {
+            category: config.category,
+            description: config.description,
+            validation: config.validation,
+            userId,
+          })
+        })
       }
 
-      // Backup current config
-      const backup = {
-        categories: [...this.categories],
-        fields: [...this.fields],
-        values: [...this.values],
-      }
-
-      try {
-        // Import new config
-        this.categories = config.categories
-        this.fields = config.fields
-        this.values = config.values
-
-        return true
-      } catch (error) {
-        // Restore backup on error
-        this.categories = backup.categories
-        this.fields = backup.fields
-        this.values = backup.values
-        throw error
+      if (data.categories) {
+        data.categories.forEach((category: ConfigCategory) => {
+          this.addCategory(category)
+        })
       }
     } catch (error) {
-      console.error("Failed to import configuration:", error)
-      return false
+      throw new Error("Invalid configuration data")
     }
+  }
+
+  // Audit
+  getAuditLogs(configId?: string): ConfigAuditLog[] {
+    return configId ? this.auditLogs.filter((log) => log.configId === configId) : this.auditLogs
   }
 }
 
-export const dynamicConfigSystem = new DynamicConfigSystem()
+// Singleton instance
+export const dynamicConfig = new DynamicConfigSystem()
+
+// React Hook
+import { useState, useEffect } from "react"
+
+export function useConfig<T = any>(key: string, defaultValue?: T) {
+  const [value, setValue] = useState<T>(() => dynamicConfig.getConfig(key, defaultValue))
+  const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    const unsubscribe = dynamicConfig.subscribe((config) => {
+      if (config.key === key) {
+        setValue(config.value)
+      }
+    })
+
+    return unsubscribe
+  }, [key])
+
+  const updateConfig = async (
+    newValue: T,
+    options?: {
+      category?: string
+      description?: string
+      validation?: ConfigField["validation"]
+    },
+  ) => {
+    setLoading(true)
+    try {
+      await dynamicConfig.setConfig(key, newValue, options)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return { value, updateConfig, loading }
+}
+
+export function useConfigCategory(category: string) {
+  const [configs, setConfigs] = useState<ConfigField[]>(() => dynamicConfig.getAllConfigs(category))
+
+  useEffect(() => {
+    const unsubscribe = dynamicConfig.subscribe(() => {
+      setConfigs(dynamicConfig.getAllConfigs(category))
+    })
+
+    return unsubscribe
+  }, [category])
+
+  return configs
+}

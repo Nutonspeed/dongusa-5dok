@@ -2,94 +2,105 @@
 
 import type React from "react"
 import { createContext, useContext, useEffect, useState } from "react"
-import { dynamicConfigSystem } from "@/lib/dynamic-config-system"
+import { dynamicConfig } from "@/lib/dynamic-config-system"
+import type { ConfigField } from "@/lib/types/dynamic-config"
 
 interface ConfigContextType {
-  config: Record<string, any>
+  getConfig: <T = any>(key: string, defaultValue?: T) => T
+  setConfig: (key: string, value: any, options?: any) => Promise<void>
+  configs: Record<string, ConfigField>
   loading: boolean
-  error: string | null
-  refreshConfig: () => Promise<void>
-  getConfig: (key: string, defaultValue?: any) => any
-  updateConfig: (key: string, value: any) => Promise<void>
 }
 
-const ConfigContext = createContext<ConfigContextType | undefined>(undefined)
+const ConfigContext = createContext<ConfigContextType | null>(null)
 
 export function ConfigProvider({ children }: { children: React.ReactNode }) {
-  const [config, setConfig] = useState<Record<string, any>>({})
+  const [configs, setConfigs] = useState<Record<string, ConfigField>>({})
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-
-  const refreshConfig = async () => {
-    try {
-      setLoading(true)
-      setError(null)
-      const allValues = await dynamicConfigSystem.getAllValues()
-      setConfig(allValues)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load configuration")
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const getConfig = (key: string, defaultValue: any = null) => {
-    return config[key] ?? defaultValue
-  }
-
-  const updateConfig = async (key: string, value: any) => {
-    try {
-      const fields = await dynamicConfigSystem.getFields()
-      const field = fields.find((f) => f.key === key)
-
-      if (!field) {
-        throw new Error(`Configuration field '${key}' not found`)
-      }
-
-      await dynamicConfigSystem.setValue(field.id, value, "user")
-      setConfig((prev) => ({ ...prev, [key]: value }))
-    } catch (err) {
-      throw new Error(err instanceof Error ? err.message : "Failed to update configuration")
-    }
-  }
 
   useEffect(() => {
-    refreshConfig()
+    // Load initial configs
+    const allConfigs = dynamicConfig.getAllConfigs()
+    const configMap = allConfigs.reduce(
+      (acc, config) => {
+        acc[config.key] = config
+        return acc
+      },
+      {} as Record<string, ConfigField>,
+    )
+
+    setConfigs(configMap)
+    setLoading(false)
+
+    // Subscribe to changes
+    const unsubscribe = dynamicConfig.subscribe((config) => {
+      setConfigs((prev) => ({
+        ...prev,
+        [config.key]: config,
+      }))
+    })
+
+    return unsubscribe
   }, [])
 
-  const value: ConfigContextType = {
-    config,
-    loading,
-    error,
-    refreshConfig,
-    getConfig,
-    updateConfig,
+  const getConfig = <T = any>(key: string, defaultValue?: T): T => {
+    return configs[key]?.value ?? defaultValue
   }
 
-  return <ConfigContext.Provider value={value}>{children}</ConfigContext.Provider>
+  const setConfig = async (key: string, value: any, options?: any) => {
+    await dynamicConfig.setConfig(key, value, options)
+  }
+
+  return <ConfigContext.Provider value={{ getConfig, setConfig, configs, loading }}>{children}</ConfigContext.Provider>
 }
 
-export function useConfig() {
+export function useConfigContext() {
   const context = useContext(ConfigContext)
-  if (context === undefined) {
-    throw new Error("useConfig must be used within a ConfigProvider")
+  if (!context) {
+    throw new Error("useConfigContext must be used within a ConfigProvider")
   }
   return context
 }
 
-// Hook for specific config values with real-time updates
-export function useConfigValue<T = any>(key: string, defaultValue?: T): [T, (value: T) => Promise<void>] {
-  const { getConfig, updateConfig } = useConfig()
-  const [value, setValue] = useState<T>(() => getConfig(key, defaultValue))
+// Convenience hooks for common config types
+export function usePricingConfig() {
+  const { getConfig } = useConfigContext()
 
-  useEffect(() => {
-    setValue(getConfig(key, defaultValue))
-  }, [key, defaultValue, getConfig])
-
-  const updateValue = async (newValue: T) => {
-    await updateConfig(key, newValue)
-    setValue(newValue)
+  return {
+    deliveryFee: getConfig("pricing.delivery_fee", 50),
+    minimumOrder: getConfig("pricing.minimum_order", 500),
+    taxRate: getConfig("pricing.tax_rate", 0.07),
+    discountThreshold: getConfig("pricing.discount_threshold", 1000),
+    discountRate: getConfig("pricing.discount_rate", 0.1),
   }
+}
 
-  return [value, updateValue]
+export function useBusinessConfig() {
+  const { getConfig } = useConfigContext()
+
+  return {
+    companyName: getConfig("business.company_name", "ดงอุษา โซฟา"),
+    phone: getConfig("business.phone", "02-123-4567"),
+    email: getConfig("business.email", "info@dongusa.com"),
+    address: getConfig("business.address", "กรุงเทพมหานคร"),
+    workingHours: getConfig("business.working_hours", "9:00-18:00"),
+    socialMedia: getConfig("business.social_media", {
+      facebook: "",
+      line: "",
+      instagram: "",
+    }),
+  }
+}
+
+export function useFeatureConfig() {
+  const { getConfig } = useConfigContext()
+
+  return {
+    enableOnlinePayment: getConfig("features.enable_online_payment", false),
+    enableCustomOrders: getConfig("features.enable_custom_orders", true),
+    enableInventoryTracking: getConfig("features.enable_inventory_tracking", false),
+    enableReviews: getConfig("features.enable_reviews", true),
+    enableWishlist: getConfig("features.enable_wishlist", true),
+    maintenanceMode: getConfig("features.maintenance_mode", false),
+  }
 }

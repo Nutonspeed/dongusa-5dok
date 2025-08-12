@@ -1,97 +1,102 @@
 "use client"
 
-import { useConfigValue } from "@/components/ConfigProvider"
+import { usePricingConfig } from "./ConfigProvider"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { DollarSign, Percent } from "lucide-react"
+import { Truck, ShoppingCart, Receipt, Gift } from "lucide-react"
 
-interface DynamicPricingProps {
-  basePrice?: number
-  category?: string
-  isNewCustomer?: boolean
-}
+export function DynamicPricing() {
+  const pricing = usePricingConfig()
 
-export function DynamicPricing({
-  basePrice = 1500,
-  category = "standard",
-  isNewCustomer = false,
-}: DynamicPricingProps) {
-  const [basePriceSofaCover] = useConfigValue("basePriceSofaCover", 1500)
-  const [materialCostPremium] = useConfigValue("materialCostPremium", 300)
-  const [discountPercentage] = useConfigValue("discountPercentage", 10)
-  const [businessName] = useConfigValue("businessName", "Dongusa")
-
-  const calculatePrice = () => {
-    let finalPrice = basePriceSofaCover || basePrice
-
-    // Add premium material cost if applicable
-    if (category === "premium") {
-      finalPrice += materialCostPremium || 300
-    }
-
-    // Apply new customer discount
-    if (isNewCustomer && discountPercentage) {
-      const discount = (finalPrice * discountPercentage) / 100
-      finalPrice -= discount
-    }
-
-    return {
-      originalPrice: basePriceSofaCover || basePrice,
-      premiumCost: category === "premium" ? materialCostPremium || 300 : 0,
-      discount: isNewCustomer ? ((basePriceSofaCover || basePrice) * (discountPercentage || 0)) / 100 : 0,
-      finalPrice,
-    }
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat("th-TH", {
+      style: "currency",
+      currency: "THB",
+    }).format(amount)
   }
 
-  const pricing = calculatePrice()
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">ค่าจัดส่ง</CardTitle>
+          <Truck className="h-4 w-4 text-muted-foreground" />
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold">{formatCurrency(pricing.deliveryFee)}</div>
+          <p className="text-xs text-muted-foreground">ค่าจัดส่งมาตรฐาน</p>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">ยอดขั้นต่ำ</CardTitle>
+          <ShoppingCart className="h-4 w-4 text-muted-foreground" />
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold">{formatCurrency(pricing.minimumOrder)}</div>
+          <p className="text-xs text-muted-foreground">สำหรับการสั่งซื้อ</p>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">อัตราภาษี</CardTitle>
+          <Receipt className="h-4 w-4 text-muted-foreground" />
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold">{(pricing.taxRate * 100).toFixed(1)}%</div>
+          <p className="text-xs text-muted-foreground">ภาษีมูลค่าเพิ่ม</p>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">ส่วนลด</CardTitle>
+          <Gift className="h-4 w-4 text-muted-foreground" />
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold">{(pricing.discountRate * 100).toFixed(0)}%</div>
+          <p className="text-xs text-muted-foreground">เมื่อซื้อครบ {formatCurrency(pricing.discountThreshold)}</p>
+        </CardContent>
+      </Card>
+    </div>
+  )
+}
+
+// Example usage in a product page
+export function ProductPricing({ basePrice }: { basePrice: number }) {
+  const pricing = usePricingConfig()
+
+  const finalPrice = basePrice + basePrice * pricing.taxRate
+  const hasDiscount = basePrice >= pricing.discountThreshold
+  const discountedPrice = hasDiscount ? finalPrice * (1 - pricing.discountRate) : finalPrice
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center">
-          <DollarSign className="w-5 h-5 mr-2" />
-          Dynamic Pricing - {businessName}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="flex justify-between items-center">
-          <span className="text-gray-600">Base Price:</span>
-          <span className="font-medium">฿{pricing.originalPrice.toLocaleString()}</span>
-        </div>
-
-        {pricing.premiumCost > 0 && (
-          <div className="flex justify-between items-center">
-            <span className="text-gray-600">Premium Material:</span>
-            <span className="font-medium text-blue-600">+฿{pricing.premiumCost.toLocaleString()}</span>
-          </div>
-        )}
-
-        {pricing.discount > 0 && (
-          <div className="flex justify-between items-center">
-            <div className="flex items-center space-x-2">
-              <span className="text-gray-600">New Customer Discount:</span>
-              <Badge variant="secondary" className="flex items-center">
-                <Percent className="w-3 h-3 mr-1" />
-                {discountPercentage}%
-              </Badge>
-            </div>
-            <span className="font-medium text-green-600">-฿{pricing.discount.toLocaleString()}</span>
-          </div>
-        )}
-
-        <div className="border-t pt-4">
-          <div className="flex justify-between items-center">
-            <span className="text-lg font-semibold">Final Price:</span>
-            <span className="text-2xl font-bold text-primary">฿{pricing.finalPrice.toLocaleString()}</span>
-          </div>
-        </div>
-
-        {isNewCustomer && (
-          <Badge variant="outline" className="w-full justify-center">
-            New Customer Special Price Applied!
+    <div className="space-y-2">
+      <div className="flex items-center gap-2">
+        <span className="text-2xl font-bold">{formatCurrency(discountedPrice)}</span>
+        {hasDiscount && (
+          <Badge variant="secondary" className="text-green-600">
+            ประหยัด {formatCurrency(finalPrice - discountedPrice)}
           </Badge>
         )}
-      </CardContent>
-    </Card>
+      </div>
+
+      {hasDiscount && <div className="text-sm text-muted-foreground line-through">{formatCurrency(finalPrice)}</div>}
+
+      <div className="text-xs text-muted-foreground">รวมภาษี {(pricing.taxRate * 100).toFixed(1)}%</div>
+
+      {basePrice < pricing.minimumOrder && (
+        <div className="text-sm text-amber-600">ซื้อเพิ่ม {formatCurrency(pricing.minimumOrder - basePrice)} เพื่อสั่งซื้อได้</div>
+      )}
+    </div>
   )
+}
+
+function formatCurrency(amount: number) {
+  return new Intl.NumberFormat("th-TH", {
+    style: "currency",
+    currency: "THB",
+  }).format(amount)
 }

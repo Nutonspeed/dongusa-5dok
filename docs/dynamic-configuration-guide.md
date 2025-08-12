@@ -1,6 +1,8 @@
-# Dynamic Configuration System Guide
+# 🔧 Dynamic Configuration System Guide
 
-## Overview
+## 📖 Overview
+
+ระบบ Dynamic Configuration ช่วยให้คุณสามารถเปลี่ยนแปลงการตั้งค่าต่างๆ ของเว็บไซต์ได้แบบเรียลไทม์ โดยไม่ต้องแก้ไขโค้ดหรือ Deploy ใหม่
 
 The Dynamic Configuration System allows you to manage business parameters, technical settings, and other configurable values without code changes. This system provides:
 
@@ -11,33 +13,78 @@ The Dynamic Configuration System allows you to manage business parameters, techn
 - **API Access**: Programmatic access via REST API
 - **Security**: Role-based access and API key authentication
 
-## Key Features
+## 🎯 Features
 
-### 1. **Extensible Architecture**
-- Add new configuration fields anytime
-- Support for custom validation rules
-- Category-based organization
-- Version control and audit trails
+### ✅ ความยืดหยุ่น
+- เพิ่ม/ลบ/แก้ไขการตั้งค่าได้ตลอดเวลา
+- รองรับหลายประเภทข้อมูล (String, Number, Boolean, JSON, Array, Date)
+- จัดกลุ่มตามหมวดหมู่
+- Import/Export Configuration
 
-### 2. **Type Safety**
-- Strong typing for all configuration values
-- Runtime validation
-- Default value fallbacks
-- Error handling and recovery
+Add new configuration fields anytime
+Support for custom validation rules
+Category-based organization
+Version control and audit trails
 
-### 3. **User-Friendly Interface**
-- Intuitive admin dashboard
-- Real-time preview of changes
-- Bulk import/export capabilities
-- Search and filtering
+### 🔒 ความปลอดภัย
+- ระบบ Validation อัตโนมัติ
+- Audit Trail สำหรับการเปลี่ยนแปลง
+- Role-based Access Control
+- Input Sanitization
 
-### 4. **Developer Experience**
-- React hooks for easy integration
-- TypeScript support
-- Comprehensive API documentation
-- Code examples in multiple languages
+API key authentication required
+Rate limiting implemented
+Input validation and sanitization
+Audit logging for all changes
 
-## Configuration Categories
+### ⚡ ประสิทธิภาพ
+- Real-time Updates
+- Client-side Caching
+- Optimistic Updates
+- Error Handling
+
+Changes apply immediately without deployment
+Strong typing for all configuration values
+Runtime validation
+Default value fallbacks
+Error handling and recovery
+
+## 🏗️ Architecture
+
+\`\`\`
+┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
+│   Admin UI      │    │  Config System   │    │  React Hooks    │
+│                 │    │                  │    │                 │
+│ - Add Config    │◄──►│ - Validation     │◄──►│ - useConfig     │
+│ - Edit Config   │    │ - Storage        │    │ - useCategory   │
+│ - Delete Config │    │ - Audit Trail    │    │ - useContext    │
+│ - Import/Export │    │ - Subscription   │    │                 │
+└─────────────────┘    └──────────────────┘    └─────────────────┘
+         │                       │                       │
+         └───────────────────────┼───────────────────────┘
+                                 │
+                    ┌──────────────────┐
+                    │   Local Storage  │
+                    │   + API Sync     │
+                    └──────────────────┘
+\`\`\`
+
+## 📋 Configuration Categories
+
+### 💰 Pricing (ราคาและค่าบริการ)
+- `pricing.delivery_fee` - ค่าจัดส่ง
+- `pricing.minimum_order` - ยอดสั่งซื้อขั้นต่ำ
+- `pricing.tax_rate` - อัตราภาษี
+- `pricing.discount_threshold` - ยอดที่ได้รับส่วนลด
+- `pricing.discount_rate` - อัตราส่วนลด
+
+### 🏢 Business (ข้อมูลธุรกิจ)
+- `business.company_name` - ชื่อบริษัท
+- `business.phone` - เบอร์โทรศัพท์
+- `business.email` - อีเมล
+- `business.address` - ที่อยู่
+- `business.working_hours` - เวลาทำการ
+- `business.social_media` - โซเชียลมีเดีย
 
 ### Business Information
 - Company details
@@ -45,17 +92,17 @@ The Dynamic Configuration System allows you to manage business parameters, techn
 - Legal requirements
 - Branding elements
 
-### Pricing & Costs
+### 💰 Pricing & Costs
 - Base prices
 - Material costs
 - Discount rates
 - Tax settings
 
-### Analytics & Tracking
-- Google Analytics ID
-- Conversion tracking
-- Performance metrics
-- A/B testing parameters
+### 🚙️ Features (ฟีเจอร์และการทำงาน)
+- `features.enable_online_payment` - เปิดการชำระเงินออนไลน์
+- `features.enable_custom_orders` - เปิดการสั่งทำพิเศษ
+- `features.enable_inventory_tracking` - เปิดการติดตามสต็อก
+- `features.maintenance_mode` - โหมดปิดปรุงระบบ
 
 ### Technical Settings
 - API rate limits
@@ -63,151 +110,321 @@ The Dynamic Configuration System allows you to manage business parameters, techn
 - Feature flags
 - Integration settings
 
-### Marketing
-- Promotional offers
-- Campaign parameters
-- Customer segmentation
-- Communication preferences
+### 🎨 UI (หน้าตาและการแสดงผล)
+- `ui.theme_color` - สีหลักของเว็บไซต์
+- `ui.logo_url` - URL โลโก้
+- `ui.banner_message` - ข้อความแบนเนอร์
+- `ui.show_promotions` - แสดงโปรโมชั่น
 
-## Usage Examples
+### User-Friendly Interface
+- Intuitive admin dashboard
+- Real-time preview of changes
+- Bulk import/export capabilities
+- Search and filtering
 
-### React Component Integration
+### 🔔 Notifications (การแจ้งเตือน)
+- `notifications.email_enabled` - เปิดการส่งอีเมล
+- `notifications.sms_enabled` - เปิดการส่ง SMS
+- `notifications.order_confirmation` - แจ้งเตือนยืนยันคำสั่งซื้อ
+- `notifications.payment_reminder` - แจ้งเตือนชำระเงิน
+- `notifications.delivery_update` - แจ้งเตือนสถานะจัดส่ง
+
+## 🚀 Quick Start
+
+### 1. Basic Usage
+
 \`\`\`tsx
-import { useConfigValue } from '@/components/ConfigProvider'
+import { useConfig } from '@/lib/dynamic-config-system';
 
 function PricingComponent() {
-  const [basePrice, setBasePrice] = useConfigValue('basePriceSofaCover', 1500)
-  const [discount] = useConfigValue('discountPercentage', 10)
+  const { value: deliveryFee, updateConfig } = useConfig('pricing.delivery_fee', 50);
   
   return (
     <div>
-      <p>Base Price: ฿{basePrice}</p>
-      <p>Discount: {discount}%</p>
+      <p>ค่าจัดส่ง: {deliveryFee} บาท</p>
+      <button onClick={() => updateConfig(60)}>
+        เปลี่ยนเป็น 60 บาท
+      </button>
     </div>
-  )
+  );
 }
 \`\`\`
 
-### API Integration
-\`\`\`javascript
-// Fetch all business configuration
-const response = await fetch('/api/config/business', {
-  headers: {
-    'Authorization': 'Bearer your-api-key',
-    'Content-Type': 'application/json'
+### 2. Using Convenience Hooks
+
+\`\`\`tsx
+import { usePricingConfig } from '@/components/ConfigProvider';
+
+function CheckoutSummary() {
+  const pricing = usePricingConfig();
+  
+  const subtotal = 1000;
+  const tax = subtotal * pricing.taxRate;
+  const total = subtotal + tax + pricing.deliveryFee;
+  
+  return (
+    <div>
+      <p>ยอดรวม: {subtotal} บาท</p>
+      <p>ภาษี ({pricing.taxRate * 100}%): {tax} บาท</p>
+      <p>ค่าจัดส่ง: {pricing.deliveryFee} บาท</p>
+      <p><strong>รวมทั้งสิ้น: {total} บาท</strong></p>
+    </div>
+  );
+}
+\`\`\`
+
+### 3. Admin Configuration
+
+\`\`\`tsx
+// ใช้ Admin Dashboard ที่ /admin/dynamic-config
+// หรือใช้ API โดยตรง
+
+const response = await fetch('/api/config', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    key: 'pricing.delivery_fee',
+    value: 60,
+    category: 'pricing',
+    description: 'ค่าจัดส่งสินค้าทั่วไป',
+    validation: {
+      required: true,
+      min: 0,
+      max: 500
+    }
+  })
+});
+\`\`\`
+
+## 📝 Configuration Types
+
+### String (ข้อความ)
+\`\`\`json
+{
+  "key": "business.company_name",
+  "value": "ดงอุษา โซฟา",
+  "type": "string",
+  "validation": {
+    "required": true,
+    "min": 1,
+    "max": 100
   }
-})
-
-const config = await response.json()
+}
 \`\`\`
 
-### Server-Side Usage
+### Number (ตัวเลข)
+\`\`\`json
+{
+  "key": "pricing.delivery_fee",
+  "value": 50,
+  "type": "number",
+  "validation": {
+    "required": true,
+    "min": 0,
+    "max": 1000
+  }
+}
+\`\`\`
+
+### Boolean (จริง/เท็จ)
+\`\`\`json
+{
+  "key": "features.maintenance_mode",
+  "value": false,
+  "type": "boolean"
+}
+\`\`\`
+
+### JSON (ข้อมูลซับซ้อน)
+\`\`\`json
+{
+  "key": "business.social_media",
+  "value": {
+    "facebook": "https://facebook.com/dongusa",
+    "line": "@dongusa",
+    "instagram": "dongusa_sofa"
+  },
+  "type": "json"
+}
+\`\`\`
+
+### Array (รายการ)
+\`\`\`json
+{
+  "key": "ui.featured_categories",
+  "value": ["โซฟา", "เก้าอี้", "โต๊ะ", "ตู้"],
+  "type": "array"
+}
+\`\`\`
+
+## 🔧 API Reference
+
+### GET /api/config
+ดึงข้อมูลการตั้งค่า
+
+**Parameters:**
+- `category` (optional) - หมวดหมู่
+- `key` (optional) - คีย์เฉพาะ
+
+**Response:**
+\`\`\`json
+{
+  "configs": [...],
+  "categories": [...],
+  "total": 25
+}
+\`\`\`
+
+### POST /api/config
+สร้างการตั้งค่าใหม่
+
+**Body:**
+\`\`\`json
+{
+  "key": "pricing.new_fee",
+  "value": 100,
+  "category": "pricing",
+  "description": "ค่าธรรมเนียมใหม่",
+  "validation": {
+    "required": true,
+    "min": 0
+  },
+  "userId": "admin"
+}
+\`\`\`
+
+### PUT /api/config
+อัปเดตการตั้งค่า
+
+**Body:**
+\`\`\`json
+{
+  "key": "pricing.delivery_fee",
+  "value": 60,
+  "userId": "admin"
+}
+\`\`\`
+
+### DELETE /api/config
+ลบการตั้งค่า
+
+**Parameters:**
+- `key` - คีย์ที่ต้องการลบ
+- `userId` - ผู้ใช้ที่ทำการลบ
+
+## 🛡️ Security & Validation
+
+### Input Validation
 \`\`\`typescript
-import { dynamicConfigSystem } from '@/lib/dynamic-config-system'
-
-// Get configuration value
-const businessName = await dynamicConfigSystem.getValue('business-name')
-
-// Update configuration value
-await dynamicConfigSystem.setValue('field-id', 'new-value', 'user-id')
+const validation = {
+  required: true,        // จำเป็นต้องมีค่า
+  min: 0,               // ค่าต่ำสุด (สำหรับ string = ความยาว, number = ค่า)
+  max: 1000,            // ค่าสูงสุด
+  pattern: "^[0-9]+$",  // Regular Expression
+  enum: ["A", "B", "C"] // ค่าที่อนุญาต
+};
 \`\`\`
 
-## Security Considerations
-
-### API Security
-- API key authentication required
-- Rate limiting implemented
-- Input validation and sanitization
-- Audit logging for all changes
-
-### Data Protection
-- Sensitive data encryption
-- Role-based access control
-- Secure backup and recovery
-- GDPR compliance features
-
-### Best Practices
-- Regular security audits
-- Principle of least privilege
-- Secure API key management
-- Monitor for suspicious activity
-
-## Migration and Deployment
-
-### Adding New Fields
-1. Define field schema in admin interface
-2. Set validation rules and default values
-3. Test with sample data
-4. Deploy to production
-5. Update documentation
-
-### Updating Existing Fields
-1. Create backup of current configuration
-2. Test changes in staging environment
-3. Validate data integrity
-4. Deploy with rollback plan
-5. Monitor for issues
-
-### Data Migration
+### Access Control
 \`\`\`typescript
-// Export current configuration
-const backup = await dynamicConfigSystem.exportConfig()
-
-// Import new configuration
-await dynamicConfigSystem.importConfig(newConfigJson)
+const category = {
+  id: 'pricing',
+  name: 'ราคาและค่าบริการ',
+  permissions: ['admin', 'pricing_manager'] // บทบาทที่สามารถแก้ไขได้
+};
 \`\`\`
 
-## Monitoring and Maintenance
+### Audit Trail
+ระบบจะบันทึกการเปลี่ยนแปลงทั้งหมด:
+- ใครเปลี่ยน (userId)
+- เปลี่ยนเมื่อไหร่ (timestamp)
+- เปลี่ยนจากอะไรเป็นอะไร (oldValue → newValue)
+- เหตุผล (reason)
 
-### Health Checks
-- Configuration validation
-- API endpoint monitoring
-- Database connectivity
-- Performance metrics
+## 📊 Best Practices
 
-### Alerts and Notifications
-- Invalid configuration values
-- API rate limit exceeded
-- System errors and failures
-- Security incidents
+### 1. Naming Convention
+\`\`\`
+category.subcategory.setting_name
+\`\`\`
 
-### Regular Maintenance
-- Clean up unused fields
-- Update validation rules
-- Review access permissions
-- Performance optimization
+**ตัวอย่าง:**
+- `pricing.delivery.standard_fee`
+- `ui.theme.primary_color`
+- `features.payment.enable_promptpay`
 
-## Future Enhancements
+### 2. Default Values
+กำหนดค่าเริ่มต้นเสมอ:
+\`\`\`tsx
+const deliveryFee = useConfig('pricing.delivery_fee', 50); // 50 เป็นค่าเริ่มต้น
+\`\`\`
 
-### Planned Features
-- Visual configuration builder
-- A/B testing integration
-- Multi-environment support
-- Advanced analytics dashboard
-- Webhook notifications
-- Configuration templates
+### 3. Validation Rules
+ตั้งกฎการตรวจสอบที่เหมาะสม:
+\`\`\`typescript
+{
+  key: 'pricing.discount_rate',
+  validation: {
+    required: true,
+    min: 0,
+    max: 1, // 0-100%
+    pattern: '^0\\.\\d+$' // ทศนิยม 0.xx
+  }
+}
+\`\`\`
 
-### Integration Roadmap
-- CRM system integration
-- Payment gateway configuration
-- Inventory management settings
-- Customer communication preferences
-- Marketing automation parameters
+### 4. Performance
+- ใช้ `useConfig` สำหรับค่าเดี่ยว
+- ใช้ `useConfigCategory` สำหรับหลายค่าในหมวดเดียว
+- ใช้ Convenience Hooks สำหรับกลุ่มที่ใช้บ่อย
 
-## Support and Documentation
+## 🚨 Troubleshooting
 
-### Getting Help
-- Admin interface help tooltips
-- API documentation with examples
-- Video tutorials and guides
-- Community support forum
-- Professional support options
+### ปัญหาที่พบบ่อย
 
-### Contributing
-- Feature requests welcome
-- Bug reports and feedback
-- Code contributions
-- Documentation improvements
-- Testing and quality assurance
+**1. Configuration ไม่อัปเดต**
+- ตรวจสอบ Network Tab ใน Browser
+- ดู Console สำหรับ Error Messages
+- ลองรีเฟรชหน้าเว็บ
 
-This dynamic configuration system ensures your website can adapt and grow without requiring code changes, making it future-proof and maintainable.
+**2. Validation Error**
+- ตรวจสอบประเภทข้อมูล (type)
+- ตรวจสอบกฎ validation
+- ใช้ `/api/config/validate` เพื่อทดสอบ
+
+**3. Permission Denied**
+- ตรวจสอบสิทธิ์ผู้ใช้
+- ตรวจสอบ Category Permissions
+- ตรวจสอบ Authentication
+
+### Debug Mode
+เปิด Debug Mode ใน Console:
+\`\`\`javascript
+localStorage.setItem('config-debug', 'true');
+\`\`\`
+
+## 📈 Roadmap
+
+### Phase 1 (ปัจจุบัน)
+- ✅ Basic Configuration System
+- ✅ Admin UI
+- ✅ React Hooks
+- ✅ Local Storage
+
+### Phase 2 (ถัดไป)
+- 🔄 Database Integration (Supabase)
+- 🔄 Real-time Sync
+- 🔄 Multi-user Support
+- 🔄 Configuration History
+
+### Phase 3 (อนาคต)
+- 📋 A/B Testing Integration
+- 📋 Configuration Templates
+- 📋 Bulk Operations
+- 📋 Configuration Scheduling
+
+---
+
+**📅 Last Updated**: 2024-01-13  
+**🔄 Version**: 1.0.0  
+**📖 Documentation**: [GitHub Wiki](https://github.com/dongusa/docs)

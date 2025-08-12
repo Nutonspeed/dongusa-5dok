@@ -1,98 +1,100 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { dynamicConfigSystem } from "@/lib/dynamic-config-system"
 
-// POST /api/config/validate - Validate configuration values
 export async function POST(request: NextRequest) {
   try {
-    const authHeader = request.headers.get("authorization")
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: {
-            code: "UNAUTHORIZED",
-            message: "Missing or invalid API key",
-          },
-        },
-        { status: 401 },
-      )
-    }
-
     const body = await request.json()
-    const { values } = body
+    const { key, value, type, validation } = body
 
-    if (!values || typeof values !== "object") {
-      return NextResponse.json(
-        {
-          success: false,
-          error: {
-            code: "VALIDATION_ERROR",
-            message: "Invalid request body. Expected values object.",
-          },
-        },
-        { status: 400 },
-      )
+    const errors: string[] = []
+    const warnings: string[] = []
+
+    // Basic validation
+    if (!key) {
+      errors.push("Configuration key is required")
     }
 
-    const validationResults = []
-    const fields = await dynamicConfigSystem.getFields()
+    if (key && !/^[a-zA-Z0-9._-]+$/.test(key)) {
+      errors.push("Configuration key can only contain letters, numbers, dots, underscores, and hyphens")
+    }
 
-    // Validate each value
-    for (const [key, value] of Object.entries(values)) {
-      const field = fields.find((f) => f.key === key)
+    // Type validation
+    if (type && value !== null && value !== undefined) {
+      switch (type) {
+        case "number":
+          if (isNaN(Number(value))) {
+            errors.push("Value must be a valid number")
+          }
+          break
+        case "boolean":
+          if (typeof value !== "boolean" && value !== "true" && value !== "false") {
+            errors.push("Value must be true or false")
+          }
+          break
+        case "json":
+          try {
+            JSON.parse(typeof value === "string" ? value : JSON.stringify(value))
+          } catch {
+            errors.push("Value must be valid JSON")
+          }
+          break
+        case "date":
+          if (isNaN(Date.parse(value))) {
+            errors.push("Value must be a valid date")
+          }
+          break
+      }
+    }
 
-      if (!field) {
-        validationResults.push({
-          key,
-          isValid: false,
-          errors: [`Field '${key}' not found`],
-          warnings: [],
-          suggestions: [],
-        })
-        continue
+    // Custom validation rules
+    if (validation) {
+      const { required, min, max, pattern, enum: enumValues } = validation
+
+      if (required && (value === null || value === undefined || value === "")) {
+        errors.push("Value is required")
       }
 
-      const validation = await dynamicConfigSystem.validateValue(field, value)
-      validationResults.push({
-        key,
-        ...validation,
-      })
+      if (typeof value === "string") {
+        if (min && value.length < min) {
+          errors.push(`Value must be at least ${min} characters`)
+        }
+        if (max && value.length > max) {
+          errors.push(`Value must be at most ${max} characters`)
+        }
+        if (pattern && !new RegExp(pattern).test(value)) {
+          errors.push("Value does not match required pattern")
+        }
+      }
+
+      if (typeof value === "number") {
+        if (min && value < min) {
+          errors.push(`Value must be at least ${min}`)
+        }
+        if (max && value > max) {
+          errors.push(`Value must be at most ${max}`)
+        }
+      }
+
+      if (enumValues && !enumValues.includes(value)) {
+        errors.push(`Value must be one of: ${enumValues.join(", ")}`)
+      }
     }
 
-    const allValid = validationResults.every((result) => result.isValid)
-    const totalErrors = validationResults.reduce((sum, result) => sum + result.errors.length, 0)
-    const totalWarnings = validationResults.reduce((sum, result) => sum + result.warnings.length, 0)
+    // Security warnings
+    if (key && key.toLowerCase().includes("password")) {
+      warnings.push("Consider using environment variables for sensitive data")
+    }
+
+    if (key && key.toLowerCase().includes("api_key")) {
+      warnings.push("API keys should be stored securely")
+    }
 
     return NextResponse.json({
-      success: true,
-      data: {
-        isValid: allValid,
-        results: validationResults,
-        summary: {
-          totalFields: validationResults.length,
-          validFields: validationResults.filter((r) => r.isValid).length,
-          invalidFields: validationResults.filter((r) => !r.isValid).length,
-          totalErrors,
-          totalWarnings,
-        },
-      },
-      meta: {
-        timestamp: new Date().toISOString(),
-        version: "1.0",
-      },
+      isValid: errors.length === 0,
+      errors,
+      warnings,
     })
   } catch (error) {
-    console.error("Config Validation Error:", error)
-    return NextResponse.json(
-      {
-        success: false,
-        error: {
-          code: "INTERNAL_ERROR",
-          message: "Failed to validate configuration",
-          details: error instanceof Error ? error.message : "Unknown error",
-        },
-      },
-      { status: 500 },
-    )
+    console.error("Validation Error:", error)
+    return NextResponse.json({ error: "Validation failed" }, { status: 500 })
   }
 }

@@ -1,55 +1,56 @@
-// Dynamic Configuration System Types
-export interface DynamicConfigField {
+export interface ConfigField {
   id: string
   key: string
-  label: string
-  labelEn: string
-  type: "text" | "number" | "boolean" | "select" | "multiselect" | "date" | "url" | "email" | "textarea" | "json"
-  category: "business" | "technical" | "marketing" | "analytics" | "pricing" | "inventory" | "customer"
-  required: boolean
-  defaultValue?: any
+  value: any
+  type: "string" | "number" | "boolean" | "json" | "date" | "array"
+  category: string
+  description?: string
   validation?: {
+    required?: boolean
     min?: number
     max?: number
     pattern?: string
-    options?: string[]
-    customValidator?: string
+    enum?: string[]
   }
-  description: string
-  descriptionEn: string
-  isActive: boolean
-  order: number
-  createdAt: Date
-  updatedAt: Date
-  createdBy: string
-}
-
-export interface DynamicConfigValue {
-  id: string
-  fieldId: string
-  value: any
-  isActive: boolean
-  validatedAt?: Date
-  validatedBy?: string
-  notes?: string
-  createdAt: Date
-  updatedAt: Date
+  metadata?: {
+    createdAt: Date
+    updatedAt: Date
+    createdBy: string
+    updatedBy: string
+    version: number
+  }
 }
 
 export interface ConfigCategory {
   id: string
   name: string
-  nameEn: string
-  description: string
-  descriptionEn: string
-  icon: string
+  description?: string
+  icon?: string
   order: number
-  isActive: boolean
+  permissions?: string[]
 }
 
 export interface ConfigValidationResult {
   isValid: boolean
   errors: string[]
   warnings: string[]
-  suggestions: string[]
+}
+
+export interface ConfigAuditLog {
+  id: string
+  configId: string
+  action: "create" | "update" | "delete"
+  oldValue?: any
+  newValue?: any
+  userId: string
+  timestamp: Date
+  reason?: string
+}
+
+export interface DynamicConfigState {
+  configs: Record<string, ConfigField>
+  categories: Record<string, ConfigCategory>
+  loading: boolean
+  error: string | null
+  lastUpdated: Date | null
 }
