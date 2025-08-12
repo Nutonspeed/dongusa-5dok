@@ -92,6 +92,8 @@ const mockFabrics: FabricPattern[] = [
   },
 ]
 
+export const dynamic = "force-dynamic"
+
 export default function FabricGalleryManagement() {
   const { toast } = useToast()
   const [collections, setCollections] = useState<FabricCollection[]>(mockCollections)
