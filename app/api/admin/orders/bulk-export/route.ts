@@ -3,6 +3,13 @@ import { USE_SUPABASE } from "@/lib/runtime"
 import { createClient } from "@/lib/supabase/client"
 import { logger } from "@/lib/logger"
 
+export async function GET() {
+  const csv = 'id,code,total\n1,ORD-001,1000\n'
+  return new NextResponse(csv, {
+    headers: { 'Content-Type': 'text/csv' },
+  })
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()

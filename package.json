@@ -36,6 +36,8 @@
     "precommit": "lint-staged",
     "prepare": "husky install",
     "rc:tag": "node -e \"console.log('v'+new Date().toISOString().slice(0,10))\"",
+    "qa:smoke": "tsx scripts/qa-smoke.ts",
+    "typecheck": "pnpm type-check",
     "start": "next start",
     "test": "jest",
     "test:coverage": "jest --coverage",
