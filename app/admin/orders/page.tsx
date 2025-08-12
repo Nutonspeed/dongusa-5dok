@@ -28,6 +28,7 @@ import { toast } from "sonner"
 import Link from "next/link"
 import { DatabaseService } from "@/lib/database"
 import { createClient } from "@/lib/supabase/client"
+import { formatCurrency } from "@/lib/money"
 
 interface Order {
   id: string
@@ -293,7 +294,7 @@ export default function AdminOrdersPage() {
               <div class="details">
                 <p><strong>ลูกค้า:</strong> ${order.customer_name}</p>
                 <p><strong>เบอร์โทร:</strong> ${order.customer_phone}</p>
-                <p><strong>ยอดรวม:</strong> ${order.total_amount.toLocaleString()} บาท</p>
+                <p><strong>ยอดรวม:</strong> ${formatCurrency(order.total_amount ?? 0)}</p>
                 <p><strong>สถานะ:</strong> ${statusLabelTH[order.status] || order.status}</p>
                 <p><strong>ช่องทาง:</strong> ${channelLabelTH[order.channel] || order.channel}</p>
                 <p><strong>วันที่:</strong> ${new Date(order.created_at).toLocaleDateString("th-TH", {
@@ -592,7 +593,7 @@ export default function AdminOrdersPage() {
                       </div>
                     </td>
                     <td className="py-4 px-4">
-                      <span className="font-bold text-burgundy-600">฿{order.total_amount.toLocaleString()}</span>
+                      <span className="font-bold text-burgundy-600">{formatCurrency(order.total_amount ?? 0)}</span>
                     </td>
                     <td className="py-4 px-4">{getStatusBadge(order.status)}</td>
                     <td className="py-4 px-4">
