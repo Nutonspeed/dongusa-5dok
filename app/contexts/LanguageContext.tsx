@@ -29,9 +29,12 @@ const translations = {
 
     // Featured Products
     featuredProductsTitle: "Featured Products",
-    featuredProductsSubtitle: "Discover our most popular sofa covers",
+    featuredProductsSubtitle: "Discover our most popular sofa covers, carefully selected for their quality, style, and customer satisfaction.",
     addToCart: "Add to Cart",
     viewAllProducts: "View All Products",
+    newLabel: "New",
+    featuredLabel: "Featured",
+    colorsLabel: "Colors:",
 
     // Fabric Collections
     fabricCollectionsTitle: "Fabric Collections",
@@ -49,6 +52,25 @@ const translations = {
     customCoverTitle: "Get Your Perfect Custom Cover",
     customCoverSubtitle: "Follow our simple 3-step process",
 
+    // Profile Page
+    profileUpdateSuccess: "Profile Updated",
+    profileUpdateSuccessDesc: "Your profile has been updated.",
+    profileUpdateFailed: "Update Failed",
+    profileUpdateFailedDesc: "Could not update your profile.",
+    myProfile: "My Profile",
+    profileSubtitle: "Manage your personal information and account settings",
+    personalInformation: "Personal Information",
+    accountStats: "Account Stats",
+    totalOrders: "Total Orders",
+    totalSpent: "Total Spent",
+    memberSince: "Member Since",
+    vipCustomer: "VIP Customer",
+    quickActions: "Quick Actions",
+    viewOrders: "View Orders",
+    accountSettings: "Account Settings",
+    contactUs: "Contact Us",
+    emailCannotChange: "Email cannot be changed",
+
     // Common
     loading: "Loading...",
     error: "Error",
@@ -56,6 +78,7 @@ const translations = {
     cancel: "Cancel",
     save: "Save",
     edit: "Edit",
+    saving: "Saving...",
     delete: "Delete",
     search: "Search",
     filter: "Filter",
@@ -71,6 +94,11 @@ const translations = {
     tax: "Tax",
     checkout: "Checkout",
     continueShopping: "Continue Shopping",
+    fullName: "Full Name",
+    email: "Email",
+    phoneNumber: "Phone Number",
+    address: "Address",
+    notProvided: "Not provided",
 
     // Product Details
     productDetails: "Product Details",
@@ -106,9 +134,12 @@ const translations = {
 
     // Featured Products
     featuredProductsTitle: "สินค้าแนะนำ",
-    featuredProductsSubtitle: "ค้นพบผ้าคลุมโซฟายอดนิยมของเรา",
+    featuredProductsSubtitle: "ค้นพบผ้าคลุมโซฟายอดนิยมของเรา ที่คัดสรรมาอย่างพิถีพิถันด้วยคุณภาพ สไตล์ และความพึงพอใจของลูกค้า",
     addToCart: "เพิ่มลงตะกร้า",
     viewAllProducts: "ดูสินค้าทั้งหมด",
+    newLabel: "ใหม่",
+    featuredLabel: "แนะนำ",
+    colorsLabel: "สี:",
 
     // Fabric Collections
     fabricCollectionsTitle: "คอลเลกชันผ้า",
@@ -126,6 +157,25 @@ const translations = {
     customCoverTitle: "รับผ้าคลุมตามสั่งที่สมบูรณ์แบบ",
     customCoverSubtitle: "ทำตามขั้นตอนง่ายๆ 3 ขั้นตอน",
 
+    // Profile Page
+    profileUpdateSuccess: "บันทึกสำเร็จ",
+    profileUpdateSuccessDesc: "อัปเดตข้อมูลโปรไฟล์เรียบร้อยแล้ว",
+    profileUpdateFailed: "เกิดข้อผิดพลาด",
+    profileUpdateFailedDesc: "ไม่สามารถอัปเดตโปรไฟล์ได้",
+    myProfile: "โปรไฟล์ของฉัน",
+    profileSubtitle: "จัดการข้อมูลส่วนตัวและการตั้งค่าบัญชี",
+    personalInformation: "ข้อมูลส่วนตัว",
+    accountStats: "สถิติบัญชี",
+    totalOrders: "คำสั่งซื้อทั้งหมด",
+    totalSpent: "ยอดซื้อทั้งหมด",
+    memberSince: "สมาชิกตั้งแต่",
+    vipCustomer: "ลูกค้า VIP",
+    quickActions: "การดำเนินการด่วน",
+    viewOrders: "ดูคำสั่งซื้อ",
+    accountSettings: "ตั้งค่าบัญชี",
+    contactUs: "ติดต่อเรา",
+    emailCannotChange: "ไม่สามารถแก้ไขอีเมลได้",
+
     // Common
     loading: "กำลังโหลด...",
     error: "ข้อผิดพลาด",
@@ -133,6 +183,7 @@ const translations = {
     cancel: "ยกเลิก",
     save: "บันทึก",
     edit: "แก้ไข",
+    saving: "กำลังบันทึก...",
     delete: "ลบ",
     search: "ค้นหา",
     filter: "กรอง",
@@ -148,6 +199,11 @@ const translations = {
     tax: "ภาษี",
     checkout: "ชำระเงิน",
     continueShopping: "ช้อปต่อ",
+    fullName: "ชื่อ-นามสกุล",
+    email: "อีเมล",
+    phoneNumber: "เบอร์โทรศัพท์",
+    address: "ที่อยู่",
+    notProvided: "ไม่ได้ระบุ",
 
     // Product Details
     productDetails: "รายละเอียดสินค้า",

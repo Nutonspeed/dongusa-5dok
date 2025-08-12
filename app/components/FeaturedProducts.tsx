@@ -32,7 +32,7 @@ interface Product {
 }
 
 export default function FeaturedProducts() {
-  const { language } = useLanguage()
+  const { language, t } = useLanguage()
   const { addItem } = useCart()
   const [favorites, setFavorites] = useState<string[]>([])
   const [products, setProducts] = useState<Product[]>([])
@@ -102,12 +102,10 @@ export default function FeaturedProducts() {
         {/* Header */}
         <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-            {language === "en" ? "Featured Products" : "สินค้าแนะนำ"}
+            {t("featuredProductsTitle")}
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            {language === "en"
-              ? "Discover our most popular sofa covers, carefully selected for their quality, style, and customer satisfaction."
-              : "ค้นพบผ้าคลุมโซฟายอดนิยมของเรา ที่คัดสรรมาอย่างพิถีพิถันด้วยคุณภาพ สไตล์ และความพึงพอใจของลูกค้า"}
+            {t("featuredProductsSubtitle")}
           </p>
         </div>
 
@@ -134,10 +132,10 @@ export default function FeaturedProducts() {
                 {/* Badges */}
                 <div className="absolute top-3 left-3 flex flex-col gap-2">
                   {product.is_new && (
-                    <Badge className="bg-green-500 text-white">{language === "en" ? "New" : "ใหม่"}</Badge>
+                    <Badge className="bg-green-500 text-white">{t("newLabel")}</Badge>
                   )}
                   {product.is_featured && (
-                    <Badge className="bg-primary text-white">{language === "en" ? "Featured" : "แนะนำ"}</Badge>
+                    <Badge className="bg-primary text-white">{t("featuredLabel")}</Badge>
                   )}
                   {product.compare_at_price && (
                     <Badge className="bg-orange-500 text-white">
@@ -176,7 +174,7 @@ export default function FeaturedProducts() {
                     size="sm"
                   >
                     <ShoppingCart className="w-4 h-4 mr-2" />
-                    {language === "en" ? "Add to Cart" : "เพิ่มลงตะกร้า"}
+                    {t("addToCart")}
                   </Button>
                 </div>
               </div>
@@ -211,7 +209,7 @@ export default function FeaturedProducts() {
                 {/* Colors */}
                 {product.colors && (
                   <div className="flex items-center space-x-2 mb-4">
-                    <span className="text-sm text-gray-600">{language === "en" ? "Colors:" : "สี:"}</span>
+                    <span className="text-sm text-gray-600">{t("colorsLabel")}</span>
                     <div className="flex space-x-1">
                       {product.colors.map((color) => (
                         <div
@@ -248,7 +246,7 @@ export default function FeaturedProducts() {
               variant="outline"
               className="px-8 py-4 bg-transparent border-primary text-primary hover:bg-accent"
             >
-              {language === "en" ? "View All Products" : "ดูสินค้าทั้งหมด"}
+              {t("viewAllProducts")}
               <ArrowRight className="ml-2 w-5 h-5" />
             </Button>
           </Link>
