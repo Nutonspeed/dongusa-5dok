@@ -1,4 +1,5 @@
 "use client"
+import { logger } from '@/lib/logger';
 import { useState } from "react"
 import {
   BarChart,
@@ -109,7 +110,7 @@ export default function AnalyticsPage() {
         setSalesData(salesHistory)
         setAnalytics(analyticsData)
       } catch (err) {
-        console.error("Error loading analytics:", err)
+        logger.error("Error loading analytics:", err)
         setError("ไม่สามารถโหลดข้อมูลการวิเคราะห์ได้")
 
         setSalesData([
@@ -170,7 +171,7 @@ export default function AnalyticsPage() {
   ]
 
   const handleExportReport = (format: string) => {
-    console.log(`Exporting report in ${format} format`)
+    logger.info(`Exporting report in ${format} format`)
     // Implementation for export functionality
   }
 

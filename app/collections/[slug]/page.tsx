@@ -1,4 +1,5 @@
 "use client"
+import { logger } from '@/lib/logger';
 
 import { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
@@ -53,7 +54,7 @@ export default function CollectionDetailPage() {
         setCollection(collectionData)
         setFabrics(collectionFabrics)
       } catch (error) {
-        console.error("Failed to load data:", error)
+        logger.error("Failed to load data:", error)
         toast.error("ไม่สามารถโหลดข้อมูลได้")
       } finally {
         setLoading(false)

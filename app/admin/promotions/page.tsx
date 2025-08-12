@@ -1,4 +1,5 @@
 "use client"
+import { logger } from '@/lib/logger';
 
 import type React from "react"
 
@@ -387,7 +388,7 @@ function CreatePromotionForm({ onClose }: { onClose: () => void }) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     // Handle form submission
-    console.log("Creating promotion:", formData)
+    logger.info("Creating promotion:", formData)
     onClose()
   }
 

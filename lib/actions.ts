@@ -1,4 +1,5 @@
 "use server"
+import { logger } from '@/lib/logger';
 
 import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
@@ -29,7 +30,7 @@ export async function signIn(prevState: any, formData: FormData) {
 
     return { success: true }
   } catch (error) {
-    console.error("Login error:", error)
+    logger.error("Login error:", error)
     return { error: "An unexpected error occurred. Please try again." }
   }
 }
@@ -69,7 +70,7 @@ export async function signUp(prevState: any, formData: FormData) {
 
     return { success: "Check your email to confirm your account." }
   } catch (error) {
-    console.error("Sign up error:", error)
+    logger.error("Sign up error:", error)
     return { error: "An unexpected error occurred. Please try again." }
   }
 }

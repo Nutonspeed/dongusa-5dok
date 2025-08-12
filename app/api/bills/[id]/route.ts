@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import { type NextRequest, NextResponse } from "next/server"
 import { enhancedBillDatabase } from "@/lib/enhanced-bill-database"
 
@@ -12,7 +13,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
 
     return NextResponse.json(bill)
   } catch (error) {
-    console.error("Error fetching bill:", error)
+    logger.error("Error fetching bill:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }
@@ -30,7 +31,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 
     return NextResponse.json(updatedBill)
   } catch (error) {
-    console.error("Error updating bill:", error)
+    logger.error("Error updating bill:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }
@@ -46,7 +47,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error("Error deleting bill:", error)
+    logger.error("Error deleting bill:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }

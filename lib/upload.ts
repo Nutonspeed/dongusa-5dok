@@ -1,4 +1,5 @@
 "use client"
+import { logger } from '@/lib/logger';
 
 import { useState } from "react"
 
@@ -55,7 +56,7 @@ export const uploadService = {
         path: filePath,
       }
     } catch (error) {
-      console.error("Upload error:", error)
+      logger.error("Upload error:", error)
       return {
         url: "",
         path: "",
@@ -76,13 +77,13 @@ export const uploadService = {
       const { error } = await supabase.storage.from(bucket).remove([filePath])
 
       if (error) {
-        console.error("Delete error:", error)
+        logger.error("Delete error:", error)
         return false
       }
 
       return true
     } catch (error) {
-      console.error("Delete error:", error)
+      logger.error("Delete error:", error)
       return false
     }
   },
@@ -250,11 +251,11 @@ export const uploadService = {
               bucket === "images" ? ["image/jpeg", "image/jpg", "image/png", "image/webp", "image/gif"] : undefined,
             fileSizeLimit: bucket === "images" ? 5242880 : 10485760, // 5MB for images, 10MB for others
           })
-          console.log(`Created storage bucket: ${bucket}`)
+          logger.info(`Created storage bucket: ${bucket}`)
         }
       }
     } catch (error) {
-      console.error("Failed to initialize storage:", error)
+      logger.error("Failed to initialize storage:", error)
     }
   },
 }

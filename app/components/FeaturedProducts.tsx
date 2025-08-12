@@ -1,4 +1,5 @@
 "use client"
+import { logger } from '@/lib/logger';
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
@@ -49,7 +50,7 @@ export default function FeaturedProducts() {
           setProducts(data)
         }
       } catch (error) {
-        console.error("Error fetching featured products:", error)
+        logger.error("Error fetching featured products:", error)
       } finally {
         setLoading(false)
       }

@@ -1,4 +1,5 @@
 "use client"
+import { logger } from '@/lib/logger';
 
 import type React from "react"
 
@@ -13,6 +14,7 @@ import { useLanguage } from "../contexts/LanguageContext"
 import { useCart } from "../contexts/CartContext"
 import { useAuth } from "../contexts/AuthContext"
 import { createClient } from "@/lib/supabase/client"
+import type { Profile, Order, OrderItem } from "@/types/entities"
 import Header from "../components/Header"
 import Footer from "../components/Footer"
 
@@ -64,7 +66,11 @@ export default function CheckoutPage() {
 
     const loadUserProfile = async () => {
       if (user) {
-        const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single()
+        const { data: profile } = await supabase
+          .from<Profile>("profiles")
+          .select("*")
+          .eq("id", user.id)
+          .single()
 
         if (profile) {
           setShippingInfo((prev) => ({
@@ -118,7 +124,11 @@ export default function CheckoutPage() {
         channel: "website",
       }
 
-      const { data: order, error: orderError } = await supabase.from("orders").insert(orderData).select().single()
+      const { data: order, error: orderError } = await supabase
+        .from<Order>("orders")
+        .insert(orderData)
+        .select()
+        .single()
 
       if (orderError) throw orderError
 
@@ -136,7 +146,9 @@ export default function CheckoutPage() {
         customizations: item.customizations,
       }))
 
-      const { error: itemsError } = await supabase.from("order_items").insert(orderItems)
+      const { error: itemsError } = await supabase
+        .from<OrderItem>("order_items")
+        .insert(orderItems)
 
       if (itemsError) throw itemsError
 
@@ -146,7 +158,7 @@ export default function CheckoutPage() {
       // Redirect to success page
       router.push(`/order-success?orderId=${order.id}`)
     } catch (error) {
-      console.error("Order creation failed:", error)
+      logger.error("Order creation failed:", error)
       // Fallback to mock processing
       setTimeout(() => {
         const order = {

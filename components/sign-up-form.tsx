@@ -12,13 +12,15 @@ export default function SignUpForm() {
   const [state, setState] = useState<{ error?: string; success?: string } | null>(null)
 
   const handleSubmit = async (formData: FormData) => {
-    startTransition(async () => {
-      try {
-        const result = await signUp(null, formData)
-        setState(result)
-      } catch (error) {
-        setState({ error: "An error occurred during sign up" })
-      }
+    startTransition(() => {
+      void (async () => {
+        try {
+          const result = await signUp(null, formData)
+          setState(result)
+        } catch (error) {
+          setState({ error: "An error occurred during sign up" })
+        }
+      })()
     })
   }
 

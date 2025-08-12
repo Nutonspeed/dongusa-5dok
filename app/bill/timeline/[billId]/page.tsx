@@ -1,4 +1,5 @@
 "use client"
+import { logger } from '@/lib/logger';
 
 import { useState, useEffect } from "react"
 import { useParams } from "next/navigation"
@@ -63,7 +64,7 @@ export default function BillTimelinePage() {
       const orderData = await getOrderById(params.billId as string)
       setOrder(orderData)
     } catch (error) {
-      console.error("Error loading order:", error)
+      logger.error("Error loading order:", error)
     } finally {
       setLoading(false)
     }

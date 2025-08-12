@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import { type NextRequest, NextResponse } from "next/server"
 
 export async function GET(request: NextRequest) {
@@ -21,7 +22,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(healthCheck)
   } catch (error) {
-    console.error("Health check failed:", error)
+    logger.error("Health check failed:", error)
     return NextResponse.json(
       {
         status: "unhealthy",

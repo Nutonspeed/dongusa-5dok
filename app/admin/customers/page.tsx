@@ -1,4 +1,5 @@
 "use client"
+import { logger } from '@/lib/logger';
 
 import { useState, useEffect } from "react"
 import {
@@ -150,7 +151,7 @@ export default function CustomersManagement() {
           averageOrderValue: analytics.averageOrderValue || 0,
         })
       } catch (err) {
-        console.error("Error loading customer data:", err)
+        logger.error("Error loading customer data:", err)
         setError("ไม่สามารถโหลดข้อมูลลูกค้าได้")
 
         setCustomersData([

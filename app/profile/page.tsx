@@ -1,4 +1,5 @@
 "use client"
+import { logger } from '@/lib/logger';
 
 export const dynamic = "force-dynamic"
 
@@ -65,7 +66,7 @@ export default function ProfilePage() {
       setProfileData(editForm)
       setIsEditing(false)
     } catch (error) {
-      console.error("Profile update failed:", error)
+      logger.error("Profile update failed:", error)
     }
 
     setIsLoading(false)

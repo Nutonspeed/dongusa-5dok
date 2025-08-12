@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import { type Order, OrderStatus, OrderChannel } from "./mock-orders"
 import type { Product } from "./mock-products"
 
@@ -108,7 +109,7 @@ class IntegratedMockDatabase {
 
     await this.seedSampleData()
     this.initialized = true
-    console.log("🗄️ [INTEGRATED DB] Database initialized with sample data")
+    logger.info("🗄️ [INTEGRATED DB] Database initialized with sample data")
   }
 
   // Customer operations
@@ -634,7 +635,7 @@ class IntegratedMockDatabase {
       },
     ]
 
-    console.log("🌱 [INTEGRATED DB] Sample data seeded successfully")
+    logger.info("🌱 [INTEGRATED DB] Sample data seeded successfully")
   }
 
   // Clear all data
@@ -646,7 +647,7 @@ class IntegratedMockDatabase {
     this.fabricPatterns = []
     this.bills = []
     this.initialized = false
-    console.log("🗑️ [INTEGRATED DB] All data cleared")
+    logger.info("🗑️ [INTEGRATED DB] All data cleared")
   }
 }
 

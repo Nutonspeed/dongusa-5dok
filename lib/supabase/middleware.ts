@@ -1,5 +1,7 @@
+import { logger } from '@/lib/logger';
 import { createServerClient } from "@supabase/ssr"
 import { NextResponse, type NextRequest } from "next/server"
+import type { Profile } from "@/types/entities"
 
 export const isSupabaseConfigured =
   typeof process.env.NEXT_PUBLIC_SUPABASE_URL === "string" &&
@@ -77,20 +79,24 @@ export async function updateSession(request: NextRequest) {
 
       // Check admin role
       try {
-        const { data: profile } = await supabase.from("profiles").select("role").eq("id", session.user.id).single()
+        const { data: profile } = await supabase
+          .from<Profile>("profiles")
+          .select("role")
+          .eq("id", session.user.id)
+          .single()
 
         if (profile?.role !== "admin") {
           return NextResponse.redirect(new URL("/", request.url))
         }
       } catch (error) {
-        console.error("Error checking admin role:", error)
+        logger.error("Error checking admin role:", error)
         // Allow access if profile check fails (graceful degradation)
       }
     }
 
     return supabaseResponse
   } catch (error) {
-    console.error("Middleware error:", error)
+    logger.error("Middleware error:", error)
     return NextResponse.next()
   }
 }

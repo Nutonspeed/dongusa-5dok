@@ -1,4 +1,5 @@
 "use client"
+import { logger } from '@/lib/logger';
 
 import type React from "react"
 
@@ -90,10 +91,10 @@ export default function SettingsPage() {
     setIsLoading(true)
 
     try {
-      console.log("Profile update would be implemented here:", profileSettings)
+      logger.info("Profile update would be implemented here:", profileSettings)
       alert(language === "th" ? "อัปเดตโปรไฟล์สำเร็จ" : "Profile updated successfully")
     } catch (error) {
-      console.error("Profile update failed:", error)
+      logger.error("Profile update failed:", error)
       alert(language === "th" ? "เกิดข้อผิดพลาดในการอัปเดต" : "Update failed")
     }
 

@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import nodemailer from "nodemailer"
 
 // Email configuration
@@ -343,9 +344,9 @@ export const emailService = {
         html: template.html(order),
       })
 
-      console.log(`New order notification sent for order ${order.id}`)
+      logger.info(`New order notification sent for order ${order.id}`)
     } catch (error) {
-      console.error("Failed to send new order notification:", error)
+      logger.error("Failed to send new order notification:", error)
       throw error
     }
   },
@@ -361,9 +362,9 @@ export const emailService = {
         html: template.html(product),
       })
 
-      console.log(`Low stock alert sent for product ${product.id}`)
+      logger.info(`Low stock alert sent for product ${product.id}`)
     } catch (error) {
-      console.error("Failed to send low stock alert:", error)
+      logger.error("Failed to send low stock alert:", error)
       throw error
     }
   },
@@ -379,9 +380,9 @@ export const emailService = {
         html: template.html(message),
       })
 
-      console.log(`Customer message notification sent from ${message.email}`)
+      logger.info(`Customer message notification sent from ${message.email}`)
     } catch (error) {
-      console.error("Failed to send customer message notification:", error)
+      logger.error("Failed to send customer message notification:", error)
       throw error
     }
   },
@@ -397,9 +398,9 @@ export const emailService = {
         html: template.html(order),
       })
 
-      console.log(`Order status update sent to ${customerEmail} for order ${order.id}`)
+      logger.info(`Order status update sent to ${customerEmail} for order ${order.id}`)
     } catch (error) {
-      console.error("Failed to send order status update:", error)
+      logger.error("Failed to send order status update:", error)
       throw error
     }
   },
@@ -416,9 +417,9 @@ export const emailService = {
       )
 
       await Promise.all(promises)
-      console.log(`Bulk email sent to ${recipients.length} recipients`)
+      logger.info(`Bulk email sent to ${recipients.length} recipients`)
     } catch (error) {
-      console.error("Failed to send bulk email:", error)
+      logger.error("Failed to send bulk email:", error)
       throw error
     }
   },
@@ -427,10 +428,10 @@ export const emailService = {
   async testConnection() {
     try {
       await transporter.verify()
-      console.log("Email service connection verified successfully")
+      logger.info("Email service connection verified successfully")
       return true
     } catch (error) {
-      console.error("Email service connection failed:", error)
+      logger.error("Email service connection failed:", error)
       return false
     }
   },
@@ -447,9 +448,9 @@ export const emailAutomation = {
       // Send confirmation to customer
       await emailService.sendOrderStatusUpdate(order, order.customer.email)
 
-      console.log(`Email automation triggered for new order ${order.id}`)
+      logger.info(`Email automation triggered for new order ${order.id}`)
     } catch (error) {
-      console.error("Email automation failed for new order:", error)
+      logger.error("Email automation failed for new order:", error)
     }
   },
 
@@ -457,9 +458,9 @@ export const emailAutomation = {
   async onLowStock(product: any) {
     try {
       await emailService.sendLowStockAlert(product)
-      console.log(`Email automation triggered for low stock product ${product.id}`)
+      logger.info(`Email automation triggered for low stock product ${product.id}`)
     } catch (error) {
-      console.error("Email automation failed for low stock:", error)
+      logger.error("Email automation failed for low stock:", error)
     }
   },
 
@@ -467,9 +468,9 @@ export const emailAutomation = {
   async onCustomerMessage(message: any) {
     try {
       await emailService.sendCustomerMessageNotification(message)
-      console.log(`Email automation triggered for customer message from ${message.email}`)
+      logger.info(`Email automation triggered for customer message from ${message.email}`)
     } catch (error) {
-      console.error("Email automation failed for customer message:", error)
+      logger.error("Email automation failed for customer message:", error)
     }
   },
 
@@ -481,12 +482,12 @@ export const emailAutomation = {
 
       if (notifiableStatuses.includes(order.status)) {
         await emailService.sendOrderStatusUpdate(order, order.customer.email)
-        console.log(
+        logger.info(
           `Email automation triggered for order status change ${order.id}: ${previousStatus} -> ${order.status}`,
         )
       }
     } catch (error) {
-      console.error("Email automation failed for order status change:", error)
+      logger.error("Email automation failed for order status change:", error)
     }
   },
 }

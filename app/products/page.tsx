@@ -1,4 +1,5 @@
 "use client"
+import { logger } from '@/lib/logger';
 
 import { useState, useMemo, useEffect } from "react"
 import Link from "next/link"
@@ -74,7 +75,7 @@ export default function ProductsPage() {
           ])
         }
       } catch (error) {
-        console.error("Error fetching data:", error)
+        logger.error("Error fetching data:", error)
       } finally {
         setLoading(false)
       }
