@@ -18,7 +18,7 @@ import { useToast } from "@/hooks/use-toast"
 
 export default function ProfilePage() {
   const router = useRouter()
-  const { language } = useLanguage()
+  const { language, t } = useLanguage()
   const { user, profile, isAuthenticated, refreshProfile } = useAuth()
   const { toast } = useToast()
   const [isEditing, setIsEditing] = useState(false)
@@ -75,21 +75,15 @@ export default function ProfilePage() {
       setProfileData(editForm)
       setIsEditing(false)
       toast({
-        title: language === "th" ? "บันทึกสำเร็จ" : "Profile Updated",
-        description:
-          language === "th"
-            ? "อัปเดตข้อมูลโปรไฟล์เรียบร้อยแล้ว"
-            : "Your profile has been updated.",
+        title: t("profileUpdateSuccess"),
+        description: t("profileUpdateSuccessDesc"),
       })
       await refreshProfile()
     } catch (error) {
       logger.error("Profile update failed:", error)
       toast({
-        title: language === "th" ? "เกิดข้อผิดพลาด" : "Update Failed",
-        description:
-          language === "th"
-            ? "ไม่สามารถอัปเดตโปรไฟล์ได้"
-            : "Could not update your profile.",
+        title: t("profileUpdateFailed"),
+        description: t("profileUpdateFailedDesc"),
         variant: "destructive",
       })
     } finally {
@@ -103,15 +97,18 @@ export default function ProfilePage() {
   }
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat("th-TH", {
+    const locales = { th: "th-TH", en: "en-US" } as const
+    return new Intl.NumberFormat(locales[language], {
       style: "currency",
       currency: "THB",
+      minimumFractionDigits: 0,
     }).format(price)
   }
 
   const formatDate = (dateString: string) => {
     if (!dateString) return ""
-    return new Date(dateString).toLocaleDateString(language === "th" ? "th-TH" : "en-US", {
+    const locales = { th: "th-TH", en: "en-US" } as const
+    return new Date(dateString).toLocaleDateString(locales[language], {
       year: "numeric",
       month: "long",
       day: "numeric",
@@ -124,12 +121,8 @@ export default function ProfilePage() {
 
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">{language === "th" ? "โปรไฟล์ของฉัน" : "My Profile"}</h1>
-          <p className="text-gray-600 mt-2">
-            {language === "th"
-              ? "จัดการข้อมูลส่วนตัวและการตั้งค่าบัญชี"
-              : "Manage your personal information and account settings"}
-          </p>
+          <h1 className="text-3xl font-bold text-gray-900">{t("myProfile")}</h1>
+          <p className="text-gray-600 mt-2">{t("profileSubtitle")}</p>
         </div>
 
         <div className="grid lg:grid-cols-3 gap-8">
@@ -139,28 +132,22 @@ export default function ProfilePage() {
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="flex items-center">
                   <User className="w-5 h-5 mr-2" />
-                  {language === "th" ? "ข้อมูลส่วนตัว" : "Personal Information"}
+                  {t("personalInformation")}
                 </CardTitle>
                 {!isEditing ? (
                   <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
                     <Edit className="w-4 h-4 mr-2" />
-                    {language === "th" ? "แก้ไข" : "Edit"}
+                    {t("edit")}
                   </Button>
                 ) : (
                   <div className="flex space-x-2">
                     <Button variant="outline" size="sm" onClick={handleCancel}>
                       <X className="w-4 h-4 mr-2" />
-                      {language === "th" ? "ยกเลิก" : "Cancel"}
+                      {t("cancel")}
                     </Button>
                     <Button size="sm" onClick={handleSave} disabled={isLoading}>
                       <Save className="w-4 h-4 mr-2" />
-                      {isLoading
-                        ? language === "th"
-                          ? "กำลังบันทึก..."
-                          : "Saving..."
-                        : language === "th"
-                          ? "บันทึก"
-                          : "Save"}
+                      {isLoading ? t("saving") : t("save")}
                     </Button>
                   </div>
                 )}
@@ -168,7 +155,7 @@ export default function ProfilePage() {
               <CardContent className="space-y-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {language === "th" ? "ชื่อ-นามสกุล" : "Full Name"}
+                    {t("fullName")}
                   </label>
                   {isEditing ? (
                     <input
@@ -187,18 +174,16 @@ export default function ProfilePage() {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     <Mail className="w-4 h-4 inline mr-1" />
-                    {language === "th" ? "อีเมล" : "Email"}
+                    {t("email")}
                   </label>
                   <p className="text-gray-900">{profileData.email}</p>
-                  <p className="text-xs text-gray-500 mt-1">
-                    {language === "th" ? "ไม่สามารถแก้ไขอีเมลได้" : "Email cannot be changed"}
-                  </p>
+                  <p className="text-xs text-gray-500 mt-1">{t("emailCannotChange")}</p>
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     <Phone className="w-4 h-4 inline mr-1" />
-                    {language === "th" ? "เบอร์โทรศัพท์" : "Phone Number"}
+                    {t("phoneNumber")}
                   </label>
                   {isEditing ? (
                     <input
@@ -210,14 +195,14 @@ export default function ProfilePage() {
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                     />
                   ) : (
-                    <p className="text-gray-900">{profileData.phone || "ไม่ได้ระบุ"}</p>
+                    <p className="text-gray-900">{profileData.phone || t("notProvided")}</p>
                   )}
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     <MapPin className="w-4 h-4 inline mr-1" />
-                    {language === "th" ? "ที่อยู่" : "Address"}
+                    {t("address")}
                   </label>
                   {isEditing ? (
                     <textarea
@@ -242,31 +227,29 @@ export default function ProfilePage() {
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <Calendar className="w-5 h-5 mr-2" />
-                  {language === "th" ? "สถิติบัญชี" : "Account Stats"}
+                  {t("accountStats")}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="text-center p-4 bg-accent rounded-lg">
                   <div className="text-2xl font-bold text-primary">{profileData.totalOrders}</div>
-                  <div className="text-sm text-gray-600">{language === "th" ? "คำสั่งซื้อทั้งหมด" : "Total Orders"}</div>
+                  <div className="text-sm text-gray-600">{t("totalOrders")}</div>
                 </div>
 
                 <div className="text-center p-4 bg-accent rounded-lg">
                   <div className="text-2xl font-bold text-primary">{formatPrice(profileData.totalSpent)}</div>
-                  <div className="text-sm text-gray-600">{language === "th" ? "ยอดซื้อทั้งหมด" : "Total Spent"}</div>
+                  <div className="text-sm text-gray-600">{t("totalSpent")}</div>
                 </div>
 
                 {profileData.joinDate && (
                   <div className="text-center p-4 bg-accent rounded-lg">
-                    <div className="text-sm text-gray-600 mb-1">{language === "th" ? "สมาชิกตั้งแต่" : "Member Since"}</div>
+                    <div className="text-sm text-gray-600 mb-1">{t("memberSince")}</div>
                     <div className="font-medium text-gray-900">{formatDate(profileData.joinDate)}</div>
                   </div>
                 )}
 
                 <div className="text-center">
-                  <Badge className="bg-burgundy-gradient text-white">
-                    {language === "th" ? "ลูกค้า VIP" : "VIP Customer"}
-                  </Badge>
+                  <Badge className="bg-burgundy-gradient text-white">{t("vipCustomer")}</Badge>
                 </div>
               </CardContent>
             </Card>
@@ -274,17 +257,17 @@ export default function ProfilePage() {
             {/* Quick Actions */}
             <Card>
               <CardHeader>
-                <CardTitle>{language === "th" ? "การดำเนินการด่วน" : "Quick Actions"}</CardTitle>
+                <CardTitle>{t("quickActions")}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 <Button variant="outline" className="w-full justify-start bg-transparent" asChild>
-                  <a href="/orders">{language === "th" ? "ดูคำสั่งซื้อ" : "View Orders"}</a>
+                  <a href="/orders">{t("viewOrders")}</a>
                 </Button>
                 <Button variant="outline" className="w-full justify-start bg-transparent" asChild>
-                  <a href="/settings">{language === "th" ? "ตั้งค่าบัญชี" : "Account Settings"}</a>
+                  <a href="/settings">{t("accountSettings")}</a>
                 </Button>
                 <Button variant="outline" className="w-full justify-start bg-transparent" asChild>
-                  <a href="/contact">{language === "th" ? "ติดต่อเรา" : "Contact Us"}</a>
+                  <a href="/contact">{t("contactUs")}</a>
                 </Button>
               </CardContent>
             </Card>
