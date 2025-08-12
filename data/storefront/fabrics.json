@@ -1,0 +1,62 @@
+[
+  {
+    "id": "LN001",
+    "collection": "linen",
+    "nameTH": "ลินินขาวธรรมชาติ",
+    "image": "/fabrics/linen-natural-white.jpg"
+  },
+  {
+    "id": "LN002",
+    "collection": "linen",
+    "nameTH": "ลินินเบจอ่อน",
+    "image": "/fabrics/linen-light-beige.jpg"
+  },
+  {
+    "id": "LN003",
+    "collection": "linen",
+    "nameTH": "ลินินเทาอ่อน",
+    "image": "/fabrics/linen-light-gray.jpg"
+  },
+  {
+    "id": "CT001",
+    "collection": "cotton",
+    "nameTH": "คอตตอนขาวล้วน",
+    "image": "/fabrics/cotton-pure-white.jpg"
+  },
+  {
+    "id": "CT002",
+    "collection": "cotton",
+    "nameTH": "คอตตอนครีม",
+    "image": "/fabrics/cotton-cream.jpg"
+  },
+  {
+    "id": "VT001",
+    "collection": "velvet",
+    "nameTH": "กำมะหยี่น้ำเงินเข้ม",
+    "image": "/fabrics/velvet-navy-blue.jpg"
+  },
+  {
+    "id": "VT002",
+    "collection": "velvet",
+    "nameTH": "กำมะหยี่เขียวมรกต",
+    "image": "/fabrics/velvet-emerald-green.jpg"
+  },
+  {
+    "id": "SK001",
+    "collection": "silk",
+    "nameTH": "ไหมทองอ่อน",
+    "image": "/fabrics/silk-light-gold.jpg"
+  },
+  {
+    "id": "CV001",
+    "collection": "canvas",
+    "nameTH": "แคนวาสน้ำตาลธรรมชาติ",
+    "image": "/fabrics/canvas-natural-brown.jpg"
+  },
+  {
+    "id": "JQ001",
+    "collection": "jacquard",
+    "nameTH": "แจ็คการ์ดลายดอกไม้",
+    "image": "/fabrics/jacquard-floral-pattern.jpg"
+  }
+]

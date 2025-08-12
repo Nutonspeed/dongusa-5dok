@@ -1,0 +1,40 @@
+{
+  "hero": {
+    "title": "ผ้าคลุมโซฟาสวยงาม คุณภาพพรีเมียม",
+    "subtitle": "เลือกจากคอลเลกชั่นผ้าหลากหลายลาย ตัดเย็บตามขนาดโซฟาของคุณ",
+    "ctaText": "เลือกผ้าเลย",
+    "ctaLink": "/collections",
+    "backgroundImage": "/hero-sofa.jpg"
+  },
+  "featuredCollections": [
+    {
+      "slug": "linen",
+      "title": "ลินิน คลาสสิค",
+      "description": "ผ้าลินินคุณภาพสูง เนื้อนุ่ม ระบายอากาศดี",
+      "image": "/collections/linen-cover.jpg"
+    },
+    {
+      "slug": "velvet",
+      "title": "กำมะหยี่หรู",
+      "description": "ผ้ากำมะหยี่เนื้อนุ่ม สีสันสวยงาม",
+      "image": "/collections/velvet-cover.jpg"
+    }
+  ],
+  "benefits": [
+    {
+      "title": "ตัดเย็บตามขนาด",
+      "description": "วัดและตัดเย็บให้พอดีกับโซฟาของคุณ",
+      "icon": "ruler"
+    },
+    {
+      "title": "ผ้าคุณภาพสูง",
+      "description": "เลือกใช้ผ้าคุณภาพดี ทนทาน ซักง่าย",
+      "icon": "star"
+    },
+    {
+      "title": "จัดส่งรวดเร็ว",
+      "description": "ผลิตและจัดส่งภายใน 7-14 วัน",
+      "icon": "truck"
+    }
+  ]
+}

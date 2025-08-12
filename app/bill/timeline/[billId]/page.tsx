@@ -5,7 +5,7 @@ import { useParams } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { ArrowLeft, CheckCircle, Clock, Package, Truck, XCircle } from "lucide-react"
-import { type Order, OrderStatus, getOrderById, statusLabelTH } from "@/lib/mock-orders"
+import { type Order, OrderStatus, getOrderById } from "@/lib/mock-orders"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 
@@ -29,6 +29,24 @@ const statusColors: Record<OrderStatus, string> = {
   [OrderStatus.SHIPPED]: "bg-indigo-100 text-indigo-800 border-indigo-200",
   [OrderStatus.DONE]: "bg-gray-100 text-gray-800 border-gray-200",
   [OrderStatus.CANCELLED]: "bg-red-100 text-red-800 border-red-200",
+}
+
+const productionSubSteps = [
+  { id: "cutting", name: "กำลังตัดผ้า", icon: "✂️", completed: true },
+  { id: "sewing", name: "กำลังเย็บ", icon: "🧵", completed: true },
+  { id: "qc", name: "ตรวจสอบคุณภาพ", icon: "🔍", completed: false },
+  { id: "packing", name: "พร้อมแพ็ก", icon: "📦", completed: false },
+]
+
+const statusLabelTH: Record<OrderStatus, string> = {
+  [OrderStatus.PENDING]: "รอดำเนินการ",
+  [OrderStatus.PENDING_PAYMENT]: "รอชำระเงิน",
+  [OrderStatus.PAID]: "ชำระเงินแล้ว",
+  [OrderStatus.IN_PRODUCTION]: "กำลังผลิต",
+  [OrderStatus.READY_TO_SHIP]: "พร้อมจัดส่ง",
+  [OrderStatus.SHIPPED]: "จัดส่งแล้ว",
+  [OrderStatus.DONE]: "เสร็จสิ้น",
+  [OrderStatus.CANCELLED]: "ยกเลิก",
 }
 
 export default function BillTimelinePage() {
@@ -111,6 +129,26 @@ export default function BillTimelinePage() {
                 <StatusIcon className="w-6 h-6" />
                 <span className="font-semibold text-lg">{statusLabelTH[order.status]}</span>
               </div>
+
+              {order.status === OrderStatus.IN_PRODUCTION && (
+                <div className="mt-6 p-4 bg-blue-50 rounded-lg">
+                  <h4 className="font-medium text-blue-800 mb-3">ขั้นตอนการผลิต</h4>
+                  <div className="grid grid-cols-2 gap-3">
+                    {productionSubSteps.map((step) => (
+                      <div
+                        key={step.id}
+                        className={`flex items-center gap-2 p-2 rounded ${
+                          step.completed ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-600"
+                        }`}
+                      >
+                        <span className="text-lg">{step.icon}</span>
+                        <span className="text-sm font-medium">{step.name}</span>
+                        {step.completed && <CheckCircle className="w-4 h-4 ml-auto" />}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               <p className="text-gray-600 mt-4">
                 อัปเดตล่าสุด:{" "}

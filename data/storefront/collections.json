@@ -1,0 +1,38 @@
+[
+  {
+    "slug": "linen",
+    "nameTH": "ผ้าลินิน",
+    "cover": "/linen-collection-cover.jpg",
+    "count": 24
+  },
+  {
+    "slug": "cotton",
+    "nameTH": "ผ้าคอตตอน",
+    "cover": "/cotton-collection-cover.jpg",
+    "count": 18
+  },
+  {
+    "slug": "velvet",
+    "nameTH": "ผ้ากำมะหยี่",
+    "cover": "/velvet-collection-cover.jpg",
+    "count": 15
+  },
+  {
+    "slug": "silk",
+    "nameTH": "ผ้าไหม",
+    "cover": "/silk-collection-cover.jpg",
+    "count": 12
+  },
+  {
+    "slug": "canvas",
+    "nameTH": "ผ้าแคนวาส",
+    "cover": "/canvas-collection-cover.jpg",
+    "count": 21
+  },
+  {
+    "slug": "jacquard",
+    "nameTH": "ผ้าแจ็คการ์ด",
+    "cover": "/jacquard-collection-cover.jpg",
+    "count": 16
+  }
+]

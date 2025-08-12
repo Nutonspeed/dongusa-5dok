@@ -33,6 +33,7 @@ const navigation = [
   { name: "Customers", href: "/admin/customers", icon: Users, permission: "view_customers" },
   { name: "Products", href: "/admin/products", icon: Package, permission: "view_products" },
   { name: "Fabric Gallery", href: "/admin/fabric-gallery", icon: ImageIcon, permission: "manage_fabric_gallery" },
+  { name: "Storefront Manager", href: "/admin/storefront", icon: Settings, permission: "manage_storefront" },
   { name: "Shipping", href: "/admin/shipping", icon: Truck, permission: "manage_shipping" },
   { name: "Messages", href: "/admin/messages", icon: MessageSquare, permission: "view_orders" },
   { name: "Analytics", href: "/admin/analytics", icon: BarChart3, permission: "view_analytics" },

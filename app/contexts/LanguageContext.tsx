@@ -172,21 +172,45 @@ const LanguageContext = createContext<LanguageContextType | undefined>(undefined
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const [language, setLanguage] = useState<Language>("th")
+  const [isMounted, setIsMounted] = useState(false)
 
   useEffect(() => {
-    const savedLanguage = localStorage.getItem("language") as Language
-    if (savedLanguage && (savedLanguage === "en" || savedLanguage === "th")) {
-      setLanguage(savedLanguage)
-    }
+    setIsMounted(true)
   }, [])
+
+  useEffect(() => {
+    if (!isMounted) return
+
+    const loadLanguageData = () => {
+      try {
+        if (typeof window === "undefined") return
+
+        const savedLanguage = localStorage.getItem("language") as Language
+        if (savedLanguage && (savedLanguage === "en" || savedLanguage === "th")) {
+          setLanguage(savedLanguage)
+        }
+      } catch (error) {
+        console.error("Error loading language from localStorage:", error)
+      }
+    }
+
+    const timeoutId = setTimeout(loadLanguageData, 50)
+    return () => clearTimeout(timeoutId)
+  }, [isMounted])
 
   const handleSetLanguage = (lang: Language) => {
     setLanguage(lang)
-    localStorage.setItem("language", lang)
+    if (typeof window !== "undefined") {
+      localStorage.setItem("language", lang)
+    }
   }
 
   const t = (key: string): string => {
     return translations[language][key as keyof (typeof translations)[typeof language]] || key
+  }
+
+  if (!isMounted) {
+    return null
   }
 
   return (
