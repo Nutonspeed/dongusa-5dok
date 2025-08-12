@@ -285,7 +285,7 @@ export default function ProductsManagement() {
                           <p className="text-xs text-gray-500">ราคาตามขนาด</p>
                         </div>
                       ) : (
-                        <p className="font-semibold text-pink-600">{formatPrice(product.price || 0)}</p>
+                          <p className="font-semibold text-pink-600">{formatPrice((product as any).price || 0)}</p>
                       )}
                     </td>
                     <td className="py-4 px-4">

@@ -4,16 +4,10 @@ import type { Database } from "@/types/database"
 import { cookies } from "next/headers"
 // @ts-expect-error react cache is experimental
 import { cache } from "react"
-
-// Check if Supabase environment variables are available
-export const isSupabaseConfigured =
-  typeof process.env.NEXT_PUBLIC_SUPABASE_URL === "string" &&
-  process.env.NEXT_PUBLIC_SUPABASE_URL.length > 0 &&
-  typeof process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY === "string" &&
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY.length > 0
+import { USE_SUPABASE } from "@/lib/runtime"
 
 export const createClient = cache(() => {
-  if (!isSupabaseConfigured) {
+  if (!USE_SUPABASE) {
     logger.warn("Supabase environment variables are not set. Using dummy client.")
     return {
       auth: {

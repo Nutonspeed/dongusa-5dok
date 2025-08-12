@@ -34,12 +34,17 @@
     }
   },
   "include": [
-    "next-env.d.ts",
-    "types/**/*.ts",
-    "types/**/*.tsx",
-    ".next/types/**/*.ts"
+    "app/**/*",
+    "components/**/*",
+    "lib/**/*",
+    "pages/**/*",
+      "scripts/**/*",
+      "types/**/*",
+      "next-env.d.ts"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    ".next",
+    "dist"
   ]
 }

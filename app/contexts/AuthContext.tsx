@@ -3,7 +3,8 @@ import { logger } from '@/lib/logger';
 
 import type React from "react"
 import { createContext, useContext, useState, useEffect } from "react"
-import { supabase, isSupabaseConfigured } from "@/lib/supabase/client"
+import { supabase } from "@/lib/supabase/client"
+import { USE_SUPABASE } from "@/lib/runtime"
 import type { AppUser } from "@/types/user"
 import type { Database } from "@/lib/supabase/types"
 
@@ -52,7 +53,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       await new Promise((resolve) => setTimeout(resolve, 100))
 
       try {
-        if (isSupabaseConfigured) {
+        if (USE_SUPABASE) {
           const {
             data: { session },
             error,
@@ -121,10 +122,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     initializeAuth()
 
-    if (isSupabaseConfigured) {
-      const {
-        data: { subscription },
-      } = supabase.auth.onAuthStateChange(async (event, session) => {
+    if (USE_SUPABASE) {
+        const {
+          data: { subscription },
+        } = supabase.auth.onAuthStateChange(async (event: any, session: any) => {
         const mappedUser: AppUser | null = session?.user
           ? { ...session.user, full_name: session.user.user_metadata?.full_name }
           : null
@@ -145,7 +146,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const fetchProfile = async (userId: string) => {
     try {
-      if (isSupabaseConfigured) {
+      if (USE_SUPABASE) {
         const { data, error } = await supabase
           .from("profiles")
           .select("*")
@@ -168,7 +169,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signIn = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
     try {
-      if (isSupabaseConfigured) {
+      if (USE_SUPABASE) {
         const { error } = await supabase.auth.signInWithPassword({
           email,
           password,
@@ -188,22 +189,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const credential = validCredentials.find((c) => c.email === email && c.password === password)
 
         if (credential) {
-          const mockUser: AppUser = {
-            id: credential.role === "admin" ? "admin-id" : "user-id",
-            email: credential.email,
-            full_name: credential.role === "admin" ? "Admin User" : "Regular User",
-            app_metadata: {},
-            user_metadata: {},
-            aud: "", // minimal fields
-            created_at: "",
-            confirmed_at: null,
-            email_confirmed_at: null,
-            phone: "",
-            role: "authenticated",
-            last_sign_in_at: null,
-            identities: [],
-            factors: null,
-          }
+            const mockUser: AppUser = {
+              id: credential.role === "admin" ? "admin-id" : "user-id",
+              email: credential.email,
+              full_name: credential.role === "admin" ? "Admin User" : "Regular User",
+              app_metadata: {},
+              user_metadata: {},
+              aud: "",
+              created_at: "",
+              confirmed_at: undefined,
+              email_confirmed_at: undefined,
+              phone: "",
+              role: "authenticated",
+              last_sign_in_at: undefined,
+              identities: [],
+              factors: undefined,
+            }
 
           if (typeof window !== "undefined") {
             localStorage.setItem("user_data", JSON.stringify(mockUser))
@@ -213,16 +214,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
 
           setUser(mockUser)
-          setProfile({
-            id: mockUser.id,
-            email: mockUser.email,
-            full_name: mockUser.full_name || null,
-            phone: null,
-            role: credential.role as "customer" | "admin",
-            avatar_url: null,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-          })
+            setProfile({
+              id: mockUser.id,
+              email: mockUser.email || "",
+              full_name: mockUser.full_name || null,
+              phone: null,
+              role: credential.role as "customer" | "admin",
+              avatar_url: null,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            })
 
           return { success: true }
         } else {
@@ -240,7 +241,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     fullName?: string,
   ): Promise<{ success: boolean; error?: string }> => {
     try {
-      if (isSupabaseConfigured) {
+      if (USE_SUPABASE) {
         const { error } = await supabase.auth.signUp({
           email,
           password,
@@ -260,38 +261,38 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         return { success: true }
       } else {
-          const mockUser: AppUser = {
-            id: `user-${Date.now()}`,
-            email,
-            full_name: fullName || "",
-            role: "authenticated",
-            app_metadata: {},
-            user_metadata: {},
-            aud: "",
-            created_at: "",
-            confirmed_at: null,
-            email_confirmed_at: null,
-            phone: "",
-            last_sign_in_at: null,
-            identities: [],
-            factors: null,
-          }
+            const mockUser: AppUser = {
+              id: `user-${Date.now()}`,
+              email,
+              full_name: fullName || "",
+              role: "authenticated",
+              app_metadata: {},
+              user_metadata: {},
+              aud: "",
+              created_at: "",
+              confirmed_at: undefined,
+              email_confirmed_at: undefined,
+              phone: "",
+              last_sign_in_at: undefined,
+              identities: [],
+              factors: undefined,
+            }
 
         if (typeof window !== "undefined") {
           localStorage.setItem("user_data", JSON.stringify(mockUser))
         }
 
         setUser(mockUser)
-        setProfile({
-          id: mockUser.id,
-          email: mockUser.email,
-          full_name: mockUser.full_name || null,
-          phone: null,
-          role: "customer",
-          avatar_url: null,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        })
+          setProfile({
+            id: mockUser.id,
+            email: mockUser.email || "",
+            full_name: mockUser.full_name || null,
+            phone: null,
+            role: "customer",
+            avatar_url: null,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          })
 
         return { success: true }
       }
@@ -301,7 +302,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const signOut = async () => {
-    if (isSupabaseConfigured) {
+    if (USE_SUPABASE) {
       await supabase.auth.signOut()
     } else {
       if (typeof window !== "undefined") {

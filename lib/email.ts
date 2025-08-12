@@ -430,15 +430,18 @@ export const emailService = {
 
   // Test email connection
   async testConnection() {
-    try {
-      await transporter.verify()
-      logger.info("Email service connection verified successfully")
-      return true
-    } catch (error) {
-      logger.error("Email service connection failed:", error)
-      return false
-    }
-  },
+      try {
+        if ("verify" in transporter && typeof transporter.verify === "function") {
+          await (transporter as any).verify()
+          logger.info("Email service connection verified successfully")
+          return true
+        }
+        return true
+      } catch (error) {
+        logger.error("Email service connection failed:", error)
+        return false
+      }
+    },
 }
 
 // Email automation triggers

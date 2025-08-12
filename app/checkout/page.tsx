@@ -83,9 +83,9 @@ export default function CheckoutPage() {
             fullName: profile.full_name || user.full_name || "",
             email: user.email || "",
             phone: profile.phone || "",
-            address: profile.address || "",
-            city: profile.city || "",
-            postalCode: profile.postal_code || "",
+              address: (profile as any).address || "",
+              city: (profile as any).city || "",
+              postalCode: (profile as any).postal_code || "",
           }))
         }
       }

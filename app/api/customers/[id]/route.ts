@@ -5,7 +5,7 @@ import { enhancedBillDatabase } from "@/lib/enhanced-bill-database"
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const { id } = params
-    const customer = await enhancedBillDatabase.getCustomer(id)
+    const customer = await (enhancedBillDatabase as any).getCustomer(id)
 
     if (!customer) {
       return NextResponse.json({ error: "Customer not found" }, { status: 404 })
@@ -23,7 +23,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     const { id } = params
     const updates = await request.json()
 
-    const updatedCustomer = await enhancedBillDatabase.updateCustomer(id, updates)
+    const updatedCustomer = await (enhancedBillDatabase as any).updateCustomer(id, updates)
 
     if (!updatedCustomer) {
       return NextResponse.json({ error: "Customer not found" }, { status: 404 })

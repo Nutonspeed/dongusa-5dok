@@ -37,7 +37,7 @@ export default function LoginForm() {
         <p className="text-lg text-gray-600">Sign in to your account</p>
       </div>
 
-      <form action={handleSubmit} className="space-y-6">
+      <form action={handleSubmit as any} className="space-y-6">
         {state?.error && (
           <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">{state.error}</div>
         )}

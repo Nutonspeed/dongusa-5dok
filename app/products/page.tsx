@@ -68,7 +68,7 @@ export default function ProductsPage() {
         if (categoriesResult.data) {
           setCategories([
             { id: "all", name: { en: "All Categories", th: "หมวดหมู่ทั้งหมด" } },
-            ...categoriesResult.data.map((cat) => ({
+            ...categoriesResult.data.map((cat: any) => ({
               id: cat.id,
               name: { en: cat.name, th: cat.name },
             })),

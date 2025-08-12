@@ -1,11 +1,31 @@
 import { createClient } from "@supabase/supabase-js"
 import type { Database } from "@/types/database"
+import { USE_SUPABASE } from "@/lib/runtime"
 
-// Use fallback values for build time when environment variables are not available
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://placeholder.supabase.co"
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "placeholder-key"
+export function createSupabase() {
+  if (!USE_SUPABASE) {
+    return {
+      from: () => ({
+        select: () => ({
+          eq: () => ({ single: async () => ({ data: null, error: null }) }),
+        }),
+        insert: async () => ({ data: null, error: null }),
+        update: () => ({ eq: async () => ({ data: null, error: null }) }),
+        delete: () => ({ eq: async () => ({ data: null, error: null }) }),
+      }),
+      auth: {
+        getUser: async () => ({ data: { user: null }, error: null }),
+        getSession: async () => ({ data: { session: null }, error: null }),
+      },
+    } as any
+  }
+  return createClient<Database>(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+  )
+}
 
-export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey)
+export const supabase = createSupabase()
 
 // Database Types
 export interface Product {
@@ -119,7 +139,7 @@ export const db = {
     offset?: number
   }) {
     // Return mock data if no real Supabase connection
-    if (supabaseUrl === "https://placeholder.supabase.co") {
+    if (!USE_SUPABASE) {
       return []
     }
 
@@ -152,7 +172,7 @@ export const db = {
   },
 
   async getProduct(id: string) {
-    if (supabaseUrl === "https://placeholder.supabase.co") {
+    if (!USE_SUPABASE) {
       return null
     }
 
@@ -163,7 +183,7 @@ export const db = {
   },
 
   async createProduct(product: Omit<Product, "id" | "created_at" | "updated_at">) {
-    if (supabaseUrl === "https://placeholder.supabase.co") {
+    if (!USE_SUPABASE) {
       return null
     }
 
@@ -174,7 +194,7 @@ export const db = {
   },
 
   async updateProduct(id: string, updates: Partial<Product>) {
-    if (supabaseUrl === "https://placeholder.supabase.co") {
+    if (!USE_SUPABASE) {
       return null
     }
 
@@ -190,7 +210,7 @@ export const db = {
   },
 
   async deleteProduct(id: string) {
-    if (supabaseUrl === "https://placeholder.supabase.co") {
+    if (!USE_SUPABASE) {
       return
     }
 
@@ -207,7 +227,7 @@ export const db = {
     limit?: number
     offset?: number
   }) {
-    if (supabaseUrl === "https://placeholder.supabase.co") {
+    if (!USE_SUPABASE) {
       return []
     }
 
@@ -240,7 +260,7 @@ export const db = {
   },
 
   async getCustomer(id: string) {
-    if (supabaseUrl === "https://placeholder.supabase.co") {
+    if (!USE_SUPABASE) {
       return null
     }
 
@@ -251,7 +271,7 @@ export const db = {
   },
 
   async createCustomer(customer: Omit<Customer, "id" | "created_at" | "updated_at">) {
-    if (supabaseUrl === "https://placeholder.supabase.co") {
+    if (!USE_SUPABASE) {
       return null
     }
 
@@ -262,7 +282,7 @@ export const db = {
   },
 
   async updateCustomer(id: string, updates: Partial<Customer>) {
-    if (supabaseUrl === "https://placeholder.supabase.co") {
+    if (!USE_SUPABASE) {
       return null
     }
 
@@ -284,7 +304,7 @@ export const db = {
     limit?: number
     offset?: number
   }) {
-    if (supabaseUrl === "https://placeholder.supabase.co") {
+    if (!USE_SUPABASE) {
       return []
     }
 
@@ -319,7 +339,7 @@ export const db = {
   },
 
   async getOrder(id: string) {
-    if (supabaseUrl === "https://placeholder.supabase.co") {
+    if (!USE_SUPABASE) {
       return null
     }
 
@@ -337,7 +357,7 @@ export const db = {
   },
 
   async createOrder(order: Omit<Order, "id" | "created_at" | "updated_at" | "customer">) {
-    if (supabaseUrl === "https://placeholder.supabase.co") {
+    if (!USE_SUPABASE) {
       return null
     }
 
@@ -348,7 +368,7 @@ export const db = {
   },
 
   async updateOrder(id: string, updates: Partial<Omit<Order, "customer">>) {
-    if (supabaseUrl === "https://placeholder.supabase.co") {
+    if (!USE_SUPABASE) {
       return null
     }
 
@@ -369,7 +389,7 @@ export const db = {
     endDate?: string
     period?: "daily" | "weekly" | "monthly"
   }) {
-    if (supabaseUrl === "https://placeholder.supabase.co") {
+    if (!USE_SUPABASE) {
       return []
     }
 
@@ -390,7 +410,7 @@ export const db = {
   },
 
   async createAnalyticsEntry(analytics: Omit<Analytics, "id" | "created_at">) {
-    if (supabaseUrl === "https://placeholder.supabase.co") {
+    if (!USE_SUPABASE) {
       return null
     }
 
@@ -402,7 +422,7 @@ export const db = {
 
   // Dashboard Stats
   async getDashboardStats() {
-    if (supabaseUrl === "https://placeholder.supabase.co") {
+    if (!USE_SUPABASE) {
       return {
         products: { total: 0, active: 0, lowStock: 0, outOfStock: 0 },
         customers: { total: 0, active: 0, vip: 0, totalRevenue: 0 },
@@ -425,18 +445,19 @@ export const db = {
     ])
 
     const totalProducts = products?.length || 0
-    const activeProducts = products?.filter((p) => p.status === "active").length || 0
-    const lowStockProducts = products?.filter((p) => p.stock <= 10).length || 0
-    const outOfStockProducts = products?.filter((p) => p.stock === 0).length || 0
+      const activeProducts = products?.filter((p: any) => p.status === "active").length || 0
+      const lowStockProducts = products?.filter((p: any) => p.stock <= 10).length || 0
+      const outOfStockProducts = products?.filter((p: any) => p.stock === 0).length || 0
 
     const totalCustomers = customers?.length || 0
-    const activeCustomers = customers?.filter((c) => c.status === "active").length || 0
-    const vipCustomers = customers?.filter((c) => c.customer_type === "vip").length || 0
-    const totalRevenue = customers?.reduce((sum, c) => sum + (c.total_spent || 0), 0) || 0
+      const activeCustomers = customers?.filter((c: any) => c.status === "active").length || 0
+      const vipCustomers = customers?.filter((c: any) => c.customer_type === "vip").length || 0
+      const totalRevenue =
+        customers?.reduce((sum: number, c: any) => sum + (c.total_spent || 0), 0) || 0
 
     const totalOrders = orders?.length || 0
-    const pendingOrders = orders?.filter((o) => o.status === "pending").length || 0
-    const monthlyRevenue = orders?.reduce((sum, o) => sum + (o.total || 0), 0) || 0
+      const pendingOrders = orders?.filter((o: any) => o.status === "pending").length || 0
+      const monthlyRevenue = orders?.reduce((sum: number, o: any) => sum + (o.total || 0), 0) || 0
     const averageOrderValue = totalOrders > 0 ? monthlyRevenue / totalOrders : 0
 
     return {

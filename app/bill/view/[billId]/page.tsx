@@ -261,18 +261,18 @@ export default function BillViewPage() {
                   <div key={item.id} className="border rounded-lg p-4">
                     <div className="flex gap-4">
                       {/* Small fabric image */}
-                      <div className="w-16 h-16 bg-gray-200 rounded-lg flex-shrink-0 overflow-hidden">
-                        <img
-                          src={item.image || `/placeholder.svg?height=64&width=64&query=${item.fabricPattern} fabric`}
-                          alt={item.fabricPattern}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
+                        <div className="w-16 h-16 bg-gray-200 rounded-lg flex-shrink-0 overflow-hidden">
+                          <img
+                            src={(item as any).image || `/placeholder.svg?height=64&width=64&query=${(item as any).fabricPattern} fabric`}
+                            alt={(item as any).fabricPattern}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
                       
                       <div className="flex-1">
                         <div className="flex justify-between items-start mb-2">
                           <div>
-                            <p className="font-mono text-sm text-gray-600">{item.fabricCode || `FB${String(index + 1).padStart(3, '0')}`}</p>
+                              <p className="font-mono text-sm text-gray-600">{(item as any).fabricCode || `FB${String(index + 1).padStart(3, '0')}`}</p>
                             <h4 className="font-medium text-gray-900">{item.fabricPattern}</h4>
                             <p className="text-sm text-gray-600">{item.productName}</p>
                             {item.customizations && (
@@ -300,22 +300,28 @@ export default function BillViewPage() {
             <div className="space-y-3">
               <div className="flex justify-between text-gray-700">
                 <span>ค่าของ</span>
-                <span>{(order.totalAmount - (order.shippingCost || 0) + (order.discount || 0)).toLocaleString()} บาท</span>
+                  <span>
+                    {(
+                      order.totalAmount -
+                      ((order as any).shippingCost || 0) +
+                      ((order as any).discount || 0)
+                    ).toLocaleString()} บาท
+                  </span>
               </div>
               
-              {order.shippingCost && (
-                <div className="flex justify-between text-gray-700">
-                  <span>ค่าขนส่ง</span>
-                  <span>{order.shippingCost.toLocaleString()} บาท</span>
-                </div>
-              )}
+                {(order as any).shippingCost && (
+                  <div className="flex justify-between text-gray-700">
+                    <span>ค่าขนส่ง</span>
+                    <span>{(order as any).shippingCost.toLocaleString()} บาท</span>
+                  </div>
+                )}
               
-              {order.discount && (
-                <div className="flex justify-between text-green-600">
-                  <span>ส่วนลด</span>
-                  <span>-{order.discount.toLocaleString()} บาท</span>
-                </div>
-              )}
+                {(order as any).discount && (
+                  <div className="flex justify-between text-green-600">
+                    <span>ส่วนลด</span>
+                    <span>-{(order as any).discount.toLocaleString()} บาท</span>
+                  </div>
+                )}
               
               <Separator />
               

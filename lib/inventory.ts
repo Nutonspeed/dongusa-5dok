@@ -202,22 +202,24 @@ export const inventoryService = {
     limit?: number
     offset?: number
   }): Promise<InventoryAlert[]> {
-    return [
-      {
-        id: "1",
-        message: "สินค้า 'คลิปยึดผ้า' ใกล้หมด (เหลือ 5 ชิ้น)",
-        severity: "high",
-        created_at: new Date().toISOString(),
-        is_resolved: false,
-      },
-    ]
+      return [
+        {
+          id: "1",
+          inventory_id: "1",
+          alert_type: "low_stock",
+          message: "สินค้า 'คลิปยึดผ้า' ใกล้หมด (เหลือ 5 ชิ้น)",
+          severity: "high",
+          created_at: new Date().toISOString(),
+          is_resolved: false,
+        } as InventoryAlert,
+      ]
   },
 
   // Resolve alert
   async resolveAlert(alertId: string, resolvedBy?: string): Promise<void> {
     // Mock implementation
-    return true
-  },
+      return
+    },
 
   // Calculate sales velocity
   async calculateSalesVelocity(inventoryId: string, days = 30): Promise<number> {

@@ -32,6 +32,7 @@ interface CartContextType {
   clearCart: () => void
   getTotalItems: () => number
   getTotalPrice: () => number
+  toggleFavorite: (id: string) => void
   isLoading: boolean
 }
 
@@ -180,6 +181,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     setItems([])
   }
 
+  const toggleFavorite = (_id: string) => {
+    // Favorites feature not implemented yet
+  }
+
   const getTotalItems = () => {
     return items.reduce((total, item) => total + item.quantity, 0)
   }
@@ -196,6 +201,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     clearCart,
     getTotalItems,
     getTotalPrice,
+    toggleFavorite,
     isLoading,
   }
 
@@ -217,6 +223,7 @@ export function useCart() {
       clearCart: () => {},
       getTotalItems: () => 0,
       getTotalPrice: () => 0,
+      toggleFavorite: () => {},
       isLoading: false,
     }
   }

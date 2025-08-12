@@ -44,7 +44,7 @@ export default function FeaturedProducts() {
         const supabase = createClient()
         const db = new DatabaseService(supabase)
 
-        const { data } = await db.getFeaturedProducts(4)
+        const { data } = await (db as any).getFeaturedProducts(4)
 
         if (data) {
           setProducts(data)

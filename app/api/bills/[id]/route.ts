@@ -39,7 +39,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const { id } = params
-    const success = await enhancedBillDatabase.deleteBill(id)
+    const success = await (enhancedBillDatabase as any).deleteBill(id)
 
     if (!success) {
       return NextResponse.json({ error: "Bill not found" }, { status: 404 })

@@ -1,15 +1,9 @@
 import { createBrowserClient } from "@supabase/ssr"
 import type { Database } from "@/types/database"
-
-// Check if Supabase environment variables are available
-export const isSupabaseConfigured =
-  typeof process.env.NEXT_PUBLIC_SUPABASE_URL === "string" &&
-  process.env.NEXT_PUBLIC_SUPABASE_URL.length > 0 &&
-  typeof process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY === "string" &&
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY.length > 0
+import { USE_SUPABASE } from "@/lib/runtime"
 
 export function createClient() {
-  if (!isSupabaseConfigured) {
+  if (!USE_SUPABASE) {
     return {
       from: () => ({
         select: () => ({ eq: () => ({ single: async () => ({ data: null, error: null }) }) }),

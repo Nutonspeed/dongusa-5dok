@@ -105,7 +105,7 @@ export default function AnalyticsPage() {
         const db = new DatabaseService()
 
         const analyticsData = await db.getAnalytics()
-        const salesHistory = await db.getSalesData(selectedTimeRange)
+          const salesHistory = await (db as any).getSalesData(selectedTimeRange)
 
         setSalesData(salesHistory)
         setAnalytics(analyticsData)

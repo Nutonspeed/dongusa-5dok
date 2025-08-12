@@ -25,7 +25,7 @@ const AdminInventory = loadable(() => import("./inventory/page"), {
   loading: () => <div className="animate-pulse bg-gray-200 h-64 rounded-lg"></div>,
 })
 
-const AdminDashboardClient = ({ analytics, recentOrders, topProducts }) => {
+const AdminDashboardClient = ({ analytics, recentOrders, topProducts }: any) => {
   const [currentTime, setCurrentTime] = useState(new Date())
   const [dashboardStats, setDashboardStats] = useState(analytics || {})
   const [activeComponent, setActiveComponent] = useState<string | null>(null)
@@ -38,7 +38,7 @@ const AdminDashboardClient = ({ analytics, recentOrders, topProducts }) => {
     return () => clearInterval(timer)
   }, [])
 
-  const formatTime = (date) => {
+  const formatTime = (date: Date) => {
     return date.toLocaleString("th-TH", {
       weekday: "long",
       year: "numeric",
@@ -69,7 +69,7 @@ const AdminDashboardClient = ({ analytics, recentOrders, topProducts }) => {
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {Object.keys(dashboardStats).map((key, index) => {
-          const stat = dashboardStats[key]
+          const stat = (dashboardStats as any)[key]
           return (
             <Card key={index} className="hover:shadow-lg transition-shadow">
               <CardContent className="p-6">
@@ -120,7 +120,7 @@ const AdminDashboardClient = ({ analytics, recentOrders, topProducts }) => {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {recentOrders.map((order) => (
+                  {recentOrders.map((order: any) => (
                   <div
                     key={order.id}
                     className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
@@ -152,8 +152,8 @@ const AdminDashboardClient = ({ analytics, recentOrders, topProducts }) => {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {recentOrders.map((order, index) => (
-                  <div key={index} className="flex items-start space-x-3">
+                  {recentOrders.map((order: any, index: number) => (
+                    <div key={index} className="flex items-start space-x-3">
                     <div className={`w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0`}>
                       <ShoppingCart className="w-4 h-4 text-blue-600" />
                     </div>
@@ -178,8 +178,8 @@ const AdminDashboardClient = ({ analytics, recentOrders, topProducts }) => {
         </CardHeader>
         <CardContent>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {topProducts.map((product, index) => (
-              <div key={index} className="p-4 border border-gray-200 rounded-lg">
+              {topProducts.map((product: any, index: number) => (
+                <div key={index} className="p-4 border border-gray-200 rounded-lg">
                 <div className="flex items-center justify-between mb-2">
                   <h4 className="font-semibold text-gray-900 text-sm line-clamp-2">{product.name}</h4>
                   {product.trend === "up" ? (

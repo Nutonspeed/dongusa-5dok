@@ -203,8 +203,16 @@ export const devUtils = {
     await mockDatabaseService.seedSampleData()
 
     // Send some test emails
-    await mockEmailService.sendEmail("test@example.com", "Test Email", "This is a test email")
-    await mockEmailService.sendEmail("admin@example.com", "Admin Notification", "Admin test email")
+      await mockEmailService.sendEmail({
+        to: "test@example.com",
+        subject: "Test Email",
+        html: "This is a test email",
+      })
+      await mockEmailService.sendEmail({
+        to: "admin@example.com",
+        subject: "Admin Notification",
+        html: "Admin test email",
+      })
 
     logger.info("Mock data generated successfully")
   },
