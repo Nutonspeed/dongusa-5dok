@@ -16,6 +16,8 @@ import { createClient } from "@/lib/supabase/client"
 import Header from "../components/Header"
 import Footer from "../components/Footer"
 
+export const dynamic = "force-dynamic"
+
 export default function CheckoutPage() {
   const router = useRouter()
   const { language } = useLanguage()

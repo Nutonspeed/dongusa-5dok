@@ -11,6 +11,8 @@ import { useCart } from "../contexts/CartContext"
 import Header from "../components/Header"
 import Footer from "../components/Footer"
 
+export const dynamic = "force-dynamic"
+
 export default function CartPage() {
   const router = useRouter()
   const { language } = useLanguage()

@@ -10,6 +10,8 @@ import { useLanguage } from "../contexts/LanguageContext"
 import Header from "../components/Header"
 import Footer from "../components/Footer"
 
+export const dynamic = "force-dynamic"
+
 export default function OrdersPage() {
   const router = useRouter()
   const { language } = useLanguage()
@@ -92,7 +94,7 @@ export default function OrdersPage() {
         <Header />
         <main className="flex items-center justify-center py-16">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-600 mx-auto mb-4"></div>
             <p className="text-gray-600">{language === "th" ? "กำลังโหลด..." : "Loading..."}</p>
           </div>
         </main>
@@ -122,7 +124,10 @@ export default function OrdersPage() {
             <p className="text-gray-600 mb-8">
               {language === "th" ? "เริ่มช้อปปิ้งและสั่งซื้อสินค้าแรกของคุณ" : "Start shopping and place your first order"}
             </p>
-            <Button className="bg-burgundy-gradient hover:opacity-90 text-white" asChild>
+            <Button
+              className="bg-gradient-to-r from-pink-500 to-rose-600 hover:from-pink-600 hover:to-rose-700 text-white"
+              asChild
+            >
               <a href="/products">
                 <Package className="w-5 h-5 mr-2" />
                 {language === "th" ? "เริ่มช้อปปิ้ง" : "Start Shopping"}
@@ -150,7 +155,7 @@ export default function OrdersPage() {
                           <StatusIcon className="w-3 h-3 mr-1" />
                           {statusInfo.label}
                         </Badge>
-                        <p className="text-lg font-bold text-primary mt-1">{formatPrice(order.totalPrice)}</p>
+                        <p className="text-lg font-bold text-pink-600 mt-1">{formatPrice(order.totalPrice)}</p>
                       </div>
                     </div>
                   </CardHeader>

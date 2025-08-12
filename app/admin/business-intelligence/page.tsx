@@ -182,15 +182,17 @@ const getInsightIcon = (type: string) => {
 const getAlertIcon = (type: string) => {
   switch (type) {
     case "critical":
-      return <AlertTriangle className="w-5 h-5 text-red-600" />
+      return <AlertTriangle className="h-4 w-4 text-red-600" />
     case "warning":
-      return <AlertTriangle className="w-5 h-5 text-yellow-600" />
+      return <AlertTriangle className="h-4 w-4 text-yellow-600" />
     case "info":
-      return <Activity className="w-5 h-5 text-blue-600" />
+      return <Activity className="h-4 w-4 text-blue-600" />
     default:
-      return <Activity className="w-5 h-5 text-gray-600" />
+      return <Activity className="h-4 w-4 text-gray-600" />
   }
 }
+
+export const dynamic = "force-dynamic"
 
 export default function BusinessIntelligenceDashboard() {
   const [activeTab, setActiveTab] = useState("overview")

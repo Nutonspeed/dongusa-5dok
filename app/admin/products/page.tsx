@@ -5,8 +5,8 @@ import { Plus, Search, Filter, Edit, Trash2, Eye, Package, AlertTriangle, CheckC
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { DatabaseService } from "@/lib/database"
-import { createClient } from "@/lib/supabase/server"
+
+export const dynamic = "force-dynamic"
 
 const categories = [
   { id: "all", name: "ทั้งหมด" },
@@ -22,12 +22,40 @@ const statusOptions = [
   { id: "out_of_stock", name: "หมด" },
 ]
 
-export default async function ProductsManagement() {
-  const supabase = createClient()
-  const db = new DatabaseService(supabase)
+const mockProducts = [
+  {
+    id: "1",
+    name: "ผ้าคลุมโซฟา 3 ที่นั่ง",
+    name_en: "3-Seater Sofa Cover",
+    category: "covers",
+    type: "custom",
+    price_range: { min: 1500, max: 2500 },
+    stock: 25,
+    status: "active",
+    sold: 150,
+    rating: 4.5,
+    reviews: 32,
+    image: "/cozy-living-room-sofa-cover.png",
+  },
+  {
+    id: "2",
+    name: "ผ้าคลุมโซฟา 2 ที่นั่ง",
+    name_en: "2-Seater Sofa Cover",
+    category: "covers",
+    type: "custom",
+    price_range: { min: 1200, max: 2000 },
+    stock: 5,
+    status: "low_stock",
+    sold: 89,
+    rating: 4.3,
+    reviews: 18,
+    image: "/cozy-living-room-sofa-cover.png",
+  },
+]
 
-  const { data: products } = await db.getProducts({ limit: 50 })
-  const { data: fabricCollections } = await db.getFabricCollections()
+export default function ProductsManagement() {
+  const products = mockProducts
+  const fabricCollections = []
 
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedCategory, setSelectedCategory] = useState("all")

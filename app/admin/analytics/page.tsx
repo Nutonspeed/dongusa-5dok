@@ -83,6 +83,8 @@ const timeRanges = [
   { id: "custom", name: "กำหนดเอง" },
 ]
 
+export const dynamic = "force-dynamic"
+
 export default function AnalyticsPage() {
   const [selectedTimeRange, setSelectedTimeRange] = useState("30d")
   const [activeTab, setActiveTab] = useState("overview")

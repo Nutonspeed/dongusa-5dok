@@ -43,6 +43,8 @@ interface ServiceStats {
   }
 }
 
+export const dynamic = "force-dynamic"
+
 export default function DemoControlPanel() {
   const [stats, setStats] = useState<ServiceStats | null>(null)
   const [loading, setLoading] = useState(true)

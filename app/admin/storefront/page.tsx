@@ -1,591 +1,636 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
+import {
+  Eye,
+  Save,
+  RefreshCw,
+  Monitor,
+  Smartphone,
+  Tablet,
+  Palette,
+  Type,
+  Layout,
+  Settings,
+  Globe,
+  Star,
+  Heart,
+  ShoppingCart,
+  Users,
+  TrendingUp,
+} from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { Switch } from "@/components/ui/switch"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Badge } from "@/components/ui/badge"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Plus, Edit, Trash2, Save, Eye, ArrowUp, ArrowDown } from "lucide-react"
-import { toast } from "sonner"
+import { Slider } from "@/components/ui/slider"
 
-interface Collection {
-  slug: string
-  nameTH: string
-  cover: string
-  count: number
-  enabled?: boolean
-  order?: number
+interface StorefrontSettings {
+  theme: {
+    primaryColor: string
+    secondaryColor: string
+    accentColor: string
+    fontFamily: string
+    fontSize: number
+    borderRadius: number
+  }
+  layout: {
+    headerStyle: string
+    footerStyle: string
+    productGridColumns: number
+    showSidebar: boolean
+    sidebarPosition: string
+  }
+  content: {
+    siteName: string
+    tagline: string
+    welcomeMessage: string
+    aboutText: string
+    contactInfo: {
+      phone: string
+      email: string
+      address: string
+    }
+  }
+  features: {
+    showReviews: boolean
+    showWishlist: boolean
+    showCompare: boolean
+    showRecentlyViewed: boolean
+    enableLiveChat: boolean
+    showSocialMedia: boolean
+  }
+  seo: {
+    metaTitle: string
+    metaDescription: string
+    keywords: string
+    ogImage: string
+  }
 }
 
-interface Fabric {
-  id: string
-  collection: string
-  nameTH: string
-  image: string
-  enabled?: boolean
-  order?: number
+const defaultSettings: StorefrontSettings = {
+  theme: {
+    primaryColor: "#8B1538",
+    secondaryColor: "#F5F5DC",
+    accentColor: "#D4AF37",
+    fontFamily: "Inter",
+    fontSize: 16,
+    borderRadius: 8,
+  },
+  layout: {
+    headerStyle: "modern",
+    footerStyle: "detailed",
+    productGridColumns: 3,
+    showSidebar: true,
+    sidebarPosition: "left",
+  },
+  content: {
+    siteName: "SofaCover Pro",
+    tagline: "ผ้าคลุมโซฟาคุณภาพพรีเมียม",
+    welcomeMessage: "ยินดีต้อนรับสู่ร้านผ้าคลุมโซฟาออนไลน์ที่ดีที่สุด",
+    aboutText: "เราเป็นผู้เชี่ยวชาญด้านผ้าคลุมโซฟาคุณภาพสูง ด้วยประสบการณ์กว่า 10 ปี",
+    contactInfo: {
+      phone: "02-123-4567",
+      email: "info@sofacover.com",
+      address: "123 ถนนสุขุมวิท กรุงเทพฯ 10110",
+    },
+  },
+  features: {
+    showReviews: true,
+    showWishlist: true,
+    showCompare: false,
+    showRecentlyViewed: true,
+    enableLiveChat: true,
+    showSocialMedia: true,
+  },
+  seo: {
+    metaTitle: "SofaCover Pro - ผ้าคลุมโซฟาคุณภาพพรีเมียม",
+    metaDescription: "ร้านผ้าคลุมโซฟาออนไลน์ที่ดีที่สุด มีผ้าคลุมโซฟาหลากหลายแบบ คุณภาพสูง ราคาดี",
+    keywords: "ผ้าคลุมโซฟา, โซฟาคัฟเวอร์, ผ้าคลุมเฟอร์นิเจอร์, sofa cover",
+    ogImage: "/images/og-image.jpg",
+  },
 }
 
-interface HomepageBlock {
-  id: string
-  type: "banner" | "featured_collection" | "text"
-  title?: string
-  content?: string
-  image?: string
-  collectionSlug?: string
-  enabled?: boolean
-  order?: number
-}
+export const dynamic = "force-dynamic"
 
 export default function StorefrontManagerPage() {
-  const [collections, setCollections] = useState<Collection[]>([])
-  const [fabrics, setFabrics] = useState<Fabric[]>([])
-  const [homepageBlocks, setHomepageBlocks] = useState<HomepageBlock[]>([])
-  const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
-  const [activeTab, setActiveTab] = useState("collections")
-  const [editingItem, setEditingItem] = useState<any>(null)
-  const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [settings, setSettings] = useState<StorefrontSettings>(defaultSettings)
+  const [activeTab, setActiveTab] = useState("theme")
+  const [previewDevice, setPreviewDevice] = useState("desktop")
+  const [hasChanges, setHasChanges] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
 
-  // Load data on component mount
-  useEffect(() => {
-    loadAllData()
-  }, [])
+  const handleSettingChange = (section: keyof StorefrontSettings, key: string, value: any) => {
+    setSettings((prev) => ({
+      ...prev,
+      [section]: {
+        ...prev[section],
+        [key]: value,
+      },
+    }))
+    setHasChanges(true)
+  }
 
-  const loadAllData = async () => {
-    setLoading(true)
-    try {
-      const [collectionsRes, fabricsRes] = await Promise.all([
-        fetch("/data/storefront/collections.json").catch(() => ({ json: () => [] })),
-        fetch("/data/storefront/fabrics.json").catch(() => ({ json: () => [] })),
-      ])
-
-      const collectionsData = await collectionsRes.json()
-      const fabricsData = await fabricsRes.json()
-
-      setCollections(
-        collectionsData.map((c: Collection, index: number) => ({
-          ...c,
-          enabled: c.enabled ?? true,
-          order: c.order ?? index,
-        })),
-      )
-      setFabrics(
-        fabricsData.map((f: Fabric, index: number) => ({
-          ...f,
-          enabled: f.enabled ?? true,
-          order: f.order ?? index,
-        })),
-      )
-
-      // Mock homepage blocks
-      setHomepageBlocks([
-        {
-          id: "hero-banner",
-          type: "banner",
-          title: "แบนเนอร์หลัก",
-          content: "ผ้าคลุมโซฟาคุณภาพสูง",
-          image: "/hero-banner.jpg",
-          enabled: true,
-          order: 0,
+  const handleNestedSettingChange = (section: keyof StorefrontSettings, nestedKey: string, key: string, value: any) => {
+    setSettings((prev) => ({
+      ...prev,
+      [section]: {
+        ...prev[section],
+        [nestedKey]: {
+          ...(prev[section] as any)[nestedKey],
+          [key]: value,
         },
-        {
-          id: "featured-linen",
-          type: "featured_collection",
-          title: "คอลเลกชันเด่น",
-          collectionSlug: "linen",
-          enabled: true,
-          order: 1,
-        },
-      ])
-    } catch (error) {
-      console.error("Failed to load data:", error)
-      toast.error("ไม่สามารถโหลดข้อมูลได้")
-    } finally {
-      setLoading(false)
-    }
+      },
+    }))
+    setHasChanges(true)
   }
 
-  const validateData = (type: string, data: any): string[] => {
-    const errors: string[] = []
-
-    if (type === "collection") {
-      if (!data.slug) errors.push("ต้องระบุ slug")
-      if (!data.nameTH) errors.push("ต้องระบุชื่อภาษาไทย")
-      if (!data.cover) errors.push("เตือน: ไม่มีรูปปก")
-
-      // Check for duplicate slug
-      const existingSlugs = collections.filter((c) => c.slug !== editingItem?.slug).map((c) => c.slug)
-      if (existingSlugs.includes(data.slug)) {
-        errors.push("slug ซ้ำกับที่มีอยู่แล้ว")
-      }
-    }
-
-    if (type === "fabric") {
-      if (!data.id) errors.push("ต้องระบุรหัสผ้า")
-      if (!data.nameTH) errors.push("ต้องระบุชื่อภาษาไทย")
-      if (!data.collection) errors.push("ต้องเลือกคอลเลกชัน")
-      if (!data.image) errors.push("เตือน: ไม่มีรูปผ้า")
-    }
-
-    return errors
+  const handleSave = async () => {
+    setIsSaving(true)
+    // Simulate API call
+    await new Promise((resolve) => setTimeout(resolve, 2000))
+    setHasChanges(false)
+    setIsSaving(false)
   }
 
-  const saveData = async (type: "collections" | "fabrics" | "homepage") => {
-    setSaving(true)
-    try {
-      let dataToSave: any
-      let filename: string
-
-      switch (type) {
-        case "collections":
-          dataToSave = collections.sort((a, b) => (a.order || 0) - (b.order || 0))
-          filename = "collections.json"
-          break
-        case "fabrics":
-          dataToSave = fabrics.sort((a, b) => (a.order || 0) - (b.order || 0))
-          filename = "fabrics.json"
-          break
-        case "homepage":
-          dataToSave = homepageBlocks.sort((a, b) => (a.order || 0) - (b.order || 0))
-          filename = "homepage.json"
-          break
-      }
-
-      // Mock save operation
-      console.log(`Saving ${filename}:`, dataToSave)
-
-      // Mock audit log
-      const auditEntry = {
-        timestamp: new Date().toISOString(),
-        action: `save_${type}`,
-        user: "admin",
-        data: { filename, recordCount: dataToSave.length },
-      }
-      console.log("Audit log entry:", auditEntry)
-
-      toast.success(`บันทึก ${filename} สำเร็จ`)
-    } catch (error) {
-      console.error("Save failed:", error)
-      toast.error("บันทึกไม่สำเร็จ")
-    } finally {
-      setSaving(false)
+  const getDeviceIcon = (device: string) => {
+    switch (device) {
+      case "desktop":
+        return <Monitor className="w-4 h-4" />
+      case "tablet":
+        return <Tablet className="w-4 h-4" />
+      case "mobile":
+        return <Smartphone className="w-4 h-4" />
+      default:
+        return <Monitor className="w-4 h-4" />
     }
-  }
-
-  const handlePreview = () => {
-    const previewUrl = `${window.location.origin}/?preview=1`
-    window.open(previewUrl, "_blank")
-    toast.success("เปิดหน้าพรีวิวแล้ว")
-  }
-
-  const moveItem = (items: any[], index: number, direction: "up" | "down") => {
-    const newItems = [...items]
-    const targetIndex = direction === "up" ? index - 1 : index + 1
-
-    if (targetIndex >= 0 && targetIndex < newItems.length) {
-      ;[newItems[index], newItems[targetIndex]] = [newItems[targetIndex], newItems[index]]
-
-      // Update order values
-      newItems.forEach((item, idx) => {
-        item.order = idx
-      })
-    }
-
-    return newItems
-  }
-
-  const openEditDialog = (item: any, type: string) => {
-    setEditingItem({ ...item, _type: type })
-    setIsDialogOpen(true)
-  }
-
-  const handleSaveItem = () => {
-    if (!editingItem) return
-
-    const errors = validateData(editingItem._type, editingItem)
-    if (errors.length > 0) {
-      toast.error(errors.join(", "))
-      return
-    }
-
-    const { _type, ...itemData } = editingItem
-
-    if (_type === "collection") {
-      const existingIndex = collections.findIndex((c) => c.slug === itemData.slug)
-      if (existingIndex >= 0) {
-        const newCollections = [...collections]
-        newCollections[existingIndex] = itemData
-        setCollections(newCollections)
-      } else {
-        setCollections([...collections, { ...itemData, order: collections.length }])
-      }
-    } else if (_type === "fabric") {
-      const existingIndex = fabrics.findIndex((f) => f.id === itemData.id)
-      if (existingIndex >= 0) {
-        const newFabrics = [...fabrics]
-        newFabrics[existingIndex] = itemData
-        setFabrics(newFabrics)
-      } else {
-        setFabrics([...fabrics, { ...itemData, order: fabrics.length }])
-      }
-    }
-
-    setIsDialogOpen(false)
-    setEditingItem(null)
-    toast.success("บันทึกรายการสำเร็จ")
-  }
-
-  const deleteItem = (id: string, type: string) => {
-    if (type === "collection") {
-      setCollections(collections.filter((c) => c.slug !== id))
-    } else if (type === "fabric") {
-      setFabrics(fabrics.filter((f) => f.id !== id))
-    }
-    toast.success("ลบรายการสำเร็จ")
-  }
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p>กำลังโหลดข้อมูล...</p>
-        </div>
-      </div>
-    )
   }
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Storefront Manager</h1>
-          <p className="text-gray-600">จัดการเนื้อหาหน้าบ้านโดยไม่ต้องแก้โค้ด</p>
+          <h1 className="text-3xl font-bold text-gray-900">จัดการหน้าร้าน</h1>
+          <p className="text-gray-600 mt-1">ปรับแต่งรูปลักษณ์และการทำงานของหน้าร้านออนไลน์</p>
         </div>
-        <Button onClick={handlePreview} className="bg-green-600 hover:bg-green-700">
-          <Eye className="w-4 h-4 mr-2" />
-          Preview
-        </Button>
+        <div className="flex items-center gap-4 mt-4 md:mt-0">
+          {hasChanges && (
+            <Badge variant="outline" className="bg-yellow-50 text-yellow-800 border-yellow-200">
+              มีการเปลี่ยนแปลงที่ยังไม่ได้บันทึก
+            </Badge>
+          )}
+          <Button variant="outline">
+            <Eye className="w-4 h-4 mr-2" />
+            ดูตัวอย่าง
+          </Button>
+          <Button onClick={handleSave} disabled={!hasChanges || isSaving} className="bg-primary hover:bg-primary/90">
+            {isSaving ? <RefreshCw className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
+            {isSaving ? "กำลังบันทึก..." : "บันทึกการเปลี่ยนแปลง"}
+          </Button>
+        </div>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="collections">Collections ({collections.length})</TabsTrigger>
-          <TabsTrigger value="fabrics">Fabrics ({fabrics.length})</TabsTrigger>
-          <TabsTrigger value="homepage">Homepage ({homepageBlocks.length})</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="collections" className="space-y-4">
+      {/* Preview Device Selector */}
+      <Card>
+        <CardContent className="p-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold">จัดการคอลเลกชัน</h2>
-            <div className="space-x-2">
-              <Button onClick={() => openEditDialog({}, "collection")}>
-                <Plus className="w-4 h-4 mr-2" />
-                เพิ่มคอลเลกชัน
-              </Button>
-              <Button onClick={() => saveData("collections")} disabled={saving}>
-                <Save className="w-4 h-4 mr-2" />
-                {saving ? "กำลังบันทึก..." : "บันทึก"}
-              </Button>
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium">ดูตัวอย่างบน:</span>
+              <div className="flex items-center gap-1">
+                {["desktop", "tablet", "mobile"].map((device) => (
+                  <Button
+                    key={device}
+                    variant={previewDevice === device ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setPreviewDevice(device)}
+                  >
+                    {getDeviceIcon(device)}
+                    <span className="ml-1 capitalize">{device}</span>
+                  </Button>
+                ))}
+              </div>
+            </div>
+            <div className="flex items-center gap-4 text-sm text-gray-600">
+              <div className="flex items-center gap-1">
+                <Users className="w-4 h-4" />
+                <span>1,234 ผู้เยี่ยมชม/วัน</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <TrendingUp className="w-4 h-4" />
+                <span>+12% จากเดือนที่แล้ว</span>
+              </div>
             </div>
           </div>
+        </CardContent>
+      </Card>
 
+      <div className="grid lg:grid-cols-3 gap-6">
+        {/* Settings Panel */}
+        <div className="lg:col-span-1">
           <Card>
-            <CardContent className="p-0">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>ลำดับ</TableHead>
-                    <TableHead>Slug</TableHead>
-                    <TableHead>ชื่อไทย</TableHead>
-                    <TableHead>จำนวนลาย</TableHead>
-                    <TableHead>สถานะ</TableHead>
-                    <TableHead>การจัดการ</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {collections.map((collection, index) => (
-                    <TableRow key={collection.slug}>
-                      <TableCell>
-                        <div className="flex items-center space-x-1">
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => setCollections(moveItem(collections, index, "up"))}
-                            disabled={index === 0}
-                          >
-                            <ArrowUp className="w-3 h-3" />
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => setCollections(moveItem(collections, index, "down"))}
-                            disabled={index === collections.length - 1}
-                          >
-                            <ArrowDown className="w-3 h-3" />
-                          </Button>
-                          <span className="text-sm">{index + 1}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell className="font-mono">{collection.slug}</TableCell>
-                      <TableCell>{collection.nameTH}</TableCell>
-                      <TableCell>{collection.count}</TableCell>
-                      <TableCell>
-                        <Badge variant={collection.enabled ? "default" : "secondary"}>
-                          {collection.enabled ? "เปิด" : "ปิด"}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center space-x-2">
-                          <Button size="sm" variant="ghost" onClick={() => openEditDialog(collection, "collection")}>
-                            <Edit className="w-3 h-3" />
-                          </Button>
-                          <Button size="sm" variant="ghost" onClick={() => deleteItem(collection.slug, "collection")}>
-                            <Trash2 className="w-3 h-3" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Settings className="w-5 h-5" />
+                การตั้งค่าหน้าร้าน
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Tabs value={activeTab} onValueChange={setActiveTab} orientation="vertical" className="w-full">
+                <TabsList className="grid w-full grid-cols-1 h-auto">
+                  <TabsTrigger value="theme" className="justify-start">
+                    <Palette className="w-4 h-4 mr-2" />
+                    ธีมและสี
+                  </TabsTrigger>
+                  <TabsTrigger value="layout" className="justify-start">
+                    <Layout className="w-4 h-4 mr-2" />
+                    เลย์เอาต์
+                  </TabsTrigger>
+                  <TabsTrigger value="content" className="justify-start">
+                    <Type className="w-4 h-4 mr-2" />
+                    เนื้อหา
+                  </TabsTrigger>
+                  <TabsTrigger value="features" className="justify-start">
+                    <Star className="w-4 h-4 mr-2" />
+                    ฟีเจอร์
+                  </TabsTrigger>
+                  <TabsTrigger value="seo" className="justify-start">
+                    <Globe className="w-4 h-4 mr-2" />
+                    SEO
+                  </TabsTrigger>
+                </TabsList>
+
+                <div className="ml-4 flex-1">
+                  <TabsContent value="theme" className="space-y-4 mt-0">
+                    <div>
+                      <Label htmlFor="primaryColor">สีหลัก</Label>
+                      <div className="flex items-center gap-2 mt-1">
+                        <Input
+                          id="primaryColor"
+                          type="color"
+                          value={settings.theme.primaryColor}
+                          onChange={(e) => handleSettingChange("theme", "primaryColor", e.target.value)}
+                          className="w-12 h-10 p-1 border rounded"
+                        />
+                        <Input
+                          value={settings.theme.primaryColor}
+                          onChange={(e) => handleSettingChange("theme", "primaryColor", e.target.value)}
+                          className="flex-1"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <Label htmlFor="secondaryColor">สีรอง</Label>
+                      <div className="flex items-center gap-2 mt-1">
+                        <Input
+                          id="secondaryColor"
+                          type="color"
+                          value={settings.theme.secondaryColor}
+                          onChange={(e) => handleSettingChange("theme", "secondaryColor", e.target.value)}
+                          className="w-12 h-10 p-1 border rounded"
+                        />
+                        <Input
+                          value={settings.theme.secondaryColor}
+                          onChange={(e) => handleSettingChange("theme", "secondaryColor", e.target.value)}
+                          className="flex-1"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <Label htmlFor="fontFamily">ฟอนต์</Label>
+                      <Select
+                        value={settings.theme.fontFamily}
+                        onValueChange={(value) => handleSettingChange("theme", "fontFamily", value)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Inter">Inter</SelectItem>
+                          <SelectItem value="Roboto">Roboto</SelectItem>
+                          <SelectItem value="Poppins">Poppins</SelectItem>
+                          <SelectItem value="Noto Sans Thai">Noto Sans Thai</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div>
+                      <Label>ขนาดฟอนต์: {settings.theme.fontSize}px</Label>
+                      <Slider
+                        value={[settings.theme.fontSize]}
+                        onValueChange={(value) => handleSettingChange("theme", "fontSize", value[0])}
+                        max={24}
+                        min={12}
+                        step={1}
+                        className="mt-2"
+                      />
+                    </div>
+
+                    <div>
+                      <Label>มุมโค้ง: {settings.theme.borderRadius}px</Label>
+                      <Slider
+                        value={[settings.theme.borderRadius]}
+                        onValueChange={(value) => handleSettingChange("theme", "borderRadius", value[0])}
+                        max={20}
+                        min={0}
+                        step={1}
+                        className="mt-2"
+                      />
+                    </div>
+                  </TabsContent>
+
+                  <TabsContent value="layout" className="space-y-4 mt-0">
+                    <div>
+                      <Label htmlFor="headerStyle">สไตล์ Header</Label>
+                      <Select
+                        value={settings.layout.headerStyle}
+                        onValueChange={(value) => handleSettingChange("layout", "headerStyle", value)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="modern">โมเดิร์น</SelectItem>
+                          <SelectItem value="classic">คลาสสิก</SelectItem>
+                          <SelectItem value="minimal">มินิมอล</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div>
+                      <Label>จำนวนคอลัมน์สินค้า: {settings.layout.productGridColumns}</Label>
+                      <Slider
+                        value={[settings.layout.productGridColumns]}
+                        onValueChange={(value) => handleSettingChange("layout", "productGridColumns", value[0])}
+                        max={5}
+                        min={2}
+                        step={1}
+                        className="mt-2"
+                      />
+                    </div>
+
+                    <div className="flex items-center space-x-2">
+                      <Switch
+                        id="showSidebar"
+                        checked={settings.layout.showSidebar}
+                        onCheckedChange={(checked) => handleSettingChange("layout", "showSidebar", checked)}
+                      />
+                      <Label htmlFor="showSidebar">แสดง Sidebar</Label>
+                    </div>
+
+                    {settings.layout.showSidebar && (
+                      <div>
+                        <Label htmlFor="sidebarPosition">ตำแหน่ง Sidebar</Label>
+                        <Select
+                          value={settings.layout.sidebarPosition}
+                          onValueChange={(value) => handleSettingChange("layout", "sidebarPosition", value)}
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="left">ซ้าย</SelectItem>
+                            <SelectItem value="right">ขวา</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
+                  </TabsContent>
+
+                  <TabsContent value="content" className="space-y-4 mt-0">
+                    <div>
+                      <Label htmlFor="siteName">ชื่อเว็บไซต์</Label>
+                      <Input
+                        id="siteName"
+                        value={settings.content.siteName}
+                        onChange={(e) => handleSettingChange("content", "siteName", e.target.value)}
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor="tagline">สโลแกน</Label>
+                      <Input
+                        id="tagline"
+                        value={settings.content.tagline}
+                        onChange={(e) => handleSettingChange("content", "tagline", e.target.value)}
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor="welcomeMessage">ข้อความต้อนรับ</Label>
+                      <Textarea
+                        id="welcomeMessage"
+                        value={settings.content.welcomeMessage}
+                        onChange={(e) => handleSettingChange("content", "welcomeMessage", e.target.value)}
+                        rows={3}
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor="phone">เบอร์โทรศัพท์</Label>
+                      <Input
+                        id="phone"
+                        value={settings.content.contactInfo.phone}
+                        onChange={(e) => handleNestedSettingChange("content", "contactInfo", "phone", e.target.value)}
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor="email">อีเมล</Label>
+                      <Input
+                        id="email"
+                        value={settings.content.contactInfo.email}
+                        onChange={(e) => handleNestedSettingChange("content", "contactInfo", "email", e.target.value)}
+                      />
+                    </div>
+                  </TabsContent>
+
+                  <TabsContent value="features" className="space-y-4 mt-0">
+                    <div className="space-y-4">
+                      <div className="flex items-center space-x-2">
+                        <Switch
+                          id="showReviews"
+                          checked={settings.features.showReviews}
+                          onCheckedChange={(checked) => handleSettingChange("features", "showReviews", checked)}
+                        />
+                        <Label htmlFor="showReviews">แสดงรีวิวสินค้า</Label>
+                      </div>
+
+                      <div className="flex items-center space-x-2">
+                        <Switch
+                          id="showWishlist"
+                          checked={settings.features.showWishlist}
+                          onCheckedChange={(checked) => handleSettingChange("features", "showWishlist", checked)}
+                        />
+                        <Label htmlFor="showWishlist">รายการโปรด</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Switch
+                          id="showCompare"
+                          checked={settings.features.showCompare}
+                          onCheckedChange={(checked) => handleSettingChange("features", "showCompare", checked)}
+                        />
+                        <Label htmlFor="showCompare">เปรียบเทียบสินค้า</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Switch
+                          id="enableLiveChat"
+                          checked={settings.features.enableLiveChat}
+                          onCheckedChange={(checked) => handleSettingChange("features", "enableLiveChat", checked)}
+                        />
+                        <Label htmlFor="enableLiveChat">Live Chat</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Switch
+                          id="showSocialMedia"
+                          checked={settings.features.showSocialMedia}
+                          onCheckedChange={(checked) => handleSettingChange("features", "showSocialMedia", checked)}
+                        />
+                        <Label htmlFor="showSocialMedia">ลิงค์โซเชียลมีเดีย</Label>
+                      </div>
+                    </div>
+                  </TabsContent>
+
+                  <TabsContent value="seo" className="space-y-4 mt-0">
+                    <div>
+                      <Label htmlFor="metaTitle">Meta Title</Label>
+                      <Input
+                        id="metaTitle"
+                        value={settings.seo.metaTitle}
+                        onChange={(e) => handleSettingChange("seo", "metaTitle", e.target.value)}
+                      />
+                      <p className="text-xs text-gray-500 mt-1">ความยาวที่แนะนำ: 50-60 ตัวอักษร</p>
+                    </div>
+                    <div>
+                      <Label htmlFor="metaDescription">Meta Description</Label>
+                      <Textarea
+                        id="metaDescription"
+                        value={settings.seo.metaDescription}
+                        onChange={(e) => handleSettingChange("seo", "metaDescription", e.target.value)}
+                        rows={3}
+                      />
+                      <p className="text-xs text-gray-500 mt-1">ความยาวที่แนะนำ: 150-160 ตัวอักษร</p>
+                    </div>
+                    <div>
+                      <Label htmlFor="keywords">Keywords</Label>
+                      <Input
+                        id="keywords"
+                        value={settings.seo.keywords}
+                        onChange={(e) => handleSettingChange("seo", "keywords", e.target.value)}
+                        placeholder="คำค้นหา, คั่นด้วยจุลภาค"
+                      />
+                    </div>
+                  </TabsContent>
+                </div>
+              </Tabs>
             </CardContent>
           </Card>
-        </TabsContent>
+        </div>
 
-        <TabsContent value="fabrics" className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold">จัดการลายผ้า</h2>
-            <div className="space-x-2">
-              <Button onClick={() => openEditDialog({}, "fabric")}>
-                <Plus className="w-4 h-4 mr-2" />
-                เพิ่มลายผ้า
-              </Button>
-              <Button onClick={() => saveData("fabrics")} disabled={saving}>
-                <Save className="w-4 h-4 mr-2" />
-                {saving ? "กำลังบันทึก..." : "บันทึก"}
-              </Button>
-            </div>
-          </div>
-
+        {/* Preview Panel */}
+        <div className="lg:col-span-2">
           <Card>
-            <CardContent className="p-0">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>ลำดับ</TableHead>
-                    <TableHead>รหัส</TableHead>
-                    <TableHead>ชื่อไทย</TableHead>
-                    <TableHead>คอลเลกชัน</TableHead>
-                    <TableHead>สถานะ</TableHead>
-                    <TableHead>การจัดการ</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {fabrics.map((fabric, index) => (
-                    <TableRow key={fabric.id}>
-                      <TableCell>
-                        <div className="flex items-center space-x-1">
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => setFabrics(moveItem(fabrics, index, "up"))}
-                            disabled={index === 0}
-                          >
-                            <ArrowUp className="w-3 h-3" />
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => setFabrics(moveItem(fabrics, index, "down"))}
-                            disabled={index === fabrics.length - 1}
-                          >
-                            <ArrowDown className="w-3 h-3" />
-                          </Button>
-                          <span className="text-sm">{index + 1}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell className="font-mono">{fabric.id}</TableCell>
-                      <TableCell>{fabric.nameTH}</TableCell>
-                      <TableCell>{fabric.collection}</TableCell>
-                      <TableCell>
-                        <Badge variant={fabric.enabled ? "default" : "secondary"}>
-                          {fabric.enabled ? "เปิด" : "ปิด"}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center space-x-2">
-                          <Button size="sm" variant="ghost" onClick={() => openEditDialog(fabric, "fabric")}>
-                            <Edit className="w-3 h-3" />
-                          </Button>
-                          <Button size="sm" variant="ghost" onClick={() => deleteItem(fabric.id, "fabric")}>
-                            <Trash2 className="w-3 h-3" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="homepage" className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold">จัดการหน้าแรก</h2>
-            <Button onClick={() => saveData("homepage")} disabled={saving}>
-              <Save className="w-4 h-4 mr-2" />
-              {saving ? "กำลังบันทึก..." : "บันทึก"}
-            </Button>
-          </div>
-
-          <div className="grid gap-4">
-            {homepageBlocks.map((block, index) => (
-              <Card key={block.id}>
-                <CardHeader>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Eye className="w-5 h-5" />
+                ตัวอย่างหน้าร้าน
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div
+                className={`border rounded-lg overflow-hidden ${
+                  previewDevice === "mobile"
+                    ? "max-w-sm mx-auto"
+                    : previewDevice === "tablet"
+                      ? "max-w-2xl mx-auto"
+                      : "w-full"
+                }`}
+                style={{
+                  fontFamily: settings.theme.fontFamily,
+                  fontSize: `${settings.theme.fontSize}px`,
+                }}
+              >
+                {/* Preview Header */}
+                <div
+                  className="p-4 border-b"
+                  style={{
+                    backgroundColor: settings.theme.primaryColor,
+                    color: "white",
+                  }}
+                >
                   <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg">{block.title}</CardTitle>
-                    <Badge variant={block.enabled ? "default" : "secondary"}>{block.enabled ? "เปิด" : "ปิด"}</Badge>
+                    <div>
+                      <h1 className="text-xl font-bold">{settings.content.siteName}</h1>
+                      <p className="text-sm opacity-90">{settings.content.tagline}</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {settings.features.showWishlist && <Heart className="w-5 h-5" />}
+                      <ShoppingCart className="w-5 h-5" />
+                    </div>
                   </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    <p className="text-sm text-gray-600">ประเภท: {block.type}</p>
-                    {block.content && <p className="text-sm">{block.content}</p>}
-                    {block.collectionSlug && <p className="text-sm">คอลเลกชัน: {block.collectionSlug}</p>}
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </TabsContent>
-      </Tabs>
+                </div>
 
-      {/* Edit Dialog */}
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>{editingItem?._type === "collection" ? "แก้ไขคอลเลกชัน" : "แก้ไขลายผ้า"}</DialogTitle>
-          </DialogHeader>
+                {/* Preview Content */}
+                <div className="p-4" style={{ backgroundColor: settings.theme.secondaryColor }}>
+                  <div className="mb-4">
+                    <h2 className="text-lg font-semibold mb-2">ยินดีต้อนรับ</h2>
+                    <p className="text-gray-700">{settings.content.welcomeMessage}</p>
+                  </div>
 
-          {editingItem && (
-            <div className="space-y-4">
-              {editingItem._type === "collection" ? (
-                <>
-                  <div>
-                    <Label htmlFor="slug">Slug</Label>
-                    <Input
-                      id="slug"
-                      value={editingItem.slug || ""}
-                      onChange={(e) => setEditingItem({ ...editingItem, slug: e.target.value })}
-                      placeholder="linen"
-                    />
+                  {/* Product Grid Preview */}
+                  <div
+                    className={`grid gap-4 mb-4`}
+                    style={{
+                      gridTemplateColumns: `repeat(${Math.min(settings.layout.productGridColumns, previewDevice === "mobile" ? 2 : previewDevice === "tablet" ? 3 : 4)}, 1fr)`,
+                    }}
+                  >
+                    {[1, 2, 3, 4].slice(0, settings.layout.productGridColumns).map((i) => (
+                      <div
+                        key={i}
+                        className="bg-white p-3 shadow-sm"
+                        style={{ borderRadius: `${settings.theme.borderRadius}px` }}
+                      >
+                        <div className="bg-gray-200 h-24 mb-2 rounded"></div>
+                        <h3 className="font-medium text-sm">ผ้าคลุมโซฟา {i}</h3>
+                        <p className="text-sm text-gray-600">฿1,299</p>
+                        {settings.features.showReviews && (
+                          <div className="flex items-center gap-1 mt-1">
+                            <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                            <span className="text-xs">4.5</span>
+                          </div>
+                        )}
+                      </div>
+                    ))}
                   </div>
-                  <div>
-                    <Label htmlFor="nameTH">ชื่อภาษาไทย</Label>
-                    <Input
-                      id="nameTH"
-                      value={editingItem.nameTH || ""}
-                      onChange={(e) => setEditingItem({ ...editingItem, nameTH: e.target.value })}
-                      placeholder="ผ้าลินิน"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="cover">รูปปก (URL)</Label>
-                    <Input
-                      id="cover"
-                      value={editingItem.cover || ""}
-                      onChange={(e) => setEditingItem({ ...editingItem, cover: e.target.value })}
-                      placeholder="/linen-collection-cover.jpg"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="count">จำนวนลาย</Label>
-                    <Input
-                      id="count"
-                      type="number"
-                      value={editingItem.count || 0}
-                      onChange={(e) => setEditingItem({ ...editingItem, count: Number.parseInt(e.target.value) || 0 })}
-                    />
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div>
-                    <Label htmlFor="id">รหัสผ้า</Label>
-                    <Input
-                      id="id"
-                      value={editingItem.id || ""}
-                      onChange={(e) => setEditingItem({ ...editingItem, id: e.target.value })}
-                      placeholder="LN001"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="nameTH">ชื่อภาษาไทย</Label>
-                    <Input
-                      id="nameTH"
-                      value={editingItem.nameTH || ""}
-                      onChange={(e) => setEditingItem({ ...editingItem, nameTH: e.target.value })}
-                      placeholder="ลินินขาวธรรมชาติ"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="collection">คอลเลกชัน</Label>
-                    <Select
-                      value={editingItem.collection || ""}
-                      onValueChange={(value) => setEditingItem({ ...editingItem, collection: value })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="เลือกคอลเลกชัน" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {collections.map((collection) => (
-                          <SelectItem key={collection.slug} value={collection.slug}>
-                            {collection.nameTH}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label htmlFor="image">รูปผ้า (URL)</Label>
-                    <Input
-                      id="image"
-                      value={editingItem.image || ""}
-                      onChange={(e) => setEditingItem({ ...editingItem, image: e.target.value })}
-                      placeholder="/fabrics/linen-natural-white.jpg"
-                    />
-                  </div>
-                </>
-              )}
 
-              <div className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  id="enabled"
-                  checked={editingItem.enabled ?? true}
-                  onChange={(e) => setEditingItem({ ...editingItem, enabled: e.target.checked })}
-                />
-                <Label htmlFor="enabled">เปิดใช้งาน</Label>
+                  {/* Features Preview */}
+                  <div className="flex flex-wrap gap-2 text-xs">
+                    {settings.features.showReviews && <Badge variant="outline">รีวิว</Badge>}
+                    {settings.features.showWishlist && <Badge variant="outline">รายการโปรด</Badge>}
+                    {settings.features.showCompare && <Badge variant="outline">เปรียบเทียบ</Badge>}
+                    {settings.features.enableLiveChat && <Badge variant="outline">Live Chat</Badge>}
+                  </div>
+                </div>
+
+                {/* Preview Footer */}
+                <div className="p-4 bg-gray-100 border-t text-center text-sm">
+                  <p>© 2024 {settings.content.siteName}</p>
+                  <p>
+                    {settings.content.contactInfo.phone} | {settings.content.contactInfo.email}
+                  </p>
+                </div>
               </div>
-
-              <div className="flex justify-end space-x-2">
-                <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-                  ยกเลิก
-                </Button>
-                <Button onClick={handleSaveItem}>บันทึก</Button>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
     </div>
   )
 }

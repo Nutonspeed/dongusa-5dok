@@ -14,6 +14,8 @@ import { useAuth } from "../contexts/AuthContext"
 import Header from "../components/Header"
 import Footer from "../components/Footer"
 
+export const dynamic = "force-dynamic"
+
 export default function SettingsPage() {
   const router = useRouter()
   const { language } = useLanguage()

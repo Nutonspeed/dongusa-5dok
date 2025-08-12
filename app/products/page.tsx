@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect } from "react"
 import Link from "next/link"
-import { Search, Grid, List, Star, Calculator, MessageCircle, Filter, X } from "lucide-react"
+import { Search, Grid, List, Star, Calculator, MessageCircle, Filter, X, ShoppingCart, Heart } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -40,9 +40,11 @@ interface Product {
   discount?: number
 }
 
+export const dynamic = "force-dynamic"
+
 export default function ProductsPage() {
   const { language } = useLanguage()
-  const { addItem } = useCart()
+  const { addItem, toggleFavorite } = useCart()
   const [products, setProducts] = useState<Product[]>([])
   const [categories, setCategories] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
@@ -482,9 +484,26 @@ export default function ProductsPage() {
                                   {language === "th" ? "ดูรายละเอียด" : "View Details"}
                                 </Button>
                               </Link>
+                              <Button
+                                onClick={() => handleAddToCart(product)}
+                                className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white"
+                                size="sm"
+                              >
+                                <ShoppingCart className="w-4 h-4 mr-2" />
+                                {language === "th" ? "เพิ่มในตระกร้า" : "Add to Cart"}
+                              </Button>
                             </div>
                           )}
 
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="w-full bg-transparent"
+                            onClick={() => toggleFavorite(product.id)}
+                          >
+                            <Heart className="w-4 h-4 mr-2" />
+                            {language === "th" ? "เพิ่มในรายการโปรด" : "Add to Favorites"}
+                          </Button>
                           <Button
                             variant="outline"
                             size="sm"
@@ -596,6 +615,22 @@ export default function ProductsPage() {
                               </Link>
                             )}
 
+                            <Button
+                              variant="outline"
+                              onClick={() => handleAddToCart(product)}
+                              className="bg-transparent"
+                            >
+                              <ShoppingCart className="w-4 h-4 mr-2" />
+                              {language === "th" ? "เพิ่มในตระกร้า" : "Add to Cart"}
+                            </Button>
+                            <Button
+                              variant="outline"
+                              onClick={() => toggleFavorite(product.id)}
+                              className="bg-transparent"
+                            >
+                              <Heart className="w-4 h-4 mr-2" />
+                              {language === "th" ? "เพิ่มในรายการโปรด" : "Add to Favorites"}
+                            </Button>
                             <Button
                               variant="outline"
                               onClick={() => handleGetQuote(product)}

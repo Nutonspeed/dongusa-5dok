@@ -8,6 +8,8 @@ import { Eye, EyeOff, Lock, Mail, Shield } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
+export const dynamic = "force-dynamic"
+
 export default function AdminLogin() {
   const router = useRouter()
   const [formData, setFormData] = useState({

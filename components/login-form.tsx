@@ -1,45 +1,32 @@
 "use client"
 
-import { useActionState } from "react"
-import { useFormStatus } from "react-dom"
+import { useState, useTransition } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Loader2 } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { useEffect } from "react"
 import { signIn } from "@/lib/actions"
-
-function SubmitButton() {
-  const { pending } = useFormStatus()
-
-  return (
-    <Button
-      type="submit"
-      disabled={pending}
-      className="w-full bg-burgundy-600 hover:bg-burgundy-700 text-white py-6 text-lg font-medium rounded-lg h-[60px]"
-    >
-      {pending ? (
-        <>
-          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          Signing in...
-        </>
-      ) : (
-        "Sign In"
-      )}
-    </Button>
-  )
-}
 
 export default function LoginForm() {
   const router = useRouter()
-  const [state, formAction] = useActionState(signIn, null)
+  const [isPending, startTransition] = useTransition()
+  const [state, setState] = useState<{ error?: string; success?: boolean } | null>(null)
 
-  useEffect(() => {
-    if (state?.success) {
-      router.push("/")
-    }
-  }, [state, router])
+  const handleSubmit = async (formData: FormData) => {
+    startTransition(async () => {
+      try {
+        const result = await signIn(null, formData)
+        setState(result)
+
+        if (result?.success) {
+          router.push("/")
+        }
+      } catch (error) {
+        setState({ error: "An error occurred during sign in" })
+      }
+    })
+  }
 
   return (
     <div className="w-full max-w-md space-y-8">
@@ -48,7 +35,7 @@ export default function LoginForm() {
         <p className="text-lg text-gray-600">Sign in to your account</p>
       </div>
 
-      <form action={formAction} className="space-y-6">
+      <form action={handleSubmit} className="space-y-6">
         {state?.error && (
           <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">{state.error}</div>
         )}
@@ -81,7 +68,20 @@ export default function LoginForm() {
           </div>
         </div>
 
-        <SubmitButton />
+        <Button
+          type="submit"
+          disabled={isPending}
+          className="w-full bg-burgundy-600 hover:bg-burgundy-700 text-white py-6 text-lg font-medium rounded-lg h-[60px]"
+        >
+          {isPending ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Signing in...
+            </>
+          ) : (
+            "Sign In"
+          )}
+        </Button>
 
         <div className="text-center text-gray-600">
           Don't have an account?{" "}

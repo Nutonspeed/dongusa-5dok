@@ -20,6 +20,8 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 
+export const dynamic = "force-dynamic"
+
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState("store")
   const [showPassword, setShowPassword] = useState(false)
@@ -814,7 +816,7 @@ export default function SettingsPage() {
                       type="checkbox"
                       checked={settings.security.twoFactorAuth}
                       onChange={(e) => handleInputChange("security", "twoFactorAuth", e.target.checked)}
-                      className="w-4 h-4 text-pink-600 border-gray-300 rounded focus:ring-pink-500"
+                      className="w-4 h-4 text-pink-600 border-gray-300 rounded focus:ring-2 focus:ring-pink-500"
                     />
                   </div>
                 </div>

@@ -168,22 +168,24 @@ const translations = {
   },
 }
 
-export const LanguageContext = createContext<LanguageContextType | undefined>(undefined)
+const defaultContextValue: LanguageContextType = {
+  language: "th",
+  setLanguage: () => {},
+  t: (key: string) => {
+    return translations.th[key as keyof typeof translations.th] || key
+  },
+}
+
+export const LanguageContext = createContext<LanguageContextType>(defaultContextValue)
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const [language, setLanguage] = useState<Language>("th")
-  const [isMounted, setIsMounted] = useState(false)
+  const [isHydrated, setIsHydrated] = useState(false)
 
   useEffect(() => {
-    setIsMounted(true)
-  }, [])
+    setIsHydrated(true)
 
-  useEffect(() => {
-    if (!isMounted) return
-
-    const loadLanguageData = async () => {
-      await new Promise((resolve) => setTimeout(resolve, 50))
-
+    const loadLanguageData = () => {
       try {
         if (typeof window === "undefined") return
 
@@ -197,7 +199,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     }
 
     loadLanguageData()
-  }, [isMounted])
+  }, [])
 
   const handleSetLanguage = (lang: Language) => {
     setLanguage(lang)
@@ -214,21 +216,25 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     return translations[language][key as keyof (typeof translations)[typeof language]] || key
   }
 
-  if (!isMounted) {
-    return <div style={{ display: "none" }}>{children}</div>
+  const contextValue: LanguageContextType = {
+    language,
+    setLanguage: handleSetLanguage,
+    t,
   }
 
-  return (
-    <LanguageContext.Provider value={{ language, setLanguage: handleSetLanguage, t }}>
-      {children}
-    </LanguageContext.Provider>
-  )
+  return <LanguageContext.Provider value={contextValue}>{children}</LanguageContext.Provider>
 }
 
 export function useLanguage() {
   const context = useContext(LanguageContext)
-  if (context === undefined) {
-    throw new Error("useLanguage must be used within a LanguageProvider")
+
+  if (typeof window === "undefined") {
+    return defaultContextValue
   }
+
+  if (context === undefined) {
+    return defaultContextValue
+  }
+
   return context
 }

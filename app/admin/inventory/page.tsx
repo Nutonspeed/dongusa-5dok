@@ -73,6 +73,8 @@ interface AutomationRule {
   success_rate: number
 }
 
+export const dynamic = "force-dynamic"
+
 export default function InventoryManagementPage() {
   const [dashboardData, setDashboardData] = useState<InventoryDashboardItem[]>([])
   const [alerts, setAlerts] = useState<InventoryAlert[]>([])
@@ -716,6 +718,7 @@ export default function InventoryManagementPage() {
                       <div className="text-sm font-medium text-gray-700">แนะนำ: {alert.recommended_action}</div>
                       <div className="flex gap-2">
                         <Button size="sm" variant="outline">
+                          <Edit className="w-4 h-4 mr-2" />
                           ดูกราฟ
                         </Button>
                         <Button size="sm">ดำเนินการ</Button>

@@ -100,6 +100,8 @@ const channelLabelTH = {
   walk_in: "Walk-in",
 }
 
+export const dynamic = "force-dynamic"
+
 export default function AdminOrdersPage() {
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
@@ -285,7 +287,7 @@ export default function AdminOrdersPage() {
               (order) => `
             <div class="order">
               <div class="header">
-                <h2>ใบสั่งซื้อ #${order.id}</h2>
+                <h2>ใบสั่งซื้อ #${order.id.slice(-8)}</h2>
               </div>
               <div class="details">
                 <p><strong>ลูกค้า:</strong> ${order.customer_name}</p>

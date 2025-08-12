@@ -34,6 +34,8 @@ import { Progress } from "@/components/ui/progress"
 import { DatabaseService } from "@/lib/database"
 import { formatPrice } from "@/utils/formatPrice" // Import formatPrice function
 
+export const dynamic = "force-dynamic"
+
 const customerSegments = [
   {
     id: "high_value",

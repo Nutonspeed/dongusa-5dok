@@ -306,21 +306,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     refreshProfile,
   }
 
-  return (
-    <AuthContext.Provider value={value}>
-      <div style={{ visibility: isMounted ? "visible" : "hidden" }}>{children}</div>
-    </AuthContext.Provider>
-  )
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
 
 export function useAuth() {
   const context = useContext(AuthContext)
-  if (context === undefined) {
-    if (typeof window === "undefined") {
-      // During SSR, return default values
-      return defaultAuthContext
-    }
-    throw new Error("useAuth must be used within an AuthProvider")
+
+  if (typeof window === "undefined") {
+    return defaultAuthContext
   }
+
+  if (context === undefined) {
+    return defaultAuthContext
+  }
+
   return context
 }

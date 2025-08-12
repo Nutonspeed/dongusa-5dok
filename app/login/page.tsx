@@ -15,10 +15,12 @@ import { useAuth } from "../contexts/AuthContext"
 import Header from "../components/Header"
 import Footer from "../components/Footer"
 
+export const dynamic = "force-dynamic"
+
 export default function LoginPage() {
   const router = useRouter()
   const { language } = useLanguage()
-  const { login, isAuthenticated, user, isAdmin } = useAuth()
+  const { signIn, isAuthenticated, user, isAdmin } = useAuth()
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -43,7 +45,7 @@ export default function LoginPage() {
     setIsLoading(true)
     setError("")
 
-    const result = await login(formData.email, formData.password)
+    const result = await signIn(formData.email, formData.password)
 
     if (result.success) {
       const redirect = new URLSearchParams(window.location.search).get("redirect")
@@ -82,9 +84,9 @@ export default function LoginPage() {
       <Header />
 
       <main className="flex items-center justify-center py-12 px-4">
-        <Card className="w-full max-w-md burgundy-shadow-lg">
+        <Card className="w-full max-w-md shadow-lg">
           <CardHeader className="text-center">
-            <div className="w-16 h-16 bg-burgundy-gradient rounded-full flex items-center justify-center mx-auto mb-4">
+            <div className="w-16 h-16 bg-gradient-to-r from-pink-500 to-rose-600 rounded-full flex items-center justify-center mx-auto mb-4">
               <UserIcon className="w-8 h-8 text-white" />
             </div>
             <CardTitle className="text-2xl font-bold text-gray-900">
@@ -111,7 +113,7 @@ export default function LoginPage() {
                     name="email"
                     value={formData.email}
                     onChange={handleInputChange}
-                    className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                    className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
                     placeholder="user@sofacover.com"
                     required
                   />
@@ -129,7 +131,7 @@ export default function LoginPage() {
                     name="password"
                     value={formData.password}
                     onChange={handleInputChange}
-                    className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                    className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
                     placeholder="••••••••"
                     required
                   />
@@ -146,7 +148,7 @@ export default function LoginPage() {
               <Button
                 type="submit"
                 disabled={isLoading}
-                className="w-full bg-burgundy-gradient hover:opacity-90 text-white"
+                className="w-full bg-gradient-to-r from-pink-500 to-rose-600 hover:from-pink-600 hover:to-rose-700 text-white"
               >
                 {isLoading
                   ? language === "th"
@@ -161,33 +163,33 @@ export default function LoginPage() {
             <div className="mt-6 text-center">
               <p className="text-sm text-gray-600">
                 {language === "th" ? "ยังไม่มีบัญชี?" : "Don't have an account?"}{" "}
-                <Link href="/register" className="text-primary hover:underline font-medium">
+                <Link href="/register" className="text-pink-600 hover:underline font-medium">
                   {language === "th" ? "สมัครสมาชิก" : "Register"}
                 </Link>
               </p>
             </div>
 
             <div className="mt-6 space-y-3">
-              <div className="p-4 bg-accent border border-primary/20 rounded-lg">
-                <h4 className="font-semibold text-primary mb-2 flex items-center">
+              <div className="p-4 bg-pink-50 border border-pink-200 rounded-lg">
+                <h4 className="font-semibold text-pink-700 mb-2 flex items-center">
                   <UserIcon className="w-4 h-4 mr-2" />
                   {language === "th" ? "บัญชีผู้ใช้ทั่วไป:" : "Regular User Account:"}
                 </h4>
-                <p className="text-sm text-primary/80">{language === "th" ? "อีเมล:" : "Email:"} user@sofacover.com</p>
-                <p className="text-sm text-primary/80">{language === "th" ? "รหัสผ่าน:" : "Password:"} user123</p>
+                <p className="text-sm text-pink-600">{language === "th" ? "อีเมล:" : "Email:"} user@sofacover.com</p>
+                <p className="text-sm text-pink-600">{language === "th" ? "รหัสผ่าน:" : "Password:"} user123</p>
               </div>
 
-              <div className="p-4 bg-primary/5 border border-primary/30 rounded-lg">
-                <h4 className="font-semibold text-primary mb-2 flex items-center">
+              <div className="p-4 bg-rose-50 border border-rose-200 rounded-lg">
+                <h4 className="font-semibold text-rose-700 mb-2 flex items-center">
                   <Shield className="w-4 h-4 mr-2" />
                   {language === "th" ? "บัญชีแอดมิน:" : "Admin Account:"}
                   <Badge variant="secondary" className="ml-2 text-xs">
                     Admin
                   </Badge>
                 </h4>
-                <p className="text-sm text-primary/80">{language === "th" ? "อีเมล:" : "Email:"} admin@sofacover.com</p>
-                <p className="text-sm text-primary/80">{language === "th" ? "รหัสผ่าน:" : "Password:"} admin123</p>
-                <p className="text-xs text-primary/60 mt-1">
+                <p className="text-sm text-rose-600">{language === "th" ? "อีเมล:" : "Email:"} admin@sofacover.com</p>
+                <p className="text-sm text-rose-600">{language === "th" ? "รหัสผ่าน:" : "Password:"} admin123</p>
+                <p className="text-xs text-rose-500 mt-1">
                   {language === "th"
                     ? "เข้าถึงแดชบอร์ดแอดมินและฟีเจอร์การจัดการ"
                     : "Access admin dashboard and management features"}

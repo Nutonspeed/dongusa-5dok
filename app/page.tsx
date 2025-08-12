@@ -1,3 +1,4 @@
+```tsx file="app/page.tsx"
 "use client"
 
 import { DemoBanner } from "@/components/DemoBanner"
@@ -9,6 +10,8 @@ import FeaturedProducts from "./components/FeaturedProducts"
 import { CustomCoverSection } from "./components/CustomCoverSection"
 import FabricCollections from "./components/FabricCollections"
 import WhyChooseUs from "./components/WhyChooseUs"
+
+export const dynamic = "force-dynamic"
 
 export default function HomePage() {
   return (
