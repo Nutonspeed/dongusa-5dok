@@ -213,9 +213,9 @@ export default function FeaturedProducts() {
                   <div className="flex items-center space-x-2 mb-4">
                     <span className="text-sm text-gray-600">{language === "en" ? "Colors:" : "สี:"}</span>
                     <div className="flex space-x-1">
-                      {product.colors.map((color, index) => (
+                      {product.colors.map((color) => (
                         <div
-                          key={index}
+                          key={color}
                           className="w-4 h-4 rounded-full border border-gray-300"
                           style={{ backgroundColor: color }}
                         />
