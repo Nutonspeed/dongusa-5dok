@@ -1,0 +1,108 @@
+{
+  "auto_scaling": {
+    "enabled": true,
+    "min_instances": 2,
+    "max_instances": 20,
+    "target_cpu_utilization": 70,
+    "target_memory_utilization": 80,
+    "scale_up_cooldown": 300,
+    "scale_down_cooldown": 600,
+    "health_check_interval": 30,
+    "health_check_timeout": 10
+  },
+  "database": {
+    "connection_pooling": {
+      "enabled": true,
+      "min_connections": 10,
+      "max_connections": 100,
+      "idle_timeout": 300,
+      "connection_timeout": 30
+    },
+    "read_replicas": {
+      "enabled": true,
+      "count": 2,
+      "regions": ["us-east-1", "us-west-2"]
+    },
+    "backup": {
+      "enabled": true,
+      "frequency": "daily",
+      "retention_days": 30,
+      "cross_region": true
+    }
+  },
+  "caching": {
+    "redis": {
+      "enabled": true,
+      "cluster_mode": true,
+      "nodes": 3,
+      "memory_per_node": "1gb",
+      "eviction_policy": "allkeys-lru"
+    },
+    "cdn": {
+      "enabled": true,
+      "provider": "cloudflare",
+      "cache_ttl": 3600,
+      "edge_locations": ["global"],
+      "compression": true,
+      "minification": true
+    },
+    "application": {
+      "enabled": true,
+      "strategies": ["query_result_cache", "page_cache", "api_response_cache", "static_asset_cache"]
+    }
+  },
+  "load_balancing": {
+    "algorithm": "round_robin",
+    "health_checks": {
+      "enabled": true,
+      "path": "/api/health",
+      "interval": 30,
+      "timeout": 5,
+      "healthy_threshold": 2,
+      "unhealthy_threshold": 3
+    },
+    "sticky_sessions": false,
+    "ssl_termination": true
+  },
+  "monitoring": {
+    "metrics": {
+      "cpu_usage": { "threshold": 80, "alert": true },
+      "memory_usage": { "threshold": 85, "alert": true },
+      "disk_usage": { "threshold": 90, "alert": true },
+      "response_time": { "threshold": 2000, "alert": true },
+      "error_rate": { "threshold": 5, "alert": true },
+      "throughput": { "threshold": 1000, "alert": false }
+    },
+    "alerts": {
+      "channels": ["email", "slack", "sms"],
+      "escalation": {
+        "level_1": 5,
+        "level_2": 15,
+        "level_3": 30
+      }
+    }
+  },
+  "regions": {
+    "primary": "us-east-1",
+    "secondary": ["us-west-2", "eu-west-1", "ap-southeast-1"],
+    "failover": {
+      "enabled": true,
+      "automatic": true,
+      "rto": 300,
+      "rpo": 60
+    }
+  },
+  "capacity_planning": {
+    "growth_projections": {
+      "conservative": 1.2,
+      "moderate": 1.5,
+      "aggressive": 2.0
+    },
+    "resource_buffers": {
+      "cpu": 0.2,
+      "memory": 0.25,
+      "storage": 0.3
+    },
+    "review_frequency": "monthly"
+  }
+}
