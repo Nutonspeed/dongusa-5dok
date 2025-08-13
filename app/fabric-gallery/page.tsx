@@ -14,9 +14,11 @@ import {
   ChevronLeft,
   ChevronRight,
   X,
+  ShoppingCart,
 } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
+import BulkFabricSelector from "@/components/fabric/BulkFabricSelector"
 
 // Same fabric collections data as above
 // Placeholder array typed as any[] to satisfy strict type checking without altering UI
@@ -33,11 +35,11 @@ export default function FabricGalleryPage() {
   const [favorites, setFavorites] = useState<number[]>([])
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
   const [showFilters, setShowFilters] = useState(false)
+  const [selectedForBulk, setSelectedForBulk] = useState<string[]>([])
+  const [showBulkSelector, setShowBulkSelector] = useState(false)
 
   // Get all unique tags
-  const allTags: any[] = Array.from(
-    new Set(fabricCollections.flatMap((collection: any) => collection.tags)),
-  )
+  const allTags: any[] = Array.from(new Set(fabricCollections.flatMap((collection: any) => collection.tags)))
 
   // Filter and sort patterns
   const getAllPatterns = () => {
@@ -61,9 +63,7 @@ export default function FabricGalleryPage() {
     }
 
     if (selectedTags.length > 0) {
-      allPatterns = allPatterns.filter((pattern: any) =>
-        selectedTags.some((tag: any) => pattern.tags.includes(tag)),
-      )
+      allPatterns = allPatterns.filter((pattern: any) => selectedTags.some((tag: any) => pattern.tags.includes(tag)))
     }
 
     if (selectedCollection) {
@@ -148,6 +148,13 @@ export default function FabricGalleryPage() {
               </div>
             </div>
             <div className="flex items-center space-x-2">
+              {/* Bulk Selector Button */}
+              <button
+                onClick={() => setShowBulkSelector(!showBulkSelector)}
+                className={`p-2 rounded-full ${showBulkSelector ? "bg-blue-100 text-blue-600" : "hover:bg-gray-100"}`}
+              >
+                <ShoppingCart className="w-5 h-5" />
+              </button>
               <button onClick={() => setShowFilters(!showFilters)} className="p-2 hover:bg-gray-100 rounded-full">
                 <Filter className="w-5 h-5" />
               </button>
@@ -171,6 +178,23 @@ export default function FabricGalleryPage() {
               className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
+
+          {/* Bulk Selector */}
+          {showBulkSelector && (
+            <div className="mt-4">
+              <BulkFabricSelector
+                fabrics={filteredPatterns.map((p) => ({
+                  id: `${p.collectionId}-${p.id}`,
+                  name: p.name,
+                  collectionName: p.collectionName,
+                  imageUrl: p.image,
+                  price: p.price,
+                }))}
+                onSelectionChange={setSelectedForBulk}
+                className="border-t pt-4"
+              />
+            </div>
+          )}
 
           {/* Filters Panel */}
           {showFilters && (
@@ -200,7 +224,9 @@ export default function FabricGalleryPage() {
                     <button
                       key={tag}
                       onClick={() =>
-                        setSelectedTags((prev: any) => (prev.includes(tag) ? prev.filter((t: any) => t !== tag) : [...prev, tag]))
+                        setSelectedTags((prev: any) =>
+                          prev.includes(tag) ? prev.filter((t: any) => t !== tag) : [...prev, tag],
+                        )
                       }
                       className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
                         selectedTags.includes(tag)

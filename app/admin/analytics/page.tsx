@@ -1,5 +1,5 @@
 "use client"
-import { logger } from '@/lib/logger';
+import { logger } from "@/lib/logger"
 import { useState } from "react"
 import {
   BarChart,
@@ -12,32 +12,26 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
-  AreaChart,
-  Area,
   ComposedChart,
 } from "recharts"
 import {
   TrendingUp,
-  TrendingDown,
   DollarSign,
   ShoppingCart,
   Users,
   Package,
   Download,
   BarChart3,
-  Eye,
   FileText,
   Target,
-  Clock,
-  AlertTriangle,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 import { DatabaseService } from "@/lib/database"
 import { useEffect } from "react"
+import AdvancedAnalyticsDashboard from "@/components/analytics/AdvancedAnalyticsDashboard"
 
 const productCategoryData = [
   { name: "ผ้าคลุมโซฟา", value: 65, color: "hsl(345, 85%, 35%)", revenue: 456780, growth: 12.5 },
@@ -92,6 +86,7 @@ export default function AnalyticsPage() {
   const [dateRange, setDateRange] = useState<any>(null)
   const [selectedMetric, setSelectedMetric] = useState("revenue")
   const [comparisonPeriod, setComparisonPeriod] = useState("previous_period")
+  const [showAdvancedAnalytics, setShowAdvancedAnalytics] = useState(false)
 
   const [salesData, setSalesData] = useState<any[]>([])
   const [analytics, setAnalytics] = useState<any>({})
@@ -105,7 +100,7 @@ export default function AnalyticsPage() {
         const db = new DatabaseService()
 
         const analyticsData = await db.getAnalytics()
-          const salesHistory = await (db as any).getSalesData(selectedTimeRange)
+        const salesHistory = await (db as any).getSalesData(selectedTimeRange)
 
         setSalesData(salesHistory)
         setAnalytics(analyticsData)
@@ -186,47 +181,41 @@ export default function AnalyticsPage() {
     )
   }
 
+  if (showAdvancedAnalytics) {
+    return <AdvancedAnalyticsDashboard />
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">รายงานและสถิติขั้นสูง</h1>
-          <p className="text-gray-600 mt-1">วิเคราะห์ข้อมูลธุรกิจแบบละเอียดและการพยากรณ์</p>
+          <h1 className="text-3xl font-bold text-primary">Analytics Dashboard</h1>
+          <p className="text-gray-600 mt-1">ระบบวิเคราะห์ข้อมูลและรายงานธุรกิจ</p>
         </div>
-        <div className="flex items-center space-x-3 mt-4 md:mt-0">
-          <Select value={selectedTimeRange} onValueChange={setSelectedTimeRange}>
-            <SelectTrigger className="w-48">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {timeRanges.map((range) => (
-                <SelectItem key={range.id} value={range.id}>
-                  {range.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          <Select value={comparisonPeriod} onValueChange={setComparisonPeriod}>
-            <SelectTrigger className="w-48">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="previous_period">เปรียบเทียบช่วงก่อน</SelectItem>
-              <SelectItem value="previous_year">เปรียบเทียบปีก่อน</SelectItem>
-              <SelectItem value="no_comparison">ไม่เปรียบเทียบ</SelectItem>
-            </SelectContent>
-          </Select>
-
-          <Button variant="outline" onClick={() => handleExportReport("pdf")}>
-            <Download className="w-4 h-4 mr-2" />
-            ส่งออก PDF
+        <div className="flex items-center gap-4 mt-4 md:mt-0">
+          <Button
+            onClick={() => setShowAdvancedAnalytics(true)}
+            variant="outline"
+            className="bg-gradient-to-r from-purple-500 to-pink-500 text-white border-0 hover:from-purple-600 hover:to-pink-600"
+          >
+            <BarChart3 className="w-4 h-4 mr-2" />
+            Advanced Analytics
           </Button>
-
-          <Button variant="outline" onClick={() => handleExportReport("excel")}>
+          <Select value={selectedTimeRange} onValueChange={setSelectedTimeRange}>
+            <SelectTrigger className="w-40">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="7d">7 วันล่าสุด</SelectItem>
+              <SelectItem value="30d">30 วันล่าสุด</SelectItem>
+              <SelectItem value="90d">90 วันล่าสุด</SelectItem>
+              <SelectItem value="1y">1 ปีล่าสุด</SelectItem>
+            </SelectContent>
+          </Select>
+          <Button variant="outline">
             <Download className="w-4 h-4 mr-2" />
-            ส่งออก Excel
+            ส่งออก
           </Button>
         </div>
       </div>
@@ -501,32 +490,22 @@ export default function AnalyticsPage() {
                 <div className="space-y-4">
                   <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
                     <div>
-                      <h4 className="font-semibold text-gray-900">เว็บไซต์</h4>
-                      <p className="text-sm text-gray-600">ขายผ่านเว็บไซต์หลัก</p>
+                      <p className="font-medium">เว็บไซต์</p>
+                      <p className="text-sm text-gray-600">การขายออนไลน์</p>
                     </div>
                     <div className="text-right">
                       <p className="font-bold text-primary">฿345,600</p>
-                      <p className="text-sm text-gray-500">75.6%</p>
+                      <p className="text-sm text-green-600">+12.5%</p>
                     </div>
                   </div>
                   <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
                     <div>
-                      <h4 className="font-semibold text-gray-900">Facebook</h4>
-                      <p className="text-sm text-gray-600">ขายผ่าน Facebook Page</p>
+                      <p className="font-medium">Facebook Messenger</p>
+                      <p className="text-sm text-gray-600">แชทและสั่งซื้อ</p>
                     </div>
                     <div className="text-right">
-                      <p className="font-bold text-primary">฿89,200</p>
-                      <p className="text-sm text-gray-500">19.5%</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-                    <div>
-                      <h4 className="font-semibold text-gray-900">LINE</h4>
-                      <p className="text-sm text-gray-600">ขายผ่าน LINE Official</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-bold text-primary">฿22,400</p>
-                      <p className="text-sm text-gray-500">4.9%</p>
+                      <p className="font-bold text-primary">฿111,180</p>
+                      <p className="text-sm text-green-600">+18.3%</p>
                     </div>
                   </div>
                 </div>
@@ -535,41 +514,18 @@ export default function AnalyticsPage() {
 
             <Card className="burgundy-shadow">
               <CardHeader>
-                <CardTitle className="text-primary">วิธีการชำระเงิน</CardTitle>
+                <CardTitle className="text-primary">ประเภทสินค้า</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-                    <div>
-                      <h4 className="font-semibold text-gray-900">โอนเงิน</h4>
-                      <p className="text-sm text-gray-600">โอนผ่านธนาคาร</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-bold text-primary">234 คำสั่ง</p>
-                      <p className="text-sm text-gray-500">68.2%</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-                    <div>
-                      <h4 className="font-semibold text-gray-900">พร้อมเพย์</h4>
-                      <p className="text-sm text-gray-600">ชำระผ่าน QR Code</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-bold text-primary">89 คำสั่ง</p>
-                      <p className="text-sm text-gray-500">25.9%</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-                    <div>
-                      <h4 className="font-semibold text-gray-900">เก็บเงินปลายทาง</h4>
-                      <p className="text-sm text-gray-600">ชำระเมื่อได้รับสินค้า</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-bold text-primary">20 คำสั่ง</p>
-                      <p className="text-sm text-gray-500">5.9%</p>
-                    </div>
-                  </div>
-                </div>
+                <ResponsiveContainer width="100%" height={200}>
+                  <BarChart data={productCategoryData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" />
+                    <YAxis />
+                    <Tooltip formatter={(value: any) => [formatPrice(value), "รายได้"]} />
+                    <Bar dataKey="revenue" fill="hsl(345, 85%, 35%)" />
+                  </BarChart>
+                </ResponsiveContainer>
               </CardContent>
             </Card>
           </div>
@@ -579,64 +535,42 @@ export default function AnalyticsPage() {
       {/* Products Tab */}
       {activeTab === "products" && (
         <div className="space-y-6">
-          {/* Product Performance */}
-          <Card>
+          <Card className="burgundy-shadow">
             <CardHeader>
-              <CardTitle>สินค้าขายดี</CardTitle>
+              <CardTitle className="text-primary">สินค้าขายดี</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
-                    <tr className="border-b border-gray-200">
-                      <th className="text-left py-3 px-4 font-semibold text-gray-700">สินค้า</th>
-                      <th className="text-left py-3 px-4 font-semibold text-gray-700">หมวดหมู่</th>
-                      <th className="text-left py-3 px-4 font-semibold text-gray-700">ยอดขาย</th>
-                      <th className="text-left py-3 px-4 font-semibold text-gray-700">รายได้</th>
-                      <th className="text-left py-3 px-4 font-semibold text-gray-700">การเติบโต</th>
-                      <th className="text-left py-3 px-4 font-semibold text-gray-700">การดำเนินการ</th>
+                    <tr className="border-b">
+                      <th className="text-left py-3 px-4">สินค้า</th>
+                      <th className="text-left py-3 px-4">ยอดขาย</th>
+                      <th className="text-left py-3 px-4">รายได้</th>
+                      <th className="text-left py-3 px-4">การเติบโต</th>
+                      <th className="text-left py-3 px-4">อัตรากำไร</th>
                     </tr>
                   </thead>
                   <tbody>
                     {topProducts.map((product, index) => (
-                      <tr key={index} className="border-b border-gray-100 hover:bg-gray-50">
-                        <td className="py-4 px-4">
-                          <div className="flex items-center space-x-3">
-                            <div className="w-2 h-2 bg-pink-500 rounded-full"></div>
-                            <div>
-                              <h4 className="font-semibold text-gray-900 text-sm">{product.name}</h4>
-                              <p className="text-xs text-gray-500">อันดับ {index + 1}</p>
-                            </div>
+                      <tr key={index} className="border-b hover:bg-gray-50">
+                        <td className="py-3 px-4">
+                          <div>
+                            <p className="font-medium">{product.name}</p>
+                            <p className="text-sm text-gray-600">{product.category}</p>
                           </div>
                         </td>
-                        <td className="py-4 px-4">
-                          <Badge variant="outline">{product.category === "covers" ? "ผ้าคลุมโซฟา" : "อุปกรณ์เสริม"}</Badge>
+                        <td className="py-3 px-4">{product.sales} ชิ้น</td>
+                        <td className="py-3 px-4">{formatPrice(product.revenue)}</td>
+                        <td className="py-3 px-4">
+                          <span
+                            className={`text-sm font-medium ${product.growth > 0 ? "text-green-600" : "text-red-600"}`}
+                          >
+                            {product.growth > 0 ? "+" : ""}
+                            {product.growth.toFixed(1)}%
+                          </span>
                         </td>
-                        <td className="py-4 px-4">
-                          <span className="font-semibold text-gray-900">{product.sales}</span>
-                          <span className="text-sm text-gray-500 ml-1">ชิ้น</span>
-                        </td>
-                        <td className="py-4 px-4">
-                          <span className="font-bold text-pink-600">{formatPrice(product.revenue)}</span>
-                        </td>
-                        <td className="py-4 px-4">
-                          <div className="flex items-center">
-                            {product.growth > 0 ? (
-                              <TrendingUp className="w-4 h-4 text-green-600 mr-1" />
-                            ) : (
-                              <TrendingDown className="w-4 h-4 text-red-600 mr-1" />
-                            )}
-                            <span className={`font-medium ${product.growth > 0 ? "text-green-600" : "text-red-600"}`}>
-                              {product.growth > 0 ? "+" : ""}
-                              {product.growth.toFixed(1)}%
-                            </span>
-                          </div>
-                        </td>
-                        <td className="py-4 px-4">
-                          <Button variant="ghost" size="sm">
-                            <Eye className="w-4 h-4" />
-                          </Button>
-                        </td>
+                        <td className="py-3 px-4">{product.margin}%</td>
                       </tr>
                     ))}
                   </tbody>
@@ -644,490 +578,114 @@ export default function AnalyticsPage() {
               </div>
             </CardContent>
           </Card>
-
-          {/* Product Categories Performance */}
-          <div className="grid lg:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>ประสิทธิภาพหมวดหมู่</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={productCategoryData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" />
-                    <YAxis />
-                    <Tooltip />
-                    <Bar dataKey="value" fill="#8884d8" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>สินค้าที่ต้องเติมสต็อก</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between p-4 border border-red-200 rounded-lg bg-red-50">
-                    <div>
-                      <h4 className="font-semibold text-gray-900">คลิปยึดผ้าคลุมโซฟา</h4>
-                      <p className="text-sm text-red-600">เหลือ 3 ชิ้น</p>
-                    </div>
-                    <Badge className="bg-red-100 text-red-800">เร่งด่วน</Badge>
-                  </div>
-                  <div className="flex items-center justify-between p-4 border border-yellow-200 rounded-lg bg-yellow-50">
-                    <div>
-                      <h4 className="font-semibold text-gray-900">หมอนอิงลายเดียวกัน</h4>
-                      <p className="text-sm text-yellow-600">เหลือ 8 ชิ้น</p>
-                    </div>
-                    <Badge className="bg-yellow-100 text-yellow-800">ต่ำ</Badge>
-                  </div>
-                  <div className="flex items-center justify-between p-4 border border-orange-200 rounded-lg bg-orange-50">
-                    <div>
-                      <h4 className="font-semibold text-gray-900">น้ำยาทำความสะอาดผ้า</h4>
-                      <p className="text-sm text-orange-600">เหลือ 12 ชิ้น</p>
-                    </div>
-                    <Badge className="bg-orange-100 text-orange-800">ปานกลาง</Badge>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
         </div>
       )}
 
       {/* Customers Tab */}
       {activeTab === "customers" && (
         <div className="space-y-6">
-          {/* Customer Segments */}
-          <Card>
+          <Card className="burgundy-shadow">
             <CardHeader>
-              <CardTitle>กลุ่มลูกค้า</CardTitle>
+              <CardTitle className="text-primary">กลุ่มลูกค้า</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 {customerSegmentData.map((segment, index) => (
                   <div key={index} className="p-4 border border-gray-200 rounded-lg">
-                    <h4 className="font-semibold text-gray-900 mb-2">{segment.segment}</h4>
-                    <div className="space-y-2">
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-600">จำนวน:</span>
-                        <span className="font-medium">{segment.count} คน</span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-600">สัดส่วน:</span>
-                        <span className="font-medium">{segment.percentage}%</span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-600">รายได้:</span>
-                        <span className="font-bold text-pink-600">{formatPrice(segment.revenue)}</span>
-                      </div>
+                    <h3 className="font-medium text-gray-900">{segment.segment}</h3>
+                    <p className="text-2xl font-bold text-primary mt-2">{segment.count}</p>
+                    <p className="text-sm text-gray-600">{segment.percentage}% ของลูกค้าทั้งหมด</p>
+                    <div className="mt-3 pt-3 border-t border-gray-100">
+                      <p className="text-sm">รายได้: {formatPrice(segment.revenue)}</p>
+                      <p className="text-sm">LTV: {formatPrice(segment.ltv)}</p>
                     </div>
                   </div>
                 ))}
               </div>
             </CardContent>
           </Card>
-
-          {/* Customer Acquisition */}
-          <div className="grid lg:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>การได้มาของลูกค้าใหม่</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-                    <div>
-                      <h4 className="font-semibold text-gray-900">Google Search</h4>
-                      <p className="text-sm text-gray-600">ค้นหาผ่าน Google</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-bold text-primary">45 คน</p>
-                      <p className="text-sm text-gray-500">38.5%</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-                    <div>
-                      <h4 className="font-semibold text-gray-900">Facebook Ads</h4>
-                      <p className="text-sm text-gray-600">โฆษณาใน Facebook</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-bold text-primary">32 คน</p>
-                      <p className="text-sm text-gray-500">27.4%</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-                    <div>
-                      <h4 className="font-semibold text-gray-900">แนะนำจากเพื่อน</h4>
-                      <p className="text-sm text-gray-600">Word of mouth</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-bold text-primary">28 คน</p>
-                      <p className="text-sm text-gray-500">23.9%</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-                    <div>
-                      <h4 className="font-semibold text-gray-900">อื่นๆ</h4>
-                      <p className="text-sm text-gray-600">ช่องทางอื่น</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-bold text-primary">12 คน</p>
-                      <p className="text-sm text-gray-500">10.2%</p>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>ความพึงพอใจลูกค้า</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-6">
-                  <div className="text-center">
-                    <div className="text-4xl font-bold text-pink-600 mb-2">4.8</div>
-                    <div className="flex justify-center space-x-1 mb-2">
-                      {[1, 2, 3, 4, 5].map((star) => (
-                        <div
-                          key={star}
-                          className={`w-6 h-6 ${star <= 4.8 ? "text-yellow-400" : "text-gray-300"} fill-current`}
-                        >
-                          ⭐
-                        </div>
-                      ))}
-                    </div>
-                    <p className="text-sm text-gray-600">จาก 234 รีวิว</p>
-                  </div>
-
-                  <div className="space-y-3">
-                    <div className="flex items-center space-x-3">
-                      <span className="text-sm w-8">5⭐</span>
-                      <div className="flex-1 bg-gray-200 rounded-full h-2">
-                        <div className="bg-yellow-400 h-2 rounded-full" style={{ width: "78%" }}></div>
-                      </div>
-                      <span className="text-sm text-gray-600 w-12">78%</span>
-                    </div>
-                    <div className="flex items-center space-x-3">
-                      <span className="text-sm w-8">4⭐</span>
-                      <div className="flex-1 bg-gray-200 rounded-full h-2">
-                        <div className="bg-yellow-400 h-2 rounded-full" style={{ width: "15%" }}></div>
-                      </div>
-                      <span className="text-sm text-gray-600 w-12">15%</span>
-                    </div>
-                    <div className="flex items-center space-x-3">
-                      <span className="text-sm w-8">3⭐</span>
-                      <div className="flex-1 bg-gray-200 rounded-full h-2">
-                        <div className="bg-yellow-400 h-2 rounded-full" style={{ width: "5%" }}></div>
-                      </div>
-                      <span className="text-sm text-gray-600 w-12">5%</span>
-                    </div>
-                    <div className="flex items-center space-x-3">
-                      <span className="text-sm w-8">2⭐</span>
-                      <div className="flex-1 bg-gray-200 rounded-full h-2">
-                        <div className="bg-yellow-400 h-2 rounded-full" style={{ width: "1%" }}></div>
-                      </div>
-                      <span className="text-sm text-gray-600 w-12">1%</span>
-                    </div>
-                    <div className="flex items-center space-x-3">
-                      <span className="text-sm w-8">1⭐</span>
-                      <div className="flex-1 bg-gray-200 rounded-full h-2">
-                        <div className="bg-yellow-400 h-2 rounded-full" style={{ width: "1%" }}></div>
-                      </div>
-                      <span className="text-sm text-gray-600 w-12">1%</span>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
         </div>
       )}
 
+      {/* Forecasting Tab */}
       {activeTab === "forecasting" && (
         <div className="space-y-6">
-          <div className="grid lg:grid-cols-3 gap-6">
-            <Card className="burgundy-shadow">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">พยากรณ์เดือนหน้า</p>
-                    <p className="text-2xl font-bold text-gray-900">฿95,000</p>
-                    <p className="text-sm text-green-600 mt-1">ความมั่นใจ 85%</p>
-                  </div>
-                  <Target className="w-8 h-8 text-blue-600" />
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="burgundy-shadow">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">แนวโน้มการเติบโต</p>
-                    <p className="text-2xl font-bold text-green-600">+12.3%</p>
-                    <p className="text-sm text-gray-500 mt-1">เฉลี่ย 3 เดือน</p>
-                  </div>
-                  <TrendingUp className="w-8 h-8 text-green-600" />
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="burgundy-shadow">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">ความเสี่ยง</p>
-                    <p className="text-2xl font-bold text-yellow-600">ปานกลาง</p>
-                    <p className="text-sm text-gray-500 mt-1">ตามฤดูกาล</p>
-                  </div>
-                  <AlertTriangle className="w-8 h-8 text-yellow-600" />
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
           <Card className="burgundy-shadow">
             <CardHeader>
-              <CardTitle className="text-primary">การพยากรณ์รายได้ 4 เดือนข้างหน้า</CardTitle>
+              <CardTitle className="text-primary">การพยากรณ์ยอดขาย</CardTitle>
             </CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={400}>
-                <AreaChart data={[...salesData.slice(-6), ...forecastData]}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="month" />
-                  <YAxis />
-                  <Tooltip formatter={(value: any) => [formatPrice(value), "รายได้"]} />
-                  <Legend />
-                  <Area
-                    type="monotone"
-                    dataKey="revenue"
-                    stroke="hsl(345, 85%, 35%)"
-                    fill="hsl(345, 85%, 35%)"
-                    fillOpacity={0.6}
-                    name="รายได้จริง"
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="predicted"
-                    stroke="#ff7300"
-                    fill="#ff7300"
-                    fillOpacity={0.3}
-                    strokeDasharray="5 5"
-                    name="รายได้พยากรณ์"
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-
-          <div className="grid lg:grid-cols-2 gap-6">
-            <Card className="burgundy-shadow">
-              <CardHeader>
-                <CardTitle className="text-primary">ปัจจัยที่มีผลต่อการพยากรณ์</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
-                    <span className="font-medium">ฤดูกาล</span>
-                    <Badge className="bg-green-100 text-green-800">ผลบวก</Badge>
-                  </div>
-                  <div className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
-                    <span className="font-medium">แนวโน้มตลาด</span>
-                    <Badge className="bg-blue-100 text-blue-800">เสถียร</Badge>
-                  </div>
-                  <div className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
-                    <span className="font-medium">การแข่งขัน</span>
-                    <Badge className="bg-yellow-100 text-yellow-800">ปานกลาง</Badge>
-                  </div>
-                  <div className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
-                    <span className="font-medium">โปรโมชั่น</span>
-                    <Badge className="bg-green-100 text-green-800">ผลบวก</Badge>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="burgundy-shadow">
-              <CardHeader>
-                <CardTitle className="text-primary">คำแนะนำเชิงกลยุทธ์</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-                    <h4 className="font-semibold text-green-800 mb-2">เพิ่มสต็อกสินค้า</h4>
-                    <p className="text-sm text-green-700">เตรียมสต็อกสินค้าขายดีเพิ่ม 20% สำหรับเดือนหน้า</p>
-                  </div>
-                  <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                    <h4 className="font-semibold text-blue-800 mb-2">ขยายการตลาด</h4>
-                    <p className="text-sm text-blue-700">เพิ่มงบโฆษณาในช่วงที่คาดการณ์ว่าจะมีการเติบโต</p>
-                  </div>
-                  <div className="p-4 bg-orange-50 border border-orange-200 rounded-lg">
-                    <h4 className="font-semibold text-orange-800 mb-2">ปรับราคา</h4>
-                    <p className="text-sm text-orange-700">พิจารณาปรับราคาสินค้าที่มีอัตรากำไรต่ำ</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      )}
-
-      {activeTab === "reports" && (
-        <div className="space-y-6">
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <Card className="burgundy-shadow cursor-pointer hover:shadow-lg transition-shadow">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <FileText className="w-8 h-8 text-blue-600" />
-                  <Badge className="bg-blue-100 text-blue-800">รายวัน</Badge>
-                </div>
-                <h3 className="font-semibold text-gray-900 mb-2">รายงานยอดขายรายวัน</h3>
-                <p className="text-sm text-gray-600 mb-4">สรุปยอดขายและคำสั่งซื้อประจำวัน</p>
-                <Button variant="outline" size="sm" className="w-full bg-transparent">
-                  <Download className="w-4 h-4 mr-2" />
-                  ดาวน์โหลด
-                </Button>
-              </CardContent>
-            </Card>
-
-            <Card className="burgundy-shadow cursor-pointer hover:shadow-lg transition-shadow">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <Users className="w-8 h-8 text-green-600" />
-                  <Badge className="bg-green-100 text-green-800">รายเดือน</Badge>
-                </div>
-                <h3 className="font-semibold text-gray-900 mb-2">รายงานลูกค้า</h3>
-                <p className="text-sm text-gray-600 mb-4">วิเคราะห์พฤติกรรมและกลุ่มลูกค้า</p>
-                <Button variant="outline" size="sm" className="w-full bg-transparent">
-                  <Download className="w-4 h-4 mr-2" />
-                  ดาวน์โหลด
-                </Button>
-              </CardContent>
-            </Card>
-
-            <Card className="burgundy-shadow cursor-pointer hover:shadow-lg transition-shadow">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <Package className="w-8 h-8 text-purple-600" />
-                  <Badge className="bg-purple-100 text-purple-800">รายเดือน</Badge>
-                </div>
-                <h3 className="font-semibold text-gray-900 mb-2">รายงานสินค้า</h3>
-                <p className="text-sm text-gray-600 mb-4">ประสิทธิภาพและสต็อกสินค้า</p>
-                <Button variant="outline" size="sm" className="w-full bg-transparent">
-                  <Download className="w-4 h-4 mr-2" />
-                  ดาวน์โหลด
-                </Button>
-              </CardContent>
-            </Card>
-
-            <Card className="burgundy-shadow cursor-pointer hover:shadow-lg transition-shadow">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <DollarSign className="w-8 h-8 text-orange-600" />
-                  <Badge className="bg-orange-100 text-orange-800">รายไตรมาส</Badge>
-                </div>
-                <h3 className="font-semibold text-gray-900 mb-2">รายงานการเงิน</h3>
-                <p className="text-sm text-gray-600 mb-4">รายได้ กำไร และกระแสเงินสด</p>
-                <Button variant="outline" size="sm" className="w-full bg-transparent">
-                  <Download className="w-4 h-4 mr-2" />
-                  ดาวน์โหลด
-                </Button>
-              </CardContent>
-            </Card>
-
-            <Card className="burgundy-shadow cursor-pointer hover:shadow-lg transition-shadow">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <BarChart3 className="w-8 h-8 text-red-600" />
-                  <Badge className="bg-red-100 text-red-800">รายปี</Badge>
-                </div>
-                <h3 className="font-semibold text-gray-900 mb-2">รายงานประจำปี</h3>
-                <p className="text-sm text-gray-600 mb-4">สรุปผลการดำเนินงานทั้งปี</p>
-                <Button variant="outline" size="sm" className="w-full bg-transparent">
-                  <Download className="w-4 h-4 mr-2" />
-                  ดาวน์โหลด
-                </Button>
-              </CardContent>
-            </Card>
-
-            <Card className="burgundy-shadow cursor-pointer hover:shadow-lg transition-shadow">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <Target className="w-8 h-8 text-indigo-600" />
-                  <Badge className="bg-indigo-100 text-indigo-800">กำหนดเอง</Badge>
-                </div>
-                <h3 className="font-semibold text-gray-900 mb-2">รายงานกำหนดเอง</h3>
-                <p className="text-sm text-gray-600 mb-4">สร้างรายงานตามความต้องการ</p>
-                <Button variant="outline" size="sm" className="w-full bg-transparent">
-                  <Eye className="w-4 h-4 mr-2" />
-                  สร้างรายงาน
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-
-          <Card className="burgundy-shadow">
-            <CardHeader>
-              <CardTitle className="text-primary">รายงานที่สร้างล่าสุด</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-                  <div className="flex items-center space-x-3">
-                    <FileText className="w-5 h-5 text-gray-400" />
-                    <div>
-                      <h4 className="font-semibold text-gray-900">รายงานยอดขายเดือนมกราคม 2024</h4>
-                      <p className="text-sm text-gray-500">สร้างเมื่อ 2 ชั่วโมงที่แล้ว</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {forecastData.map((forecast, index) => (
+                  <div key={index} className="p-4 border border-gray-200 rounded-lg">
+                    <h3 className="font-medium text-gray-900">{forecast.month}</h3>
+                    <p className="text-2xl font-bold text-primary mt-2">{formatPrice(forecast.predicted)}</p>
+                    <p className="text-sm text-gray-600">ความมั่นใจ: {forecast.confidence}%</p>
+                    <div className="mt-2">
+                      <span
+                        className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                          forecast.trend === "up"
+                            ? "bg-green-100 text-green-800"
+                            : forecast.trend === "down"
+                              ? "bg-red-100 text-red-800"
+                              : "bg-gray-100 text-gray-800"
+                        }`}
+                      >
+                        {forecast.trend === "up" ? "↗ เติบโต" : forecast.trend === "down" ? "↘ ลดลง" : "→ คงที่"}
+                      </span>
                     </div>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <Badge className="bg-green-100 text-green-800">พร้อมใช้งาน</Badge>
-                    <Button variant="ghost" size="sm">
-                      <Download className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-                  <div className="flex items-center space-x-3">
-                    <FileText className="w-5 h-5 text-gray-400" />
-                    <div>
-                      <h4 className="font-semibold text-gray-900">รายงานลูกค้า Q4 2023</h4>
-                      <p className="text-sm text-gray-500">สร้างเมื่อ 1 วันที่แล้ว</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Badge className="bg-green-100 text-green-800">พร้อมใช้งาน</Badge>
-                    <Button variant="ghost" size="sm">
-                      <Download className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-                  <div className="flex items-center space-x-3">
-                    <Clock className="w-5 h-5 text-yellow-500" />
-                    <div>
-                      <h4 className="font-semibold text-gray-900">รายงานสินค้าประจำเดือน</h4>
-                      <p className="text-sm text-gray-500">กำลังสร้าง...</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Badge className="bg-yellow-100 text-yellow-800">กำลังประมวลผล</Badge>
-                  </div>
-                </div>
+                ))}
               </div>
             </CardContent>
           </Card>
         </div>
       )}
 
-      {/* ... existing code for other tabs ... */}
+      {/* Reports Tab */}
+      {activeTab === "reports" && (
+        <div className="space-y-6">
+          <Card className="burgundy-shadow">
+            <CardHeader>
+              <CardTitle className="text-primary">รายงานและการส่งออก</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <Button
+                  onClick={() => handleExportReport("pdf")}
+                  className="h-20 flex flex-col items-center justify-center space-y-2"
+                  variant="outline"
+                >
+                  <FileText className="w-6 h-6" />
+                  <span>รายงาน PDF</span>
+                </Button>
+                <Button
+                  onClick={() => handleExportReport("excel")}
+                  className="h-20 flex flex-col items-center justify-center space-y-2"
+                  variant="outline"
+                >
+                  <Download className="w-6 h-6" />
+                  <span>ส่งออก Excel</span>
+                </Button>
+                <Button
+                  onClick={() => handleExportReport("csv")}
+                  className="h-20 flex flex-col items-center justify-center space-y-2"
+                  variant="outline"
+                >
+                  <BarChart3 className="w-6 h-6" />
+                  <span>ข้อมูล CSV</span>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <p className="text-red-800">{error}</p>
+        </div>
+      )}
     </div>
   )
 }

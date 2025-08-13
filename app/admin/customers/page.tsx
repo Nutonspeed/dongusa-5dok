@@ -1,5 +1,5 @@
 "use client"
-import { logger } from '@/lib/logger';
+import { logger } from "@/lib/logger"
 
 import { useState, useEffect } from "react"
 import {
@@ -64,8 +64,8 @@ const customerSegments = [
   },
 ]
 
-  const loyaltyPrograms: Record<string, any> = {
-    "CUST-001": {
+const loyaltyPrograms: Record<string, any> = {
+  "CUST-001": {
     customer_id: "CUST-001",
     points_balance: 1245,
     tier_level: "gold",
@@ -148,8 +148,7 @@ export default function CustomersManagement() {
           totalCustomers: customers.length,
           activeCustomers: customers.filter((c: any) => c.status === "active").length,
           vipCustomers: customers.filter((c: any) => c.customerType === "vip").length,
-          averageOrderValue:
-            (analytics.totalRevenue || 0) / Math.max(analytics.totalOrders || 1, 1),
+          averageOrderValue: (analytics.totalRevenue || 0) / Math.max(analytics.totalOrders || 1, 1),
         })
       } catch (err) {
         logger.error("Error loading customer data:", err)
@@ -239,25 +238,31 @@ export default function CustomersManagement() {
     )
   }
 
-    const getCustomerTypeBadge = (type: string) => {
-      const badgeColors: Record<string, string> = {
-        vip: "bg-blue-100 text-blue-800",
-        new: "bg-green-100 text-green-800",
-        all: "bg-gray-100 text-gray-800",
-      }
-      return <Badge className={(badgeColors as Record<string, string>)[type] || badgeColors.all}>{type.toUpperCase()}</Badge>
+  const getCustomerTypeBadge = (type: string) => {
+    const badgeColors: Record<string, string> = {
+      vip: "bg-blue-100 text-blue-800",
+      new: "bg-green-100 text-green-800",
+      all: "bg-gray-100 text-gray-800",
     }
+    return (
+      <Badge className={(badgeColors as Record<string, string>)[type] || badgeColors.all}>{type.toUpperCase()}</Badge>
+    )
+  }
 
   const formatDate = (date: string) => new Date(date).toLocaleDateString("th-TH")
 
-    const getStatusBadge = (status: string) => {
-      const badgeColors: Record<string, string> = {
-        active: "bg-green-100 text-green-800",
-        inactive: "bg-red-100 text-red-800",
-        all: "bg-gray-100 text-gray-800",
-      }
-      return <Badge className={(badgeColors as Record<string, string>)[status] || badgeColors.all}>{status.toUpperCase()}</Badge>
+  const getStatusBadge = (status: string) => {
+    const badgeColors: Record<string, string> = {
+      active: "bg-green-100 text-green-800",
+      inactive: "bg-red-100 text-red-800",
+      all: "bg-gray-100 text-gray-800",
     }
+    return (
+      <Badge className={(badgeColors as Record<string, string>)[status] || badgeColors.all}>
+        {status.toUpperCase()}
+      </Badge>
+    )
+  }
 
   return (
     <div className="space-y-6">
@@ -425,6 +430,41 @@ export default function CustomersManagement() {
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Users className="w-5 h-5" />
+                Customer Segmentation Dashboard
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid md:grid-cols-4 gap-6">
+                <div className="text-center p-4 bg-blue-50 rounded-lg">
+                  <div className="text-2xl font-bold text-blue-600">234</div>
+                  <div className="text-sm text-blue-700">ลูกค้าทั้งหมด</div>
+                </div>
+                <div className="text-center p-4 bg-green-50 rounded-lg">
+                  <div className="text-2xl font-bold text-green-600">45</div>
+                  <div className="text-sm text-green-700">ลูกค้าคุณค่าสูง</div>
+                </div>
+                <div className="text-center p-4 bg-purple-50 rounded-lg">
+                  <div className="text-2xl font-bold text-purple-600">78</div>
+                  <div className="text-sm text-purple-700">ลูกค้าซื้อบ่อย</div>
+                </div>
+                <div className="text-center p-4 bg-red-50 rounded-lg">
+                  <div className="text-2xl font-bold text-red-600">23</div>
+                  <div className="text-sm text-red-700">ลูกค้าเสี่ยงหาย</div>
+                </div>
+              </div>
+              <div className="mt-6">
+                <Button className="w-full">
+                  <BarChart3 className="w-4 h-4 mr-2" />
+                  ดู Customer Segmentation แบบละเอียด
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
           <div className="grid lg:grid-cols-2 gap-6">
             <Card>
               <CardHeader>
@@ -840,7 +880,7 @@ export default function CustomersManagement() {
         <CustomerDetailModal
           customer={selectedCustomer}
           onClose={() => setSelectedCustomer(null)}
-            loyaltyProgram={(loyaltyPrograms as Record<string, any>)[selectedCustomer.id]}
+          loyaltyProgram={(loyaltyPrograms as Record<string, any>)[selectedCustomer.id]}
           communicationHistory={[]} // Placeholder for communication history
         />
       )}
