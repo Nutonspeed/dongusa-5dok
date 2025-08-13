@@ -56,9 +56,19 @@ async function run() {
       if (res.status !== 200) throw new Error(`status ${res.status}`);
     });
 
+    let health: any = null;
+    await check("GET /api/health", async () => {
+      const res = await fetch(`${BASE}/api/health`);
+      if (res.status !== 200) throw new Error(`status ${res.status}`);
+      health = await res.json();
+      console.log("/api/health", { bypass: health.bypass, mock: health.mock });
+    });
+
     await check("GET /admin", async () => {
       const res = await fetch(`${BASE}/admin`);
-      if (res.status !== 200) throw new Error(`status ${res.status}`);
+      if (res.status !== 200) {
+        throw new Error(`/admin failed while health says bypass=${health?.bypass} mock=${health?.mock} status ${res.status}`);
+      }
     });
 
     await check("POST /api/bills", async () => {
