@@ -5,3 +5,7 @@ node_modules
 coverage
 app/**
 lib/**
+components/**
+hooks/**
+scripts/**
+tests/**

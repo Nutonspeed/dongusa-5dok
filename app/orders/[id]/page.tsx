@@ -12,9 +12,8 @@ import {
   OrderStatus,
   getOrderById,
   updateOrderStatus,
-  statusLabelTH,
-  channelLabelTH,
 } from "@/lib/mock-orders"
+import { statusLabelTH, channelLabelTH } from "@/lib/i18n/status"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { useToast } from "@/hooks/use-toast"

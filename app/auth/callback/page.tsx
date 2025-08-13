@@ -1,8 +1,6 @@
 import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
 
-export const runtime = "nodejs"
-
 export default async function AuthCallbackPage({
   searchParams,
 }: {
