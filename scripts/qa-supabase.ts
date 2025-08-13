@@ -1,3 +1,5 @@
+import * as dotenv from "dotenv";
+dotenv.config({ path: ".env.local" });
 // scripts/qa-supabase.ts
 // Run with: pnpm exec tsx scripts/qa-supabase.ts --verbose
 import { spawn } from "node:child_process";
