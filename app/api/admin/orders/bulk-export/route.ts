@@ -1,4 +1,4 @@
-export const runtime = "nodejs";
+export { runtime } from "@/lib/runtime";
 
 export async function GET() {
   try {

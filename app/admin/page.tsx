@@ -2,8 +2,6 @@ import AdminDashboardClient from "./page.client";
 import databaseClient from "@/lib/database-client";
 import { USE_SUPABASE } from "@/lib/runtime";
 
-export const runtime = "nodejs";
-
 const BYPASS = process.env.QA_BYPASS_AUTH === "1";
 
 export default async function AdminPage() {

@@ -1,7 +1,12 @@
 import { logger } from '@/lib/logger';
 import nodemailer from "nodemailer"
-
-export const runtime = 'nodejs'
+import {
+  statusLabelTH,
+  paymentStatusLabelTH,
+  productStatusLabelTH,
+  urgencyLabelTH,
+  paymentMethodLabelTH,
+} from "@/lib/i18n/status"
 
 export function createTransporter() {
   if (!process.env.SMTP_HOST) {
@@ -278,52 +283,23 @@ export const emailTemplates = {
 
 // Helper functions
 function getPaymentMethodText(method: string): string {
-  const methods: Record<string, string> = {
-    bank_transfer: "โอนเงินผ่านธนาคาร",
-    promptpay: "พร้อมเพย์",
-    cod: "เก็บเงินปลายทาง",
-    credit_card: "บัตรเครดิต/เดบิต",
-  }
-  return methods[method] || method
+  return paymentMethodLabelTH[method as keyof typeof paymentMethodLabelTH] || method
 }
 
 function getPaymentStatusText(status: string): string {
-  const statuses: Record<string, string> = {
-    pending: "รอชำระเงิน",
-    paid: "ชำระเงินแล้ว",
-    refunded: "คืนเงินแล้ว",
-  }
-  return statuses[status] || status
+  return paymentStatusLabelTH[status as keyof typeof paymentStatusLabelTH] || status
 }
 
 function getOrderStatusText(status: string): string {
-  const statuses: Record<string, string> = {
-    pending: "รอดำเนินการ",
-    production: "กำลังผลิต",
-    shipped: "จัดส่งแล้ว",
-    completed: "เสร็จสิ้น",
-    cancelled: "ยกเลิก",
-  }
-  return statuses[status] || status
+  return statusLabelTH[status as keyof typeof statusLabelTH] || status
 }
 
 function getProductStatusText(status: string): string {
-  const statuses: Record<string, string> = {
-    active: "เปิดขาย",
-    draft: "แบบร่าง",
-    low_stock: "สต็อกต่ำ",
-    out_of_stock: "หมด",
-  }
-  return statuses[status] || status
+  return productStatusLabelTH[status as keyof typeof productStatusLabelTH] || status
 }
 
 function getUrgencyText(urgency: string): string {
-  const urgencies: Record<string, string> = {
-    normal: "ปกติ (7-14 วัน)",
-    urgent: "เร่งด่วน (3-7 วัน)",
-    express: "ด่วนพิเศษ (1-3 วัน)",
-  }
-  return urgencies[urgency] || urgency
+  return urgencyLabelTH[urgency as keyof typeof urgencyLabelTH] || urgency
 }
 
 function getStatusColor(status: string): string {

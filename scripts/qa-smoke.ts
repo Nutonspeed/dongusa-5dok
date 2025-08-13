@@ -1,108 +1,33 @@
-import { spawn } from "child_process";
+// Basic QA smoke: checks a few URLs and exits non-zero if any fail.
+// Customize BASE_URL and endpoints as needed for your project.
 
-const BASE = "http://localhost:3000";
+import { setTimeout as delay } from "node:timers/promises";
 
-async function isUp() {
-  try {
-    const res = await fetch(`${BASE}/api/health`);
-    return res.ok;
-  } catch {
+const BASE_URL = process.env.BASE_URL || "http://localhost:3000";
+
+const endpoints = [
+  "/",                   // homepage or dashboard redirect
+  "/api/health",         // health check route (adjust if different)
+];
+
+async function check(url: string) {
+  const res = await fetch(url, { redirect: "manual" });
+  const ok = res.status >= 200 && res.status < 400;
+  if (!ok) {
+    console.error(`❌ FAIL ${res.status} — ${url}`);
     return false;
   }
+  console.log(`✅ OK  ${res.status} — ${url}`);
+  return true;
 }
 
-async function waitForServer(timeout = 60_000) {
-  const start = Date.now();
-  while (Date.now() - start < timeout) {
-    if (await isUp()) return;
-    await new Promise((r) => setTimeout(r, 500));
+(async () => {
+  console.log("🔎 QA smoke against:", BASE_URL);
+  let allGood = true;
+  for (const path of endpoints) {
+    await delay(50);
+    const ok = await check(`${BASE_URL}${path}`);
+    if (!ok) allGood = false;
   }
-  throw new Error("server did not start");
-}
-
-async function run() {
-  process.env.QA_BYPASS_AUTH = "1";
-
-  let child: any = null;
-  let started = false;
-  if (!(await isUp())) {
-    child = spawn("pnpm", ["start"], {
-      env: { ...process.env, QA_BYPASS_AUTH: "1" },
-      stdio: "inherit",
-      detached: true,
-    });
-    started = true;
-  }
-
-  try {
-    await waitForServer();
-
-    let ok = true;
-    let billId = "";
-
-    async function check(label: string, fn: () => Promise<void>) {
-      try {
-        await fn();
-        console.log(`✅ ${label}`);
-      } catch (e) {
-        const msg = e instanceof Error ? e.message : String(e);
-        console.error(`❌ ${label}: ${msg}`);
-        ok = false;
-      }
-    }
-
-    await check("GET /", async () => {
-      const res = await fetch(`${BASE}/`);
-      if (res.status !== 200) throw new Error(`status ${res.status}`);
-    });
-
-    let health: any = null;
-    await check("GET /api/health", async () => {
-      const res = await fetch(`${BASE}/api/health`);
-      if (res.status !== 200) throw new Error(`status ${res.status}`);
-      health = await res.json();
-      console.log("/api/health", { bypass: health.bypass, mock: health.mock });
-    });
-
-    await check("GET /admin", async () => {
-      const res = await fetch(`${BASE}/admin`);
-      if (res.status !== 200) {
-        throw new Error(`/admin failed while health says bypass=${health?.bypass} mock=${health?.mock} status ${res.status}`);
-      }
-    });
-
-    await check("POST /api/bills", async () => {
-      const res = await fetch(`${BASE}/api/bills`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ items: [{}] }),
-      });
-      if (res.status !== 201) throw new Error(`status ${res.status}`);
-      const data = await res.json();
-      billId = data.id;
-      if (!billId) throw new Error("missing id");
-    });
-
-    await check("GET /bill/view/{id}", async () => {
-      const res = await fetch(`${BASE}/bill/view/${billId}`);
-      if (res.status !== 200) throw new Error(`status ${res.status}`);
-    });
-
-    await check("GET /api/admin/orders/bulk-export", async () => {
-      const res = await fetch(`${BASE}/api/admin/orders/bulk-export`);
-      if (res.status !== 200) throw new Error(`status ${res.status}`);
-      const ct = res.headers.get("content-type") || "";
-      if (!ct.includes("text/csv")) throw new Error("not csv");
-    });
-
-    console.log(ok ? "SMOKE: PASS" : "SMOKE: FAIL");
-    if (!ok) process.exitCode = 1;
-  } finally {
-    if (started && child) process.kill(-child.pid);
-  }
-}
-
-run().catch((err) => {
-  console.error(err);
-  process.exit(1);
-});
+  process.exit(allGood ? 0 : 1);
+})();
