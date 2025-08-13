@@ -1,3 +1,5 @@
+import * as dotenv from "dotenv";
+dotenv.config({ path: ".env.local" });
 // scripts/qa-supabase.ts
 // Run with: pnpm exec tsx scripts/qa-supabase.ts --verbose
 import { spawn } from "node:child_process";
@@ -68,16 +70,17 @@ async function run() {
 
     // 2) Admin page (may redirect to login)
     const a = await fetch(`${BASE}/admin`, { redirect: "manual" });
-    if (!(a.status === 200 || a.status === 302)) {
-      throw new Error(`/admin status ${a.status}`);
+    if (!(a.status === 200 || a.status === 302 || a.status === 307)) {
+      const aText = await a.text().catch(() => "");
+      throw new Error(`/admin status ${a.status} ${aText.slice(0,200)}`);
     }
-    if (a.status === 302) {
-      console.log("ℹ️ /admin redirected to:", a.headers.get("location"));
-    } else {
+    if (a.status === 200) {
       const aText = await a.text();
       if (!aText || aText.length < 100) {
         console.warn("⚠️ /admin HTML looks short");
       }
+    } else {
+      console.log("ℹ️ /admin redirected to:", a.headers.get("location"));
     }
     pass("GET /admin");
 
