@@ -1,4 +1,5 @@
 import { logger } from "@/lib/logger"
+import { USE_SUPABASE } from "@/lib/runtime"
 
 interface ValidationResult {
   isValid: boolean
@@ -49,8 +50,22 @@ const ENVIRONMENT_CHECKS: EnvironmentCheck[] = [
     key: "NEXT_PUBLIC_SUPABASE_ANON_KEY",
     required: false,
     production: true,
-    validator: (value) => value.length > 100,
+    validator: (value) => value.length > 20,
     description: "Supabase anonymous key",
+  },
+  {
+    key: "SUPABASE_URL",
+    required: false,
+    production: true,
+    validator: (value) => value.startsWith("https://"),
+    description: "Supabase project URL (server)",
+  },
+  {
+    key: "SUPABASE_ANON_KEY",
+    required: false,
+    production: true,
+    validator: (value) => value.length > 20,
+    description: "Supabase anonymous key (server)",
   },
   {
     key: "SUPABASE_SERVICE_ROLE_KEY",
@@ -192,9 +207,9 @@ export function validateEnvironment(): ValidationResult {
     }
 
     // Database checks
-    if (process.env.NEXT_PUBLIC_USE_SUPABASE !== "true") {
+    if (!USE_SUPABASE) {
       warnings.push("Not using Supabase in production")
-      recommendations.push("Enable Supabase for production database")
+      recommendations.push("Provide Supabase credentials for production database")
     }
   }
 
@@ -202,11 +217,6 @@ export function validateEnvironment(): ValidationResult {
   if (isDevelopment) {
     if (!process.env.QA_BYPASS_AUTH) {
       recommendations.push("Set QA_BYPASS_AUTH=1 for easier development")
-    }
-
-    if (process.env.NEXT_PUBLIC_USE_SUPABASE === "true" && !process.env.NEXT_PUBLIC_SUPABASE_URL) {
-      warnings.push("Supabase enabled but URL not configured")
-      recommendations.push("Set Supabase credentials or disable with NEXT_PUBLIC_USE_SUPABASE=false")
     }
   }
 

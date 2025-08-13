@@ -28,10 +28,11 @@ export async function updateSession(request: NextRequest) {
   })
 
   try {
-    const supabase = createServerClient<Database>(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL!
+    const anon =
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+      process.env.SUPABASE_ANON_KEY!
+    const supabase = createServerClient<Database>(url, anon, {
         cookies: {
           getAll() {
             return request.cookies.getAll()

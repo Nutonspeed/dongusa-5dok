@@ -1,4 +1,5 @@
 import { logger } from "@/lib/logger"
+import { USE_SUPABASE } from "@/lib/runtime"
 
 // Application Configuration
 export const APP_CONFIG = {
@@ -12,7 +13,7 @@ export const APP_CONFIG = {
 
 // Database Configuration
 export const DATABASE_CONFIG = {
-  useSupabase: process.env.NEXT_PUBLIC_USE_SUPABASE === "true",
+  useSupabase: USE_SUPABASE,
   maxConnections: Number.parseInt(process.env.DATABASE_MAX_CONNECTIONS || "20"),
   connectionTimeout: Number.parseInt(process.env.DATABASE_CONNECTION_TIMEOUT || "10000"),
   retryAttempts: 3,

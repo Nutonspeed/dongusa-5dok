@@ -7,15 +7,30 @@ export const IS_DEVELOPMENT = NODE_ENV === "development"
 export const MAINTENANCE_MODE = process.env.MAINTENANCE === "1"
 
 // Supabase configuration with validation
-export const USE_SUPABASE = (() => {
-  const useSupabase = process.env.NEXT_PUBLIC_USE_SUPABASE === "true"
+const pubUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL
+const pubAnon =
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY
 
-  if (IS_PRODUCTION && !useSupabase) {
-    logger.warn("⚠️ WARNING: Using mock database in production!")
+const looksLikeUrl = (u?: string) => !!u && /^https?:\/\/.+/i.test(u)
+const looksLikeKey = (k?: string) => !!k && k.length > 20
+
+export const USE_SUPABASE = !!(looksLikeUrl(pubUrl) && looksLikeKey(pubAnon))
+
+if (IS_PRODUCTION && !USE_SUPABASE) {
+  logger.warn("⚠️ WARNING: Using mock database in production!")
+}
+
+export function supabaseEnvInfo() {
+  return {
+    hasPublicUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
+    hasPublicAnon: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    hasServerUrl: !!process.env.SUPABASE_URL,
+    hasServerAnon: !!process.env.SUPABASE_ANON_KEY,
+    hasServiceRole: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
+    publicAnonLen: (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "").length,
+    serverAnonLen: (process.env.SUPABASE_ANON_KEY || "").length,
   }
-
-  return useSupabase
-})()
+}
 
 // QA Bypass with strict production check
 export const QA_BYPASS_AUTH = (() => {
