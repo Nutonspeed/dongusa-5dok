@@ -1,0 +1,35 @@
+name: Preview QA (Supabase Live)
+on:
+  pull_request:
+    branches: [ main ]
+jobs:
+  preview-qa:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: https://mcmasehidjxajhcrldhp.supabase.co
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+      SUPABASE_URL: https://mcmasehidjxajhcrldhp.supabase.co
+      SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+      QA_BYPASS_AUTH: 0
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - name: Install pnpm
+        run: npm i -g pnpm@10
+      - name: Install deps
+        run: pnpm i
+      - name: Build
+        run: pnpm build
+      - name: Deploy Preview via Vercel CLI
+        run: |
+          npm i -g vercel@latest
+          vercel pull --environment=preview --yes
+          url=$(vercel deploy --prebuilt --token ${{ secrets.VERCEL_TOKEN }} --scope ${{ secrets.VERCEL_SCOPE }})
+          echo "DEPLOY_URL=$url" >> $GITHUB_ENV
+      - name: Run QA against Preview
+        env:
+          BASE_URL: ${{ env.DEPLOY_URL }}
+        run: pnpm qa:supabase -- --verbose
