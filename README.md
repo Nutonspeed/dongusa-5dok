@@ -33,8 +33,8 @@ Continue building your app on:
 
 Run the app in bypass/mock mode and execute the smoke script:
 
-```bash
+\`\`\`bash
 QA_BYPASS_AUTH=1 pnpm build
 QA_BYPASS_AUTH=1 pnpm start
 pnpm qa:smoke --verbose
-```
+\`\`\`

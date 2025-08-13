@@ -1,0 +1,152 @@
+{
+  "database_setup_checklist": {
+    "foundation": {
+      "title": "Database Foundation Setup",
+      "tasks": [
+        {
+          "id": "validate_connection",
+          "name": "Validate Supabase Connection",
+          "description": "Test connection to Supabase database",
+          "status": "pending",
+          "script": "setup-database-foundation.ts",
+          "estimated_time": "2 minutes"
+        },
+        {
+          "id": "create_core_schema",
+          "name": "Create Core Database Schema",
+          "description": "Create essential tables: profiles, products, orders, categories",
+          "status": "pending",
+          "script": "create-supabase-schema.sql",
+          "estimated_time": "5 minutes"
+        },
+        {
+          "id": "setup_rls_policies",
+          "name": "Configure Row Level Security",
+          "description": "Set up RLS policies for data protection",
+          "status": "pending",
+          "script": "create-supabase-schema.sql",
+          "estimated_time": "3 minutes"
+        },
+        {
+          "id": "create_indexes",
+          "name": "Create Performance Indexes",
+          "description": "Add database indexes for query optimization",
+          "status": "pending",
+          "script": "optimize-database-performance.sql",
+          "estimated_time": "2 minutes"
+        }
+      ]
+    },
+    "advanced_features": {
+      "title": "Advanced Database Features",
+      "tasks": [
+        {
+          "id": "inventory_system",
+          "name": "Setup Inventory Management",
+          "description": "Create advanced inventory tracking tables",
+          "status": "pending",
+          "script": "create-inventory-system.sql",
+          "estimated_time": "8 minutes"
+        },
+        {
+          "id": "promotion_system",
+          "name": "Setup Promotion System",
+          "description": "Create promotion and discount management tables",
+          "status": "pending",
+          "script": "create-promotion-system.sql",
+          "estimated_time": "6 minutes"
+        },
+        {
+          "id": "seed_production_data",
+          "name": "Seed Production Data",
+          "description": "Add realistic sample data for production",
+          "status": "pending",
+          "script": "seed-production-data.sql",
+          "estimated_time": "4 minutes"
+        }
+      ]
+    },
+    "validation": {
+      "title": "Database Validation",
+      "tasks": [
+        {
+          "id": "schema_validation",
+          "name": "Validate Database Schema",
+          "description": "Check all tables and columns exist correctly",
+          "status": "pending",
+          "script": "validate-database-schema.sql",
+          "estimated_time": "2 minutes"
+        },
+        {
+          "id": "data_integrity",
+          "name": "Check Data Integrity",
+          "description": "Validate relationships and constraints",
+          "status": "pending",
+          "script": "validate-database-schema.sql",
+          "estimated_time": "1 minute"
+        },
+        {
+          "id": "performance_test",
+          "name": "Performance Testing",
+          "description": "Test query performance and indexes",
+          "status": "pending",
+          "script": "qa-supabase.ts",
+          "estimated_time": "3 minutes"
+        }
+      ]
+    }
+  },
+  "environment_setup_checklist": {
+    "title": "Environment Configuration",
+    "tasks": [
+      {
+        "id": "supabase_env_vars",
+        "name": "Supabase Environment Variables",
+        "description": "Verify all Supabase environment variables are set",
+        "status": "completed",
+        "required_vars": ["NEXT_PUBLIC_SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_ANON_KEY", "SUPABASE_SERVICE_ROLE_KEY"]
+      },
+      {
+        "id": "runtime_config",
+        "name": "Runtime Configuration",
+        "description": "Validate runtime configuration and dual-mode setup",
+        "status": "pending",
+        "script": "setup-development.ts"
+      },
+      {
+        "id": "email_config",
+        "name": "Email Configuration",
+        "description": "Setup SMTP or mock email service",
+        "status": "pending",
+        "required_vars": ["SMTP_HOST", "SMTP_PORT", "SMTP_USER", "SMTP_PASS"]
+      },
+      {
+        "id": "file_upload_config",
+        "name": "File Upload Configuration",
+        "description": "Setup Vercel Blob or mock file upload",
+        "status": "pending",
+        "required_vars": ["BLOB_READ_WRITE_TOKEN"]
+      }
+    ]
+  },
+  "completion_criteria": {
+    "database_ready": [
+      "All core tables created",
+      "RLS policies configured",
+      "Sample data seeded",
+      "Performance indexes added"
+    ],
+    "environment_ready": [
+      "All environment variables set",
+      "Dual-mode switching works",
+      "Mock services configured",
+      "Development server starts"
+    ],
+    "validation_passed": [
+      "Schema validation passes",
+      "Data integrity checks pass",
+      "Performance tests pass",
+      "QA smoke tests pass"
+    ]
+  }
+}

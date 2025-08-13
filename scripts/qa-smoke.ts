@@ -1,5 +1,3 @@
-import * as dotenv from "dotenv";
-dotenv.config({ path: ".env.local" });
 import { spawn } from "child_process";
 
 const BASE = "http://localhost:3000";

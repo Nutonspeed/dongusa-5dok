@@ -1,4 +1,3 @@
-import { NextResponse } from "next/server";
 import { USE_SUPABASE, supabaseEnvInfo } from "@/lib/runtime";
 
 export const runtime = "nodejs";
@@ -6,7 +5,7 @@ export const runtime = "nodejs";
 export async function GET() {
   const bypass = process.env.QA_BYPASS_AUTH === "1";
   const info = supabaseEnvInfo();
-  return NextResponse.json({
+  return Response.json({
     ok: true,
     bypass,
     mock: !USE_SUPABASE,
