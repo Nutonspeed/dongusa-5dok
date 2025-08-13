@@ -13,3 +13,4 @@
 
 - Preview fixed (ENV set on PREVIEW), auto-QA via GitHub Actions
 - Prod verified: health/useSupabase:true, admin redirect OK, CSV 200, bills POST OK
+- RC v2025-08-13-rc2 pushed at 2025-08-13 15:12:06 UTC
