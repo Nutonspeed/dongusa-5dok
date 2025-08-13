@@ -24,5 +24,13 @@ typecheck/build ผ่าน, bills live, export CSV ok, เหลือ QA บ�
 ## Next Steps
 QA smoke, RC tag, Deploy
 
+### QA Commands
+
+```bash
+QA_BYPASS_AUTH=1 pnpm build
+QA_BYPASS_AUTH=1 pnpm start
+pnpm qa:smoke --verbose
+```
+
 ## Known Issues
 - None

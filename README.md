@@ -28,3 +28,13 @@ Continue building your app on:
 2. Deploy your chats from the v0 interface
 3. Changes are automatically pushed to this repository
 4. Vercel deploys the latest version from this repository
+
+## QA Smoke Test
+
+Run the app in bypass/mock mode and execute the smoke script:
+
+```bash
+QA_BYPASS_AUTH=1 pnpm build
+QA_BYPASS_AUTH=1 pnpm start
+pnpm qa:smoke --verbose
+```
