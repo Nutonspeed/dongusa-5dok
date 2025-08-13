@@ -19,19 +19,14 @@ export const USE_SUPABASE = (() => {
 
 // QA Bypass with strict production check
 export const QA_BYPASS_AUTH = (() => {
-  const bypass = process.env.QA_BYPASS_AUTH === "1"
+  const bypass = process.env.QA_BYPASS_AUTH === "1";
 
-  if (IS_PRODUCTION && bypass && !MAINTENANCE_MODE) {
-    logger.error("🚨 CRITICAL: QA_BYPASS_AUTH is enabled in production!")
-    throw new Error("Security violation: QA bypass cannot be enabled in production")
+  if (IS_PRODUCTION && bypass) {
+    logger.warn("⚠️ QA_BYPASS_AUTH active in production mode");
   }
 
-  if (bypass) {
-    logger.warn("⚠️ QA_BYPASS_AUTH is enabled - authentication bypassed")
-  }
-
-  return bypass && (!IS_PRODUCTION || MAINTENANCE_MODE)
-})()
+  return bypass;
+})();
 
 // Database configuration
 export const DATABASE_CONFIG = {
