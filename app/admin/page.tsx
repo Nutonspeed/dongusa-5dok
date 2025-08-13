@@ -1,33 +1,41 @@
+export const runtime = "nodejs";
+
 import AdminDashboardClient from "./page.client";
 import { USE_SUPABASE } from "@/lib/runtime";
 import { createClient } from "@/lib/supabase/server";
 
-export const runtime = "nodejs";
-
-const BYPASS = process.env.QA_BYPASS_AUTH === "1";
+type Summary = { orders: number; revenue: number };
 
 export default async function AdminPage() {
-  let summary: { orders: number; revenue: number } = { orders: 0, revenue: 0 };
+  let summary: Summary = { orders: 0, revenue: 0 };
 
-  if (!BYPASS && USE_SUPABASE) {
-    try {
-      const supabase = createClient();
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      if (!session?.user) {
-        return null;
-      }
-
-      // TODO: query orders/revenue with supabase and update summary
-      // const { data } = await supabase.from("orders").select("total_amount");
-      // summary.orders = data.length;
-      // summary.revenue = data.reduce((sum, row: any) => sum + Number(row.total_amount || 0), 0);
-    } catch {
-      // swallow errors to avoid crashing admin page
-    }
-  } else {
+  if (!USE_SUPABASE) {
     summary = { orders: 3, revenue: 12345.5 };
+    return <AdminDashboardClient summary={summary} />;
+  }
+
+  try {
+    const supabase = createClient();
+    const { data: sData } = await supabase.auth.getSession();
+    const session = sData?.session;
+    if (!session?.user) {
+      // Layout will handle redirect
+      return null;
+    }
+
+    // TODO: query orders/revenue with supabase and update summary
+    // const { data: orders, error } = await supabase
+    //   .from("orders")
+    //   .select("total_amount")
+    //   .eq("user_id", session.user.id);
+    // if (!error && orders) {
+    //   summary = {
+    //     orders: orders.length,
+    //     revenue: orders.reduce((acc, o: any) => acc + (o.total_amount || 0), 0),
+    //   };
+    // }
+  } catch {
+    summary = { orders: 0, revenue: 0 };
   }
 
   return <AdminDashboardClient summary={summary} />;
