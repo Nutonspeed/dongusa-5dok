@@ -1,0 +1,289 @@
+{
+  "project_name": "Backend System Expansion",
+  "version": "1.0",
+  "last_updated": "2025-01-25",
+  "phases": [
+    {
+      "phase": 1,
+      "name": "Marketing Automation & Communication",
+      "duration_weeks": 3,
+      "priority": "high",
+      "estimated_cost": {
+        "min": 150000,
+        "max": 200000,
+        "currency": "THB"
+      },
+      "expected_roi": "300-400%",
+      "features": [
+        {
+          "name": "Email Marketing Campaigns",
+          "priority": "high",
+          "complexity": "medium",
+          "estimated_hours": 120,
+          "dependencies": ["SendGrid API", "Template Builder"],
+          "deliverables": ["Email template builder", "Automated sequences", "A/B testing", "Performance analytics"]
+        },
+        {
+          "name": "SMS Marketing",
+          "priority": "high",
+          "complexity": "low",
+          "estimated_hours": 60,
+          "dependencies": ["Twilio API"],
+          "deliverables": [
+            "SMS campaign management",
+            "Automated notifications",
+            "Template library",
+            "Delivery tracking"
+          ]
+        },
+        {
+          "name": "Social Media Management",
+          "priority": "medium",
+          "complexity": "high",
+          "estimated_hours": 160,
+          "dependencies": ["Facebook Graph API", "Instagram API"],
+          "deliverables": ["Post scheduling", "Content calendar", "Automated responses", "Analytics dashboard"]
+        },
+        {
+          "name": "Unified Inbox",
+          "priority": "high",
+          "complexity": "high",
+          "estimated_hours": 200,
+          "dependencies": ["Multi-channel APIs"],
+          "deliverables": ["Message aggregation", "Auto-assignment", "Response templates", "Conversation history"]
+        }
+      ],
+      "kpis": [
+        {
+          "metric": "Email Open Rate",
+          "current": "20%",
+          "target": "35%"
+        },
+        {
+          "metric": "Customer Acquisition Cost",
+          "current": "100%",
+          "target": "60%"
+        },
+        {
+          "metric": "Response Time",
+          "current": "4 hours",
+          "target": "30 minutes"
+        }
+      ]
+    },
+    {
+      "phase": 2,
+      "name": "Advanced Analytics & Reporting",
+      "duration_weeks": 3,
+      "priority": "medium",
+      "estimated_cost": {
+        "min": 100000,
+        "max": 150000,
+        "currency": "THB"
+      },
+      "expected_roi": "200-300%",
+      "features": [
+        {
+          "name": "Custom Report Builder",
+          "priority": "high",
+          "complexity": "high",
+          "estimated_hours": 180,
+          "dependencies": ["Data Warehouse", "Visualization Library"],
+          "deliverables": ["Drag-and-drop designer", "Custom metrics", "Scheduled delivery", "Interactive dashboards"]
+        },
+        {
+          "name": "Advanced Data Visualization",
+          "priority": "medium",
+          "complexity": "medium",
+          "estimated_hours": 120,
+          "dependencies": ["Chart.js", "D3.js"],
+          "deliverables": ["Interactive charts", "Heatmaps", "Funnel analysis", "Real-time streaming"]
+        },
+        {
+          "name": "Customer Journey Mapping",
+          "priority": "medium",
+          "complexity": "high",
+          "estimated_hours": 160,
+          "dependencies": ["Analytics Engine"],
+          "deliverables": ["Touchpoint tracking", "Conversion analysis", "Lifecycle stages", "Behavioral segmentation"]
+        }
+      ],
+      "kpis": [
+        {
+          "metric": "Decision Making Speed",
+          "current": "100%",
+          "target": "130%"
+        },
+        {
+          "metric": "Data Accuracy",
+          "current": "85%",
+          "target": "95%"
+        },
+        {
+          "metric": "Report Generation Time",
+          "current": "2 hours",
+          "target": "5 minutes"
+        }
+      ]
+    },
+    {
+      "phase": 3,
+      "name": "Workflow Automation & Integration",
+      "duration_weeks": 3,
+      "priority": "medium",
+      "estimated_cost": {
+        "min": 120000,
+        "max": 180000,
+        "currency": "THB"
+      },
+      "expected_roi": "250-350%",
+      "features": [
+        {
+          "name": "Workflow Builder",
+          "priority": "high",
+          "complexity": "high",
+          "estimated_hours": 200,
+          "dependencies": ["Visual Designer", "Logic Engine"],
+          "deliverables": [
+            "Visual workflow designer",
+            "Trigger-based automation",
+            "Conditional logic",
+            "Approval processes"
+          ]
+        },
+        {
+          "name": "E-commerce Integration",
+          "priority": "high",
+          "complexity": "medium",
+          "estimated_hours": 120,
+          "dependencies": ["Shopee API", "Lazada API"],
+          "deliverables": ["Product sync", "Order synchronization", "Inventory management", "Pricing management"]
+        },
+        {
+          "name": "Shipping Integration",
+          "priority": "medium",
+          "complexity": "medium",
+          "estimated_hours": 100,
+          "dependencies": ["Thailand Post API", "Kerry Express API"],
+          "deliverables": ["Label generation", "Tracking sync", "Delivery updates", "Cost calculation"]
+        }
+      ],
+      "kpis": [
+        {
+          "metric": "Manual Tasks",
+          "current": "100%",
+          "target": "30%"
+        },
+        {
+          "metric": "Processing Time",
+          "current": "100%",
+          "target": "50%"
+        },
+        {
+          "metric": "Error Rate",
+          "current": "100%",
+          "target": "20%"
+        }
+      ]
+    },
+    {
+      "phase": 4,
+      "name": "AI Enhancement & Advanced Features",
+      "duration_weeks": 3,
+      "priority": "low",
+      "estimated_cost": {
+        "min": 200000,
+        "max": 300000,
+        "currency": "THB"
+      },
+      "expected_roi": "400-500%",
+      "features": [
+        {
+          "name": "AI Recommendation Engine",
+          "priority": "high",
+          "complexity": "high",
+          "estimated_hours": 240,
+          "dependencies": ["ML Platform", "Training Data"],
+          "deliverables": [
+            "Product recommendations",
+            "Cross-selling suggestions",
+            "Dynamic pricing",
+            "Inventory optimization"
+          ]
+        },
+        {
+          "name": "Natural Language Processing",
+          "priority": "medium",
+          "complexity": "high",
+          "estimated_hours": 180,
+          "dependencies": ["OpenAI API", "Google NLP"],
+          "deliverables": ["Sentiment analysis", "Content categorization", "Chatbot NLU", "Voice transcription"]
+        },
+        {
+          "name": "Advanced Security",
+          "priority": "high",
+          "complexity": "medium",
+          "estimated_hours": 120,
+          "dependencies": ["Security Framework"],
+          "deliverables": ["Multi-factor authentication", "Data encryption", "Audit logging", "Compliance tools"]
+        }
+      ],
+      "kpis": [
+        {
+          "metric": "Sales Increase",
+          "current": "100%",
+          "target": "125%"
+        },
+        {
+          "metric": "Customer Satisfaction",
+          "current": "4.2/5",
+          "target": "4.7/5"
+        },
+        {
+          "metric": "Security Score",
+          "current": "80%",
+          "target": "95%"
+        }
+      ]
+    }
+  ],
+  "total_investment": {
+    "min": 570000,
+    "max": 830000,
+    "currency": "THB"
+  },
+  "expected_total_roi": "300-450%",
+  "implementation_timeline": "12 weeks",
+  "risk_assessment": {
+    "technical_risk": "medium",
+    "budget_risk": "low",
+    "timeline_risk": "medium",
+    "market_risk": "low"
+  },
+  "success_metrics": [
+    {
+      "category": "Revenue",
+      "metrics": [
+        "40% increase in revenue within 12 months",
+        "25% increase in average order value",
+        "15% increase in market share"
+      ]
+    },
+    {
+      "category": "Efficiency",
+      "metrics": [
+        "70% reduction in manual tasks",
+        "50% reduction in processing time",
+        "60% increase in team productivity"
+      ]
+    },
+    {
+      "category": "Customer Experience",
+      "metrics": [
+        "90% customer retention rate",
+        "4.7/5 customer satisfaction score",
+        "85% first contact resolution rate"
+      ]
+    }
+  ]
+}

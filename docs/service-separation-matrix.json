@@ -1,0 +1,304 @@
+{
+  "serviceSeparationMatrix": {
+    "evaluationCriteria": {
+      "complexity": {
+        "weight": 25,
+        "description": "ความซับซ้อนของโค้ดและ business logic"
+      },
+      "resourceUsage": {
+        "weight": 20,
+        "description": "การใช้ทรัพยากร CPU, Memory, Database"
+      },
+      "scalingRequirements": {
+        "weight": 20,
+        "description": "ความต้องการ scaling ที่แตกต่างกัน"
+      },
+      "developmentVelocity": {
+        "weight": 15,
+        "description": "ความถี่ในการอัปเดตและพัฒนา"
+      },
+      "teamAutonomy": {
+        "weight": 10,
+        "description": "ความต้องการให้ทีมทำงานแยกกัน"
+      },
+      "externalIntegrations": {
+        "weight": 10,
+        "description": "การเชื่อมต่อกับระบบภายนอก"
+      }
+    },
+    "services": {
+      "analyticsService": {
+        "name": "Advanced Analytics & BI",
+        "currentLinesOfCode": 15000,
+        "scores": {
+          "complexity": 95,
+          "resourceUsage": 90,
+          "scalingRequirements": 85,
+          "developmentVelocity": 80,
+          "teamAutonomy": 75,
+          "externalIntegrations": 70
+        },
+        "totalScore": 86.25,
+        "priority": 1,
+        "separationRecommendation": "ควรแยกทันที",
+        "estimatedMigrationTime": "6 สัปดาห์",
+        "estimatedCost": "$25,000-35,000",
+        "keyFeatures": [
+          "Real-time data processing",
+          "Machine Learning predictions",
+          "Complex data visualization",
+          "Custom report generation",
+          "Data mining และ pattern recognition"
+        ],
+        "technicalChallenges": [
+          "Data pipeline migration",
+          "ML model deployment",
+          "Real-time processing setup",
+          "Historical data migration"
+        ],
+        "businessImpact": {
+          "performanceImprovement": "60%",
+          "scalabilityIncrease": "300%",
+          "maintenanceReduction": "40%"
+        }
+      },
+      "communicationService": {
+        "name": "Omnichannel Communication Hub",
+        "currentLinesOfCode": 13000,
+        "scores": {
+          "complexity": 90,
+          "resourceUsage": 85,
+          "scalingRequirements": 95,
+          "developmentVelocity": 85,
+          "teamAutonomy": 80,
+          "externalIntegrations": 95
+        },
+        "totalScore": 88.5,
+        "priority": 2,
+        "separationRecommendation": "ควรแยกในระยะที่ 2",
+        "estimatedMigrationTime": "6 สัปดาห์",
+        "estimatedCost": "$30,000-40,000",
+        "keyFeatures": [
+          "Facebook Messenger integration",
+          "LINE Official Account",
+          "Email automation",
+          "SMS notifications",
+          "Live chat system",
+          "WhatsApp Business API"
+        ],
+        "technicalChallenges": [
+          "WebSocket connection management",
+          "Message queue setup",
+          "Multi-API integration",
+          "Rate limiting management"
+        ],
+        "businessImpact": {
+          "responseTimeImprovement": "70%",
+          "customerSatisfactionIncrease": "25%",
+          "operationalEfficiency": "50%"
+        }
+      },
+      "crmService": {
+        "name": "Customer Relationship Management",
+        "currentLinesOfCode": 12000,
+        "scores": {
+          "complexity": 85,
+          "resourceUsage": 80,
+          "scalingRequirements": 75,
+          "developmentVelocity": 70,
+          "teamAutonomy": 85,
+          "externalIntegrations": 65
+        },
+        "totalScore": 78.5,
+        "priority": 3,
+        "separationRecommendation": "ควรแยกในระยะที่ 3",
+        "estimatedMigrationTime": "5 สัปดาห์",
+        "estimatedCost": "$20,000-30,000",
+        "keyFeatures": [
+          "Customer lifecycle management",
+          "Segmentation และ targeting",
+          "Communication history tracking",
+          "Loyalty program management",
+          "Customer support ticketing"
+        ],
+        "technicalChallenges": [
+          "Customer data migration",
+          "GDPR compliance",
+          "Data synchronization",
+          "Security enhancement"
+        ],
+        "businessImpact": {
+          "customerRetention": "30%",
+          "salesConversion": "20%",
+          "supportEfficiency": "45%"
+        }
+      },
+      "inventoryService": {
+        "name": "Smart Inventory Management",
+        "currentLinesOfCode": 10000,
+        "scores": {
+          "complexity": 80,
+          "resourceUsage": 75,
+          "scalingRequirements": 80,
+          "developmentVelocity": 65,
+          "teamAutonomy": 70,
+          "externalIntegrations": 75
+        },
+        "totalScore": 75.25,
+        "priority": 4,
+        "separationRecommendation": "ควรแยกในระยะที่ 4",
+        "estimatedMigrationTime": "4 สัปดาห์",
+        "estimatedCost": "$18,000-25,000",
+        "keyFeatures": [
+          "Real-time stock tracking",
+          "Automated reordering",
+          "Supplier management",
+          "Warehouse optimization",
+          "Demand forecasting"
+        ],
+        "technicalChallenges": [
+          "Real-time data sync",
+          "IoT device integration",
+          "Forecasting algorithm migration",
+          "Supplier API integration"
+        ],
+        "businessImpact": {
+          "stockAccuracy": "95%",
+          "orderFulfillment": "40%",
+          "warehouseCosts": "-25%"
+        }
+      },
+      "marketingService": {
+        "name": "Marketing Automation Hub",
+        "currentLinesOfCode": 8000,
+        "scores": {
+          "complexity": 75,
+          "resourceUsage": 70,
+          "scalingRequirements": 70,
+          "developmentVelocity": 80,
+          "teamAutonomy": 75,
+          "externalIntegrations": 85
+        },
+        "totalScore": 74.25,
+        "priority": 5,
+        "separationRecommendation": "ควรแยกในระยะที่ 5",
+        "estimatedMigrationTime": "4 สัปดาห์",
+        "estimatedCost": "$15,000-22,000",
+        "keyFeatures": [
+          "Email campaign management",
+          "Social media automation",
+          "Lead nurturing workflows",
+          "A/B testing framework",
+          "Conversion tracking"
+        ],
+        "technicalChallenges": [
+          "Campaign data migration",
+          "External API integration",
+          "Queue system setup",
+          "A/B testing framework"
+        ],
+        "businessImpact": {
+          "campaignEffectiveness": "35%",
+          "leadConversion": "25%",
+          "marketingROI": "50%"
+        }
+      },
+      "reportingService": {
+        "name": "Advanced Reporting & Data Export",
+        "currentLinesOfCode": 6000,
+        "scores": {
+          "complexity": 70,
+          "resourceUsage": 65,
+          "scalingRequirements": 60,
+          "developmentVelocity": 60,
+          "teamAutonomy": 65,
+          "externalIntegrations": 55
+        },
+        "totalScore": 63.75,
+        "priority": 6,
+        "separationRecommendation": "อาจแยกในอนาคต",
+        "estimatedMigrationTime": "3 สัปดาห์",
+        "estimatedCost": "$12,000-18,000",
+        "keyFeatures": [
+          "Custom report builder",
+          "Scheduled report generation",
+          "Data export in multiple formats",
+          "Report template management",
+          "Automated distribution"
+        ],
+        "technicalChallenges": [
+          "Report template migration",
+          "Scheduled job setup",
+          "Data access optimization",
+          "Export format handling"
+        ],
+        "businessImpact": {
+          "reportingSpeed": "60%",
+          "dataAccuracy": "30%",
+          "userProductivity": "40%"
+        }
+      }
+    },
+    "migrationPlan": {
+      "phase1": {
+        "name": "Infrastructure & Analytics",
+        "duration": "10 สัปดาห์",
+        "services": ["analyticsService"],
+        "prerequisites": [
+          "API Gateway setup",
+          "Service discovery implementation",
+          "Monitoring system deployment",
+          "Message queue configuration"
+        ],
+        "deliverables": [
+          "Microservices infrastructure",
+          "Analytics service deployment",
+          "Performance monitoring dashboard",
+          "Migration documentation"
+        ]
+      },
+      "phase2": {
+        "name": "Communication & CRM",
+        "duration": "11 สัปดาห์",
+        "services": ["communicationService", "crmService"],
+        "prerequisites": ["Phase 1 completion", "Security framework enhancement", "Data privacy compliance"],
+        "deliverables": [
+          "Omnichannel communication system",
+          "Advanced CRM capabilities",
+          "Customer data security enhancement",
+          "Integration testing completion"
+        ]
+      },
+      "phase3": {
+        "name": "Operations & Marketing",
+        "duration": "8 สัปดาห์",
+        "services": ["inventoryService", "marketingService"],
+        "prerequisites": ["Phase 2 completion", "External API integrations", "IoT device connectivity"],
+        "deliverables": [
+          "Smart inventory management",
+          "Marketing automation platform",
+          "Supplier integration",
+          "Campaign management tools"
+        ]
+      },
+      "phase4": {
+        "name": "Optimization & Reporting",
+        "duration": "5 สัปดาห์",
+        "services": ["reportingService"],
+        "prerequisites": ["All core services migrated", "Performance optimization", "System stabilization"],
+        "deliverables": [
+          "Advanced reporting system",
+          "Performance optimization",
+          "System documentation",
+          "Training materials"
+        ]
+      }
+    },
+    "totalProjectEstimate": {
+      "duration": "34 สัปดาห์ (8.5 เดือน)",
+      "cost": "$120,000-170,000",
+      "teamSize": "8-12 developers",
+      "expectedROI": "300% ภายใน 18 เดือน"
+    }
+  }
+}
