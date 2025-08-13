@@ -1,0 +1,263 @@
+{
+  "dashboard_configuration": {
+    "version": "1.0.0",
+    "last_updated": "2025-01-16T00:00:00Z",
+    "stakeholder_groups": {
+      "executive": {
+        "name": "Executive Dashboard",
+        "refresh_interval": "daily",
+        "widgets": [
+          {
+            "id": "revenue_overview",
+            "title": "Revenue Overview",
+            "type": "metric_card",
+            "data_source": "business_metrics",
+            "metrics": ["daily_revenue", "monthly_revenue", "revenue_growth"],
+            "visualization": "trend_chart"
+          },
+          {
+            "id": "user_growth",
+            "title": "User Growth",
+            "type": "chart",
+            "data_source": "user_analytics",
+            "metrics": ["total_users", "new_registrations", "active_users"],
+            "visualization": "line_chart"
+          },
+          {
+            "id": "system_health",
+            "title": "System Health",
+            "type": "status_indicator",
+            "data_source": "monitoring",
+            "metrics": ["uptime", "performance_score", "error_rate"],
+            "visualization": "gauge"
+          },
+          {
+            "id": "key_metrics",
+            "title": "Key Performance Indicators",
+            "type": "kpi_grid",
+            "data_source": "combined",
+            "metrics": ["conversion_rate", "average_order_value", "customer_satisfaction", "system_uptime"],
+            "visualization": "metric_cards"
+          }
+        ],
+        "alerts": [
+          {
+            "metric": "revenue",
+            "threshold": "daily_target * 0.8",
+            "severity": "medium"
+          },
+          {
+            "metric": "system_uptime",
+            "threshold": "99.5",
+            "severity": "high"
+          }
+        ]
+      },
+      "technical": {
+        "name": "Technical Operations Dashboard",
+        "refresh_interval": "real-time",
+        "widgets": [
+          {
+            "id": "system_performance",
+            "title": "System Performance",
+            "type": "real_time_chart",
+            "data_source": "monitoring",
+            "metrics": ["response_time", "throughput", "error_rate"],
+            "visualization": "time_series"
+          },
+          {
+            "id": "infrastructure_health",
+            "title": "Infrastructure Health",
+            "type": "status_grid",
+            "data_source": "infrastructure",
+            "metrics": ["server_status", "database_performance", "cdn_status", "api_health"],
+            "visualization": "status_indicators"
+          },
+          {
+            "id": "error_tracking",
+            "title": "Error Tracking",
+            "type": "log_viewer",
+            "data_source": "error_logs",
+            "metrics": ["error_count", "error_types", "error_trends"],
+            "visualization": "error_dashboard"
+          },
+          {
+            "id": "deployment_status",
+            "title": "Deployment Pipeline",
+            "type": "pipeline_view",
+            "data_source": "ci_cd",
+            "metrics": ["build_status", "deployment_history", "test_results"],
+            "visualization": "pipeline_diagram"
+          }
+        ],
+        "alerts": [
+          {
+            "metric": "response_time",
+            "threshold": "2000",
+            "severity": "high"
+          },
+          {
+            "metric": "error_rate",
+            "threshold": "0.1",
+            "severity": "critical"
+          },
+          {
+            "metric": "server_cpu",
+            "threshold": "80",
+            "severity": "medium"
+          }
+        ]
+      },
+      "business": {
+        "name": "Business Intelligence Dashboard",
+        "refresh_interval": "hourly",
+        "widgets": [
+          {
+            "id": "sales_analytics",
+            "title": "Sales Analytics",
+            "type": "analytics_chart",
+            "data_source": "sales_data",
+            "metrics": ["sales_volume", "product_performance", "customer_segments"],
+            "visualization": "multi_chart"
+          },
+          {
+            "id": "customer_insights",
+            "title": "Customer Insights",
+            "type": "customer_dashboard",
+            "data_source": "customer_data",
+            "metrics": ["customer_acquisition", "retention_rate", "lifetime_value"],
+            "visualization": "customer_analytics"
+          },
+          {
+            "id": "product_performance",
+            "title": "Product Performance",
+            "type": "product_grid",
+            "data_source": "product_analytics",
+            "metrics": ["top_products", "inventory_turnover", "profit_margins"],
+            "visualization": "product_table"
+          },
+          {
+            "id": "marketing_roi",
+            "title": "Marketing ROI",
+            "type": "roi_chart",
+            "data_source": "marketing_data",
+            "metrics": ["campaign_performance", "acquisition_cost", "roi"],
+            "visualization": "roi_dashboard"
+          }
+        ],
+        "alerts": [
+          {
+            "metric": "conversion_rate",
+            "threshold": "2.0",
+            "severity": "medium"
+          },
+          {
+            "metric": "cart_abandonment",
+            "threshold": "70",
+            "severity": "medium"
+          }
+        ]
+      },
+      "support": {
+        "name": "Support Operations Dashboard",
+        "refresh_interval": "real-time",
+        "widgets": [
+          {
+            "id": "ticket_overview",
+            "title": "Support Tickets",
+            "type": "ticket_dashboard",
+            "data_source": "support_system",
+            "metrics": ["open_tickets", "response_time", "resolution_rate"],
+            "visualization": "support_metrics"
+          },
+          {
+            "id": "user_feedback",
+            "title": "User Feedback",
+            "type": "feedback_analysis",
+            "data_source": "feedback_system",
+            "metrics": ["satisfaction_score", "feedback_trends", "issue_types"],
+            "visualization": "feedback_dashboard"
+          },
+          {
+            "id": "system_issues",
+            "title": "System Issues",
+            "type": "issue_tracker",
+            "data_source": "monitoring",
+            "metrics": ["active_incidents", "system_alerts", "performance_issues"],
+            "visualization": "incident_board"
+          },
+          {
+            "id": "knowledge_base",
+            "title": "Knowledge Base Usage",
+            "type": "kb_analytics",
+            "data_source": "knowledge_base",
+            "metrics": ["article_views", "search_queries", "help_effectiveness"],
+            "visualization": "kb_metrics"
+          }
+        ],
+        "alerts": [
+          {
+            "metric": "response_time",
+            "threshold": "60",
+            "severity": "high"
+          },
+          {
+            "metric": "satisfaction_score",
+            "threshold": "4.0",
+            "severity": "medium"
+          }
+        ]
+      }
+    },
+    "global_settings": {
+      "timezone": "Asia/Bangkok",
+      "currency": "THB",
+      "date_format": "DD/MM/YYYY",
+      "number_format": "en-US",
+      "theme": "light",
+      "auto_refresh": true,
+      "export_formats": ["pdf", "excel", "csv"],
+      "sharing_enabled": true,
+      "mobile_optimized": true
+    },
+    "data_sources": {
+      "business_metrics": {
+        "endpoint": "/api/analytics/business",
+        "authentication": "bearer_token",
+        "cache_duration": 300
+      },
+      "monitoring": {
+        "endpoint": "/api/monitoring/metrics",
+        "authentication": "api_key",
+        "cache_duration": 30
+      },
+      "user_analytics": {
+        "endpoint": "/api/analytics/users",
+        "authentication": "bearer_token",
+        "cache_duration": 600
+      },
+      "support_system": {
+        "endpoint": "/api/support/metrics",
+        "authentication": "bearer_token",
+        "cache_duration": 60
+      }
+    },
+    "notification_settings": {
+      "email_reports": {
+        "enabled": true,
+        "schedule": "daily",
+        "recipients": ["stakeholders@company.com"]
+      },
+      "slack_alerts": {
+        "enabled": true,
+        "channel": "#stakeholder-updates",
+        "threshold": "medium"
+      },
+      "sms_critical": {
+        "enabled": true,
+        "recipients": ["+66812345678"],
+        "threshold": "critical"
+      }
+    }
+  }
+}

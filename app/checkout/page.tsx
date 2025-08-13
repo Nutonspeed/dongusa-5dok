@@ -1,5 +1,5 @@
 "use client"
-import { logger } from '@/lib/logger';
+import { logger } from "@/lib/logger"
 
 import type React from "react"
 
@@ -14,7 +14,6 @@ import { useLanguage } from "../contexts/LanguageContext"
 import { useCart } from "../contexts/CartContext"
 import { useAuth } from "../contexts/AuthContext"
 import { createClient } from "@/lib/supabase/client"
-import type { Profile, Order, OrderItem } from "@/types/entities"
 import type { Database } from "@/lib/supabase/types"
 
 type ProfileRow = Database["public"]["Tables"]["profiles"]["Row"]
@@ -69,11 +68,7 @@ export default function CheckoutPage() {
 
     const loadUserProfile = async () => {
       if (user) {
-        const { data: profileData } = await supabase
-          .from("profiles")
-          .select("*")
-          .eq("id", user.id)
-          .single()
+        const { data: profileData } = await supabase.from("profiles").select("*").eq("id", user.id).single()
 
         const profile = profileData as ProfileRow | null
 
@@ -83,9 +78,9 @@ export default function CheckoutPage() {
             fullName: profile.full_name || user.full_name || "",
             email: user.email || "",
             phone: profile.phone || "",
-              address: (profile as any).address || "",
-              city: (profile as any).city || "",
-              postalCode: (profile as any).postal_code || "",
+            address: (profile as any).address || "",
+            city: (profile as any).city || "",
+            postalCode: (profile as any).postal_code || "",
           }))
         }
       }
@@ -93,6 +88,24 @@ export default function CheckoutPage() {
 
     loadUserProfile()
   }, [router, items.length, user, supabase])
+
+  useEffect(() => {
+    // Preload payment methods and shipping options
+    const preloadCheckoutData = async () => {
+      try {
+        // Prefetch critical checkout resources
+        await Promise.all([
+          fetch("/api/shipping-methods", { method: "HEAD" }),
+          fetch("/api/payment-methods", { method: "HEAD" }),
+          user ? fetch("/api/user/profile", { method: "HEAD" }) : Promise.resolve(),
+        ])
+      } catch (error) {
+        console.error("Error preloading checkout data:", error)
+      }
+    }
+
+    preloadCheckoutData()
+  }, [user])
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("th-TH", {
@@ -103,6 +116,14 @@ export default function CheckoutPage() {
 
   const handleShippingSubmit = (e: React.FormEvent) => {
     e.preventDefault()
+    const preloadPaymentResources = async () => {
+      try {
+        await fetch("/api/payment/validate", { method: "HEAD" })
+      } catch (error) {
+        console.error("Error preloading payment resources:", error)
+      }
+    }
+    preloadPaymentResources()
     setCurrentStep(2)
   }
 
@@ -129,11 +150,7 @@ export default function CheckoutPage() {
         channel: "website",
       }
 
-      const { data: order, error: orderError } = await supabase
-        .from("orders")
-        .insert(orderData)
-        .select()
-        .single()
+      const { data: order, error: orderError } = await supabase.from("orders").insert(orderData).select().single()
 
       if (orderError) throw orderError
 
@@ -151,9 +168,7 @@ export default function CheckoutPage() {
         customizations: item.customizations,
       }))
 
-      const { error: itemsError } = await supabase
-        .from("order_items")
-        .insert(orderItems)
+      const { error: itemsError } = await supabase.from("order_items").insert(orderItems)
 
       if (itemsError) throw itemsError
 
