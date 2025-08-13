@@ -44,8 +44,8 @@ class AnalyticsService {
 
       // Initialize gtag
       ;(window as any).dataLayer = (window as any).dataLayer || []
-      ;(window as any).gtag = () => {
-        ;(window as any).dataLayer.push(arguments)
+      ;(window as any).gtag = (...args: any[]) => {
+        ;(window as any).dataLayer.push(args)
       }
       ;(window as any).gtag("js", new Date())
       ;(window as any).gtag("config", process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID, {
