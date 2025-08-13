@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-
-const USE_SUPABASE = process.env.NEXT_PUBLIC_USE_SUPABASE === "true";
+import { USE_SUPABASE } from "@/lib/runtime";
 
 export const config = { matcher: ["/admin", "/admin/:path*"] };
 

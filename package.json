@@ -15,7 +15,7 @@
   "scripts": {
     "build": "next build",
     "build:analyze": "ANALYZE=true npm run build",
-    "build:production": "NODE_ENV=production NEXT_PUBLIC_USE_SUPABASE=true npm run build",
+    "build:production": "NODE_ENV=production npm run build",
     "build:strict": "SKIP_STRICT_BUILD=false npm run build",
     "clean": "rm -rf .next out dist",
     "clean:all": "rm -rf .next out dist node_modules package-lock.json",
@@ -26,7 +26,7 @@
     "dev:mock": "ENABLE_MOCK_SERVICES=true npm run dev",
     "dev:reset": "tsx scripts/reset-development.ts",
     "dev:setup": "tsx scripts/setup-development.ts",
-    "dev:supabase": "NEXT_PUBLIC_USE_SUPABASE=true npm run dev",
+    "dev:supabase": "npm run dev",
     "dev:validate": "tsx lib/environment-validator.ts",
     "format": "prettier --write .",
     "format:check": "prettier --check .",

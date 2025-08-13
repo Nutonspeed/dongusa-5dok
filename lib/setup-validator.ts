@@ -112,8 +112,8 @@ const SETUP_CHECKS: SetupCheck[] = [
 
       // Production-required variables
       const productionRequired = [
-        "NEXT_PUBLIC_SUPABASE_URL",
-        "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+        ["NEXT_PUBLIC_SUPABASE_URL", "SUPABASE_URL"],
+        ["NEXT_PUBLIC_SUPABASE_ANON_KEY", "SUPABASE_ANON_KEY"],
         "SMTP_HOST",
         "BLOB_READ_WRITE_TOKEN",
       ]
@@ -126,7 +126,11 @@ const SETUP_CHECKS: SetupCheck[] = [
 
       if (process.env.NODE_ENV === "production") {
         for (const key of productionRequired) {
-          if (!process.env[key]) {
+          if (Array.isArray(key)) {
+            if (!key.some((k) => process.env[k])) {
+              warnings.push(key[0])
+            }
+          } else if (!process.env[key]) {
             warnings.push(key)
           }
         }

@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
+import { USE_SUPABASE } from "@/lib/runtime";
 
 export const runtime = "nodejs";
 
 export async function POST(req: Request) {
   try {
-    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+    if (!USE_SUPABASE) {
       const body = await req.json().catch(() => ({}));
       const id = crypto.randomUUID();
       return NextResponse.json({ id, ...body, mock: true }, { status: 201 });

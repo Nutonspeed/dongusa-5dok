@@ -28,10 +28,11 @@ export const createClient = cache(() => {
 
   try {
     const cookieStore = cookies()
-    return createServerClient<Database>(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL!
+    const anon =
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+      process.env.SUPABASE_ANON_KEY!
+    return createServerClient<Database>(url, anon, {
       cookies: {
         getAll() {
           return cookieStore.getAll()

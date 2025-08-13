@@ -35,7 +35,6 @@ NODE_ENV=development
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
 
 # Development Database (Mock)
-NEXT_PUBLIC_USE_SUPABASE=false
 ENABLE_MOCK_SERVICES=true
 
 # Development Auth
@@ -191,12 +190,11 @@ AUTO_REORDER_ENABLED=true
           "dev:validate": "tsx lib/environment-validator.ts",
           "dev:reset": "tsx scripts/reset-development.ts",
           "dev:mock": "ENABLE_MOCK_SERVICES=true npm run dev",
-          "dev:supabase": "NEXT_PUBLIC_USE_SUPABASE=true npm run dev",
           "db:setup": "tsx scripts/setup-database.ts",
           "db:seed": "tsx scripts/seed-database.ts",
           "db:reset": "tsx scripts/reset-database.ts",
           "build:analyze": "ANALYZE=true npm run build",
-          "build:production": "NODE_ENV=production NEXT_PUBLIC_USE_SUPABASE=true npm run build",
+          "build:production": "NODE_ENV=production npm run build",
           "test:env": "tsx lib/environment-validator.ts",
           clean: "rm -rf .next out dist",
           "clean:all": "rm -rf .next out dist node_modules package-lock.json",
@@ -419,7 +417,6 @@ Copy \`.env.example\` to \`.env.local\` and update the values:
 - \`NEXT_PUBLIC_SITE_URL\` - Usually http://localhost:3000
 
 ### Optional for Development
-- \`NEXT_PUBLIC_USE_SUPABASE=false\` - Use mock database
 - \`QA_BYPASS_AUTH=1\` - Skip authentication
 - \`ENABLE_MOCK_SERVICES=true\` - Use mock services
 
@@ -433,8 +430,8 @@ Copy \`.env.example\` to \`.env.local\` and update the values:
 ### Supabase Database
 1. Create Supabase project
 2. Set environment variables:
-   - \`NEXT_PUBLIC_SUPABASE_URL\`
-   - \`NEXT_PUBLIC_SUPABASE_ANON_KEY\`
+   - \`NEXT_PUBLIC_SUPABASE_URL\` or \`SUPABASE_URL\`
+   - \`NEXT_PUBLIC_SUPABASE_ANON_KEY\` or \`SUPABASE_ANON_KEY\`
    - \`SUPABASE_SERVICE_ROLE_KEY\`
 3. Run database setup: \`npm run db:setup\`
 
@@ -448,7 +445,6 @@ Copy \`.env.example\` to \`.env.local\` and update the values:
 
 2. **Database Connection**
    - Check Supabase credentials
-   - Or disable with \`NEXT_PUBLIC_USE_SUPABASE=false\`
 
 3. **Build Errors**
    - Run \`npm run clean\` and try again

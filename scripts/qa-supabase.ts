@@ -43,8 +43,11 @@ async function ensureServer(): Promise<null | { kill: () => void }> {
 
 async function run() {
   // Preconditions
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-    throw new Error("Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY");
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
+  const anon =
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY;
+  if (!url || !anon) {
+    throw new Error("Missing Supabase URL or ANON key");
   }
   if (process.env.QA_BYPASS_AUTH === "1") {
     throw new Error("QA_BYPASS_AUTH must be 0 for real Supabase QA");
