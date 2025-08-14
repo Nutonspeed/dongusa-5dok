@@ -1,10 +1,11 @@
+import { ordersProvider } from "@/providers/orders";
+
 export const runtime = "nodejs";
 
 export async function GET() {
   try {
-    const header = "id,customer,total\n";
-    const lines = ["mock-1,คุณเอ,1234.50", "mock-2,คุณบี,999.00"].join("\n");
-    return new Response(header + lines + "\n", {
+    const csv = await ordersProvider.exportCSV();
+    return new Response(csv, {
       status: 200,
       headers: {
         "Content-Type": "text/csv; charset=utf-8",

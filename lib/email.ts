@@ -3,8 +3,6 @@ import "server-only"
 import { logger } from '@/lib/logger';
 import nodemailer from "nodemailer"
 
-export const runtime = 'nodejs'
-
 export function createTransporter() {
   if (!process.env.SMTP_HOST) {
     return { sendMail: async () => ({ messageId: "mock" }) }
