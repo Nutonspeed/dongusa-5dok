@@ -12,7 +12,9 @@
     "lint": "eslint .",
     "qa:smoke": "tsx scripts/qa-smoke.ts",
     "setup": "corepack enable && pnpm install && pnpm typecheck && pnpm lint && CI=1 pnpm build",
-    "clean": "rimraf .next node_modules && pnpm store prune || true"
+    "clean": "rimraf .next node_modules && pnpm store prune || true",
+    "seed:prod": "tsx scripts/seed-prod.ts",
+    "qa:real": "tsx scripts/qa-real.ts"
   },
   "dependencies": {
     "next": "14.2.7",
@@ -101,6 +103,7 @@
     "lint-staged": "^15.2.0",
     "postcss": "^8.5",
     "prettier": "^3.2.4",
-    "tailwindcss": "^3.4.17"
+    "tailwindcss": "^3.4.17",
+    "@supabase/supabase-js": "2.45.0"
   }
 }
