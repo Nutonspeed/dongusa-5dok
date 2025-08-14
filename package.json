@@ -11,6 +11,10 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "eslint .",
     "qa:smoke": "tsx scripts/qa-smoke.ts",
+    "plan:snapshot": "tsx scripts/plan-snapshot.ts",
+    "plan:check": "tsx scripts/plan-check.ts",
+    "seed:prod": "tsx scripts/seed-prod.ts",
+    "qa:real": "tsx scripts/qa-real.ts",
     "setup": "corepack enable && pnpm install && pnpm typecheck && pnpm lint && CI=1 pnpm build",
     "clean": "rimraf .next node_modules && pnpm store prune || true"
   },
@@ -48,7 +52,7 @@
     "@radix-ui/react-toggle-group": "latest",
     "@radix-ui/react-tooltip": "latest",
     "@supabase/ssr": "latest",
-    "@supabase/supabase-js": "latest",
+    "@supabase/supabase-js": "2.45.0",
     "@testing-library/dom": "latest",
     "@testing-library/react": "latest",
     "@types/debug": "latest",
@@ -82,6 +86,7 @@
   },
   "devDependencies": {
     "@playwright/test": "latest",
+    "@supabase/supabase-js": "2.45.0",
     "@types/node": "20.14.11",
     "@types/react": "18.3.3",
     "@types/react-dom": "18.3.0",
