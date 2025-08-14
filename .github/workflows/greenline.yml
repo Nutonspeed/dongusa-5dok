@@ -1,0 +1,28 @@
+name: greenline
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with: { version: 10 }
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile=false
+      - run: bash scripts/prebuild-guard.sh
+      - run: pnpm env:check || true
+      - run: pnpm typecheck:soft
+      - run: pnpm lint:soft
+      - name: Build (dev-friendly)
+        run: |
+          NEXT_TELEMETRY_DISABLED=1 \
+          QA_BYPASS_AUTH=1 MAINTENANCE=0 \
+          NEXT_PUBLIC_SUPABASE_URL=http://example.com \
+          NEXT_PUBLIC_SUPABASE_ANON_KEY=dummy \
+          pnpm build

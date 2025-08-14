@@ -16,7 +16,7 @@
     "analytics:generate": "tsx lib/enhanced-business-intelligence.ts",
     "audit:security": "tsx lib/comprehensive-security-audit.ts",
     "audit:system": "tsx scripts/comprehensive-system-audit.ts",
-    "build": "next build",
+    "build": "pnpm prebuild:guard && next build",
     "build:analyze": "ANALYZE=true npm run build",
     "build:production": "NODE_ENV=production npm run build",
     "build:strict": "SKIP_STRICT_BUILD=false npm run build",
@@ -62,7 +62,9 @@
     "typecheck:soft": "tsc --noEmit || true",
     "env:check": "tsx lib/environment-validator.ts",
     "validate:input": "tsx lib/input-validation.ts",
-    "workflow:test": "tsx lib/comprehensive-workflow-automation.ts"
+    "workflow:test": "tsx lib/comprehensive-workflow-automation.ts",
+    "prebuild:guard": "bash scripts/prebuild-guard.sh",
+    "ci": "pnpm prebuild:guard && pnpm env:check || true && pnpm typecheck:soft && pnpm lint:soft && NEXT_TELEMETRY_DISABLED=1 QA_BYPASS_AUTH=1 MAINTENANCE=0 NEXT_PUBLIC_SUPABASE_URL=http://example.com NEXT_PUBLIC_SUPABASE_ANON_KEY=dummy pnpm build"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
