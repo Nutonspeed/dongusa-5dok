@@ -37,6 +37,7 @@
     "health-check": "tsx scripts/system-health-check.ts",
     "lint": "next lint",
     "lint:fix": "next lint --fix",
+    "lint:soft": "next lint || true",
     "mobile:optimize": "tsx lib/mobile-api-optimizer.ts",
     "notifications:test": "tsx lib/real-time-notification-service.ts",
     "precommit": "lint-staged",
@@ -58,6 +59,7 @@
     "test:performance:stress": "tsx lib/comprehensive-performance-testing.ts stress",
     "test:watch": "jest --watch",
     "typecheck": "tsc --noEmit",
+    "typecheck:soft": "tsc --noEmit || true",
     "env:check": "tsx lib/environment-validator.ts",
     "validate:input": "tsx lib/input-validation.ts",
     "workflow:test": "tsx lib/comprehensive-workflow-automation.ts"
