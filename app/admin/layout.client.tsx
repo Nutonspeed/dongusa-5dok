@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import type React from "react"
 
@@ -8,23 +8,7 @@ import { usePathname, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import {
-  LayoutDashboard,
-  Package,
-  Users,
-  ShoppingCart,
-  BarChart3,
-  Settings,
-  Menu,
-  LogOut,
-  TestTube,
-  FileText,
-  Truck,
-  MessageSquare,
-  ImageIcon,
-  Shield,
-  type LucideIcon,
-} from "lucide-react"
+import { LayoutDashboard, Package, Users, ShoppingCart, BarChart3, Settings, Menu, LogOut, TestTube, FileText, Truck, MessageSquare, ImageIcon, Shield, TypeIcon as type, LucideIcon } from 'lucide-react'
 import { useAuth } from "../contexts/AuthContext"
 
 interface NavItem {

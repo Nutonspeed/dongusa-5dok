@@ -4,13 +4,13 @@ import type { NextRequest } from "next/server"
 const PROTECTED = [
   /^\/admin(\/|$)/, /^\/api\/admin(\/|$)/, /^\/profile(\/|$)/,
   /^\/orders(\/|$)/, /^\/checkout(\/|$)/, /^\/auth\/callback(\/|$)/,
-]
-
-// endpoints ที่ต้อง “ผ่าน” แม้จะอยู่ใต้ /api/admin (ไว้เทส/alias)
-const SAFE_PASSTHROUGH = [
-  /^\/api\/admin\/export\/orders(\/|$)/,
   /^\/api\/orders\/update-status(\/|$)/,
 ]
+
+const isDryRun = (req: NextRequest) => req.headers.get("x-dry-run") === "1"
+const isAliasPath = (p: string) =>
+  /^\/api\/admin\/export\/orders(\/|$)/.test(p) ||
+  /^\/api\/orders\/update-status(\/|$)/.test(p)
 
 export async function middleware(req: NextRequest) {
   const pathname = req.nextUrl.pathname
@@ -20,16 +20,19 @@ export async function middleware(req: NextRequest) {
     return NextResponse.rewrite(new URL("/maintenance", req.url))
   }
 
-  // 1) QA bypass (ชนะทุกอย่าง) + allow SAFE_PASSTHROUGH เสมอ
-  if (process.env.QA_BYPASS_AUTH === "1" || SAFE_PASSTHROUGH.some(r => r.test(pathname))) {
+  // 1) QA bypass (ชนะทุกอย่าง)
+  if (process.env.QA_BYPASS_AUTH === "1") return NextResponse.next()
+
+  // 2) Alias ผ่านได้เฉพาะ dry-run เท่านั้น
+  if (isAliasPath(pathname) && isDryRun(req)) {
     return NextResponse.next()
   }
 
-  // 2) เฉพาะเส้นที่ป้องกัน
+  // 3) เฉพาะเส้นที่ป้องกัน
   const needsAuth = PROTECTED.some(r => r.test(pathname))
   if (!needsAuth) return NextResponse.next()
 
-  // 3) ถ้ายังไม่มี env Supabase → redirect ทันที (กัน 500)
+  // 4) ถ้ายังไม่มี env Supabase → redirect ทันที (กัน 500)
   const hasSupabase =
     !!process.env.NEXT_PUBLIC_SUPABASE_URL &&
     !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -39,7 +42,7 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  // 4) ตรวจ user แบบ edge-safe (ถ้าล้ม ให้ปล่อยผ่านใน dev, block ใน prod)
+  // 5) ตรวจ user แบบ edge-safe (ถ้าล้ม ให้ปล่อยผ่านใน dev, block ใน prod)
   try {
     const { createMiddlewareClient } = await import("@supabase/ssr")
     const res = NextResponse.next()
@@ -59,7 +62,7 @@ export async function middleware(req: NextRequest) {
 export const config = {
   matcher: [
     "/admin/:path*","/profile/:path*","/orders/:path*","/checkout",
-    "/auth/callback","/api/admin/:path*","/api/user/:path*",
+    "/auth/callback","/api/admin/:path*","/api/user/:path*","/api/orders/:path*",
   ],
 }
 
