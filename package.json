@@ -60,6 +60,7 @@
     "test:watch": "jest --watch",
     "type-check": "tsc --noEmit",
     "typecheck": "pnpm type-check",
+    "env:check": "tsx lib/environment-validator.ts",
     "validate:input": "tsx lib/input-validation.ts",
     "workflow:test": "tsx lib/comprehensive-workflow-automation.ts"
   },
