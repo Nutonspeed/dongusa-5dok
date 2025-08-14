@@ -11,4 +11,6 @@ export const ENV = {
     process.env.SUPABASE_ANON_KEY ??
     '',
   BASE_URL: process.env.BASE_URL ?? '',
+  BASE_PATH: process.env.NEXT_PUBLIC_BASE_PATH ?? '',
+  HOME_REDIRECT_STRICT: process.env.HOME_REDIRECT_STRICT === '1',
 } as const;
