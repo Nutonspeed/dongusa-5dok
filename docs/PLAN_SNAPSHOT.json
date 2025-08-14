@@ -1,0 +1,65 @@
+{
+  "createdAt": "2025-08-14T00:40:54.674Z",
+  "entries": [
+    {
+      "path": "PRODUCTION_READINESS_GUIDE.md",
+      "sha1": "4650e4b84a51977e01c536b28e308be97f351f9c",
+      "bytes": 5306,
+      "mtimeMs": 1755131837189.0806
+    },
+    {
+      "path": "README.md",
+      "sha1": "23ebe6cda3983bf1880d29501c92881e5faf3ed6",
+      "bytes": 1403,
+      "mtimeMs": 1755131837189.0806
+    },
+    {
+      "path": "docs/COMPREHENSIVE_DEVELOPMENT_PLAN.md",
+      "sha1": "366a2eb2b1d256e19538a5aeef1e4f2af25629a1",
+      "bytes": 23551,
+      "mtimeMs": 1755131837213.0806
+    },
+    {
+      "path": "docs/MASTER_DEVELOPMENT_ROADMAP.md",
+      "sha1": "06512d907faf8f4a67d0de3fbad191c1f33c3990",
+      "bytes": 9713,
+      "mtimeMs": 1755131837213.0806
+    },
+    {
+      "path": "docs/NEXT_PHASE_DETAILED_PLAN.md",
+      "sha1": "98a0dcf2d5b5a95c7a64b6a04237a626fd9f693c",
+      "bytes": 28702,
+      "mtimeMs": 1755131837213.0806
+    },
+    {
+      "path": "docs/PRODUCTION_DEPLOYMENT_GUIDE.md",
+      "sha1": "06725c0937e3991b040c8ebffe42e69732cf8341",
+      "bytes": 7812,
+      "mtimeMs": 1755131837217.0806
+    },
+    {
+      "path": "docs/PROJECT_CHECKLIST.md",
+      "sha1": "e088e50617150fb2302b8daecc6f3ef22f3d4b07",
+      "bytes": 18890,
+      "mtimeMs": 1755131837217.0806
+    },
+    {
+      "path": "docs/ADMIN_PANEL_STATUS.md",
+      "sha1": "2dcd31dca092de888c5271404d00a6bfa26c8a8c",
+      "bytes": 7525,
+      "mtimeMs": 1755131837213.0806
+    },
+    {
+      "path": "docs/PAYMENT_SYSTEM_STATUS.md",
+      "sha1": "c72e3178652cc2334884a1bc6ada1b0754fbcc65",
+      "bytes": 6689,
+      "mtimeMs": 1755131837213.0806
+    },
+    {
+      "path": "docs/E_COMMERCE_SYSTEM_STATUS.md",
+      "sha1": "03bf79653df139329ae47b8bb929f842bd7e2844",
+      "bytes": 6159,
+      "mtimeMs": 1755131837213.0806
+    }
+  ]
+}
