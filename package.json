@@ -13,12 +13,16 @@
   "license": "MIT",
   "author": "Your Name <your.email@example.com>",
   "scripts": {
+    "analytics:generate": "tsx lib/enhanced-business-intelligence.ts",
+    "audit:security": "tsx lib/comprehensive-security-audit.ts",
+    "audit:system": "tsx scripts/comprehensive-system-audit.ts",
     "build": "next build",
     "build:analyze": "ANALYZE=true npm run build",
     "build:production": "NODE_ENV=production npm run build",
     "build:strict": "SKIP_STRICT_BUILD=false npm run build",
     "clean": "rm -rf .next out dist",
     "clean:all": "rm -rf .next out dist node_modules package-lock.json",
+    "crm:migrate": "tsx lib/crm-data-migration.ts",
     "db:reset": "tsx scripts/reset-database.ts",
     "db:seed": "tsx scripts/seed-database.ts",
     "db:setup": "tsx scripts/setup-database.ts",
@@ -34,6 +38,8 @@
     "postinstall": "npm run dev:setup",
     "lint": "next lint --no-cache --max-warnings=0",
     "lint:fix": "next lint --fix",
+    "mobile:optimize": "tsx lib/mobile-api-optimizer.ts",
+    "notifications:test": "tsx lib/real-time-notification-service.ts",
     "precommit": "lint-staged",
     "prepare": "husky install",
     "qa:smoke": "tsx scripts/qa-smoke.ts",
@@ -46,9 +52,13 @@
     "test:env": "tsx lib/environment-validator.ts",
     "test:integration": "jest --testPathPattern=integration",
     "test:performance": "tsx scripts/performance-test.ts",
+    "test:performance:benchmark": "tsx lib/comprehensive-performance-testing.ts benchmark",
+    "test:performance:load": "tsx lib/comprehensive-performance-testing.ts load",
+    "test:performance:stress": "tsx lib/comprehensive-performance-testing.ts stress",
     "test:watch": "jest --watch",
     "type-check": "tsc --noEmit",
-    "typecheck": "pnpm type-check"
+    "typecheck": "pnpm type-check",
+    "workflow:test": "tsx lib/comprehensive-workflow-automation.ts"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
