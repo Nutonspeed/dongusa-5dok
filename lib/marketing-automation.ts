@@ -384,8 +384,16 @@ class MarketingAutomationService {
   // SMS Marketing
   async sendSMS(phone: string, message: string) {
     if (!twilioClient || !twilioFromNumber) {
-      console.error("Twilio credentials are not set")
-      return { success: false, error: "Missing Twilio credentials" }
+      const missingVars = [
+        !twilioAccountSid && "TWILIO_ACCOUNT_SID",
+        !twilioAuthToken && "TWILIO_AUTH_TOKEN",
+        !twilioFromNumber && "TWILIO_FROM_NUMBER",
+      ]
+        .filter(Boolean)
+        .join(", ")
+
+      console.error("Twilio credentials are not set:", missingVars)
+      return { success: false, error: `Missing Twilio credentials: ${missingVars}` }
     }
 
     try {
