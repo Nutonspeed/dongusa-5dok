@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server"
 import { USE_SUPABASE } from "@/lib/runtime"
 import { createClient } from "@/lib/supabase/client"
 import { logger } from "@/lib/logger"
+import { requireAdmin } from "@/lib/auth/getUser"
 
 function generateTrackingNumber(): string {
   return `TH${Math.random().toString(36).substr(2, 9).toUpperCase()}`
@@ -9,6 +10,7 @@ function generateTrackingNumber(): string {
 
 export async function POST(request: NextRequest) {
   try {
+    await requireAdmin()
     const body = await request.json()
     const orderIds: string[] = body?.orderIds || []
 
@@ -94,6 +96,12 @@ export async function POST(request: NextRequest) {
       mode: "mock",
     })
   } catch (error) {
+    if (error instanceof Error && error.message === "Unauthorized") {
+      return NextResponse.json(
+        { success: false, message: "Unauthorized" },
+        { status: 401 },
+      )
+    }
     logger.error("Shipping label creation error:", error)
     return NextResponse.json(
       {
