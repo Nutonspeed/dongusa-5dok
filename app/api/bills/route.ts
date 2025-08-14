@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { USE_SUPABASE } from "@/lib/runtime";
-export { runtime } from "@/lib/runtime";
+
+export const runtime = "nodejs";
 
 export async function POST(req: Request) {
   try {

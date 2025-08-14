@@ -61,6 +61,25 @@ export enum OrderChannel {
   WALK_IN = "WALK_IN",
 }
 
+export const statusLabelTH: Record<OrderStatus, string> = {
+  [OrderStatus.PENDING]: "รอดำเนินการ",
+  [OrderStatus.PENDING_PAYMENT]: "รอชำระเงิน",
+  [OrderStatus.PAID]: "ชำระแล้ว",
+  [OrderStatus.IN_PRODUCTION]: "กำลังผลิต",
+  [OrderStatus.READY_TO_SHIP]: "พร้อมส่ง",
+  [OrderStatus.SHIPPED]: "จัดส่งแล้ว",
+  [OrderStatus.DONE]: "เสร็จสิ้น",
+  [OrderStatus.CANCELLED]: "ยกเลิก",
+}
+
+export const channelLabelTH: Record<OrderChannel, string> = {
+  [OrderChannel.WEBSITE]: "เว็บไซต์",
+  [OrderChannel.FACEBOOK]: "Facebook",
+  [OrderChannel.LINE]: "LINE",
+  [OrderChannel.PHONE]: "โทรศัพท์",
+  [OrderChannel.WALK_IN]: "หน้าร้าน",
+}
+
 // Mock data
 export const mockOrders: Order[] = [
   {

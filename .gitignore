@@ -29,7 +29,3 @@ next-env.d.ts
 # QA snapshots
 docs/snapshots/*
 !docs/snapshots/README.md
-.pnpm-store
-.playwright/
-test-results/
-coverage/

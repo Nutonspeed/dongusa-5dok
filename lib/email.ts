@@ -1,12 +1,7 @@
 import { logger } from '@/lib/logger';
 import nodemailer from "nodemailer"
-import {
-  statusLabelTH,
-  paymentStatusLabelTH,
-  productStatusLabelTH,
-  urgencyLabelTH,
-  paymentMethodLabelTH,
-} from "@/lib/i18n/status"
+
+export const runtime = 'nodejs'
 
 export function createTransporter() {
   if (!process.env.SMTP_HOST) {
@@ -283,23 +278,52 @@ export const emailTemplates = {
 
 // Helper functions
 function getPaymentMethodText(method: string): string {
-  return paymentMethodLabelTH[method as keyof typeof paymentMethodLabelTH] || method
+  const methods: Record<string, string> = {
+    bank_transfer: "โอนเงินผ่านธนาคาร",
+    promptpay: "พร้อมเพย์",
+    cod: "เก็บเงินปลายทาง",
+    credit_card: "บัตรเครดิต/เดบิต",
+  }
+  return methods[method] || method
 }
 
 function getPaymentStatusText(status: string): string {
-  return paymentStatusLabelTH[status as keyof typeof paymentStatusLabelTH] || status
+  const statuses: Record<string, string> = {
+    pending: "รอชำระเงิน",
+    paid: "ชำระเงินแล้ว",
+    refunded: "คืนเงินแล้ว",
+  }
+  return statuses[status] || status
 }
 
 function getOrderStatusText(status: string): string {
-  return statusLabelTH[status as keyof typeof statusLabelTH] || status
+  const statuses: Record<string, string> = {
+    pending: "รอดำเนินการ",
+    production: "กำลังผลิต",
+    shipped: "จัดส่งแล้ว",
+    completed: "เสร็จสิ้น",
+    cancelled: "ยกเลิก",
+  }
+  return statuses[status] || status
 }
 
 function getProductStatusText(status: string): string {
-  return productStatusLabelTH[status as keyof typeof productStatusLabelTH] || status
+  const statuses: Record<string, string> = {
+    active: "เปิดขาย",
+    draft: "แบบร่าง",
+    low_stock: "สต็อกต่ำ",
+    out_of_stock: "หมด",
+  }
+  return statuses[status] || status
 }
 
 function getUrgencyText(urgency: string): string {
-  return urgencyLabelTH[urgency as keyof typeof urgencyLabelTH] || urgency
+  const urgencies: Record<string, string> = {
+    normal: "ปกติ (7-14 วัน)",
+    urgent: "เร่งด่วน (3-7 วัน)",
+    express: "ด่วนพิเศษ (1-3 วัน)",
+  }
+  return urgencies[urgency] || urgency
 }
 
 function getStatusColor(status: string): string {

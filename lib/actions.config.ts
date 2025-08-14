@@ -1,1 +1,1 @@
-export { runtime } from "@/lib/runtime"
+export const runtime = 'nodejs'

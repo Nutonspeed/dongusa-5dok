@@ -1,6 +1,8 @@
 import { writeFileSync, existsSync, readFileSync, mkdirSync } from "fs"
 import { join } from "path"
 
+export const runtime = 'nodejs'
+
 interface SetupStep {
   name: string
   description: string

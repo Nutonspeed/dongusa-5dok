@@ -1,5 +1,6 @@
 import { USE_SUPABASE, supabaseEnvInfo } from "@/lib/runtime";
-export { runtime } from "@/lib/runtime";
+
+export const runtime = "nodejs";
 
 export async function GET() {
   const bypass = process.env.QA_BYPASS_AUTH === "1";

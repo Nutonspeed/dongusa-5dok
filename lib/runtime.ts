@@ -1,7 +1,5 @@
 import { logger } from "@/lib/logger"
 
-export const runtime = "nodejs"
-
 // Runtime configuration with safety checks
 export const NODE_ENV = process.env.NODE_ENV || "development"
 export const IS_PRODUCTION = NODE_ENV === "production"
