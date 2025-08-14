@@ -141,6 +141,7 @@
     "next-themes": "latest",
     "node-cron": "latest",
     "nodemailer": "latest",
+    "pdfkit": "^0.17.1",
     "react": "^18",
     "react-day-picker": "latest",
     "react-dom": "^18",
@@ -153,6 +154,7 @@
     "twilio": "latest",
     "vaul": "latest",
     "vitest": "latest",
+    "xlsx": "^0.18.5",
     "zod": "^3.24.1"
   },
   "devDependencies": {
