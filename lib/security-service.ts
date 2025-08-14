@@ -7,7 +7,14 @@ const scryptAsync = promisify(scrypt)
 
 interface SecurityEvent {
   id: string
-  type: "login_attempt" | "suspicious_activity" | "rate_limit_exceeded" | "sql_injection" | "xss_attempt"
+  type:
+    | "login_attempt"
+    | "suspicious_activity"
+    | "rate_limit_exceeded"
+    | "sql_injection"
+    | "xss_attempt"
+    | "brute_force_attack"
+    | "account_lockout"
   severity: "low" | "medium" | "high" | "critical"
   ip_address: string
   user_agent: string
@@ -21,6 +28,12 @@ interface RateLimitConfig {
   window_ms: number
   max_requests: number
   block_duration_ms: number
+}
+
+interface AccountLockoutConfig {
+  max_failed_attempts: number
+  lockout_duration_ms: number
+  reset_window_ms: number
 }
 
 interface SecurityScanResult {
@@ -50,7 +63,76 @@ export class SecurityService {
     this.supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
   }
 
-  // Rate limiting
+  async checkLoginAttempt(
+    identifier: string,
+    success: boolean,
+    config: AccountLockoutConfig = {
+      max_failed_attempts: 5,
+      lockout_duration_ms: 900000, // 15 minutes
+      reset_window_ms: 3600000, // 1 hour
+    },
+  ): Promise<{ allowed: boolean; remaining_attempts: number; lockout_until?: number }> {
+    const key = `login_attempts:${identifier}`
+    const lockoutKey = `lockout:${identifier}`
+    const now = Date.now()
+
+    const lockoutUntil = await this.redis.get(lockoutKey)
+    if (lockoutUntil && now < Number.parseInt(lockoutUntil as string)) {
+      return {
+        allowed: false,
+        remaining_attempts: 0,
+        lockout_until: Number.parseInt(lockoutUntil as string),
+      }
+    }
+
+    if (success) {
+      await this.redis.del(key)
+      await this.redis.del(lockoutKey)
+      return { allowed: true, remaining_attempts: config.max_failed_attempts }
+    }
+
+    const attempts = await this.redis.incr(key)
+    await this.redis.expire(key, Math.floor(config.reset_window_ms / 1000))
+
+    if (attempts >= config.max_failed_attempts) {
+      const lockoutUntilTime = now + config.lockout_duration_ms
+      await this.redis.setex(lockoutKey, Math.floor(config.lockout_duration_ms / 1000), lockoutUntilTime.toString())
+
+      await this.logSecurityEvent({
+        id: `brute_force_${now}`,
+        type: "brute_force_attack",
+        severity: "high",
+        ip_address: identifier,
+        user_agent: "",
+        details: { failed_attempts: attempts, lockout_duration: config.lockout_duration_ms },
+        timestamp: new Date().toISOString(),
+        blocked: true,
+      })
+
+      return {
+        allowed: false,
+        remaining_attempts: 0,
+        lockout_until: lockoutUntilTime,
+      }
+    }
+
+    await this.logSecurityEvent({
+      id: `login_attempt_${now}`,
+      type: "login_attempt",
+      severity: "medium",
+      ip_address: identifier,
+      user_agent: "",
+      details: { failed_attempts: attempts, success: false },
+      timestamp: new Date().toISOString(),
+      blocked: false,
+    })
+
+    return {
+      allowed: true,
+      remaining_attempts: config.max_failed_attempts - attempts,
+    }
+  }
+
   async checkRateLimit(
     identifier: string,
     config: RateLimitConfig = {
@@ -63,7 +145,6 @@ export class SecurityService {
     const now = Date.now()
     const windowStart = now - config.window_ms
 
-    // Check if currently blocked
     const blockKey = `blocked:${identifier}`
     const blocked = await this.redis.get(blockKey)
     if (blocked) {
@@ -74,14 +155,11 @@ export class SecurityService {
       }
     }
 
-    // Get current request count in window
     const requests = await this.redis.zcount(key, windowStart, now)
 
     if (requests >= config.max_requests) {
-      // Block the identifier
       await this.redis.setex(blockKey, Math.floor(config.block_duration_ms / 1000), "1")
 
-      // Log security event
       await this.logSecurityEvent({
         id: `rate_limit_${now}`,
         type: "rate_limit_exceeded",
@@ -100,11 +178,9 @@ export class SecurityService {
       }
     }
 
-    // Add current request
     await this.redis.zadd(key, now, `${now}-${Math.random()}`)
     await this.redis.expire(key, Math.floor(config.window_ms / 1000))
 
-    // Clean old entries
     await this.redis.zremrangebyscore(key, 0, windowStart)
 
     return {
@@ -114,7 +190,86 @@ export class SecurityService {
     }
   }
 
-  // Input validation and sanitization
+  validateAndSanitizeInput(
+    input: string,
+    type: "email" | "password" | "text" | "html" | "sql" | "javascript" = "text",
+  ): {
+    isValid: boolean
+    sanitized: string
+    errors: string[]
+    securityThreats: string[]
+  } {
+    const errors: string[] = []
+    const securityThreats: string[] = []
+    let isValid = true
+    let sanitized = input
+
+    if (!input || typeof input !== "string") {
+      return {
+        isValid: false,
+        sanitized: "",
+        errors: ["Input is required and must be a string"],
+        securityThreats: [],
+      }
+    }
+
+    if (this.detectSQLInjection(input)) {
+      securityThreats.push("SQL Injection attempt detected")
+      isValid = false
+    }
+
+    if (this.detectXSS(input)) {
+      securityThreats.push("XSS attempt detected")
+      isValid = false
+    }
+
+    switch (type) {
+      case "email":
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+        if (!emailRegex.test(input)) {
+          errors.push("Invalid email format")
+          isValid = false
+        }
+        sanitized = input.toLowerCase().trim()
+        break
+
+      case "password":
+        const passwordValidation = this.validatePasswordStrength(input)
+        if (!passwordValidation.isValid) {
+          errors.push(...passwordValidation.feedback)
+          isValid = false
+        }
+        break
+
+      case "text":
+        if (input.length > 1000) {
+          errors.push("Text too long (max 1000 characters)")
+          isValid = false
+        }
+        sanitized = this.sanitizeInput(input, "html")
+        break
+
+      case "html":
+        sanitized = this.sanitizeInput(input, "html")
+        break
+
+      case "sql":
+        sanitized = this.sanitizeInput(input, "sql")
+        break
+
+      case "javascript":
+        sanitized = this.sanitizeInput(input, "javascript")
+        break
+    }
+
+    return {
+      isValid,
+      sanitized,
+      errors,
+      securityThreats,
+    }
+  }
+
   sanitizeInput(input: string, type: "html" | "sql" | "javascript" = "html"): string {
     if (!input || typeof input !== "string") return ""
 
@@ -145,7 +300,6 @@ export class SecurityService {
     }
   }
 
-  // SQL injection detection
   detectSQLInjection(input: string): boolean {
     const sqlPatterns = [
       /(\b(SELECT|INSERT|UPDATE|DELETE|DROP|CREATE|ALTER|EXEC|UNION|SCRIPT)\b)/i,
@@ -158,7 +312,6 @@ export class SecurityService {
     return sqlPatterns.some((pattern) => pattern.test(input))
   }
 
-  // XSS detection
   detectXSS(input: string): boolean {
     const xssPatterns = [
       /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi,
@@ -172,7 +325,6 @@ export class SecurityService {
     return xssPatterns.some((pattern) => pattern.test(input))
   }
 
-  // Password security
   async hashPassword(password: string): Promise<string> {
     const salt = randomBytes(32).toString("hex")
     const derivedKey = (await scryptAsync(password, salt, 64)) as Buffer
@@ -189,12 +341,13 @@ export class SecurityService {
     score: number
     feedback: string[]
     isValid: boolean
+    strength: "very_weak" | "weak" | "fair" | "good" | "strong"
   } {
     const feedback: string[] = []
     let score = 0
 
     if (password.length >= 8) score += 1
-    else feedback.push("Password should be at least 8 characters long")
+    else feedback.push("Password must be at least 8 characters long")
 
     if (password.length >= 12) score += 1
     else feedback.push("Consider using 12+ characters for better security")
@@ -214,26 +367,103 @@ export class SecurityService {
     if (!/(.)\1{2,}/.test(password)) score += 1
     else feedback.push("Avoid repeating characters")
 
+    const commonPasswords = ["password", "123456", "qwerty", "admin", "letmein"]
+    if (!commonPasswords.some((common) => password.toLowerCase().includes(common))) score += 1
+    else feedback.push("Avoid common passwords")
+
+    if (
+      !/(?:abc|bcd|cde|def|efg|fgh|ghi|hij|ijk|jkl|klm|lmn|mno|nop|opq|pqr|qrs|rst|stu|tuv|uvw|vwx|wxy|xyz|123|234|345|456|567|678|789)/i.test(
+        password,
+      )
+    )
+      score += 1
+    else feedback.push("Avoid sequential characters")
+
+    let strength: "very_weak" | "weak" | "fair" | "good" | "strong"
+    if (score <= 2) strength = "very_weak"
+    else if (score <= 4) strength = "weak"
+    else if (score <= 6) strength = "fair"
+    else if (score <= 7) strength = "good"
+    else strength = "strong"
+
     return {
       score,
       feedback,
-      isValid: score >= 4,
+      isValid: score >= 5,
+      strength,
     }
   }
 
-  // Security scanning
+  async validateSession(
+    sessionId: string,
+    userId: string,
+    ipAddress: string,
+  ): Promise<{
+    isValid: boolean
+    shouldRefresh: boolean
+    securityWarnings: string[]
+  }> {
+    const sessionKey = `session:${sessionId}`
+    const userSessionsKey = `user_sessions:${userId}`
+    const securityWarnings: string[] = []
+
+    try {
+      const sessionData = await this.redis.get(sessionKey)
+      if (!sessionData) {
+        return { isValid: false, shouldRefresh: false, securityWarnings: ["Session not found"] }
+      }
+
+      const session = JSON.parse(sessionData as string)
+      const now = Date.now()
+
+      if (session.expires_at < now) {
+        await this.redis.del(sessionKey)
+        return { isValid: false, shouldRefresh: true, securityWarnings: ["Session expired"] }
+      }
+
+      if (session.ip_address !== ipAddress) {
+        securityWarnings.push("IP address changed")
+        await this.logSecurityEvent({
+          id: `session_ip_change_${now}`,
+          type: "suspicious_activity",
+          severity: "medium",
+          ip_address: ipAddress,
+          user_agent: "",
+          user_id: userId,
+          details: { old_ip: session.ip_address, new_ip: ipAddress },
+          timestamp: new Date().toISOString(),
+          blocked: false,
+        })
+      }
+
+      const userSessions = await this.redis.smembers(userSessionsKey)
+      if (userSessions.length > 5) {
+        securityWarnings.push("Multiple active sessions detected")
+      }
+
+      session.last_activity = now
+      await this.redis.setex(sessionKey, Math.floor((session.expires_at - now) / 1000), JSON.stringify(session))
+
+      return {
+        isValid: true,
+        shouldRefresh: session.expires_at - now < 300000,
+        securityWarnings,
+      }
+    } catch (error) {
+      return { isValid: false, shouldRefresh: false, securityWarnings: ["Session validation error"] }
+    }
+  }
+
   async performSecurityScan(): Promise<SecurityScanResult> {
     const scanId = `scan_${Date.now()}`
     const vulnerabilities: SecurityScanResult["vulnerabilities"] = []
 
-    // Check for common vulnerabilities
     await this.checkEnvironmentVariables(vulnerabilities)
     await this.checkDependencies(vulnerabilities)
     await this.checkSecurityHeaders(vulnerabilities)
     await this.checkDatabaseSecurity(vulnerabilities)
     await this.checkAPIEndpoints(vulnerabilities)
 
-    // Calculate security score
     const criticalCount = vulnerabilities.filter((v) => v.severity === "critical").length
     const highCount = vulnerabilities.filter((v) => v.severity === "high").length
     const mediumCount = vulnerabilities.filter((v) => v.severity === "medium").length
@@ -241,7 +471,6 @@ export class SecurityService {
 
     const securityScore = Math.max(0, 100 - criticalCount * 25 - highCount * 10 - mediumCount * 5 - lowCount * 1)
 
-    // Generate recommendations
     const recommendations = this.generateSecurityRecommendations(vulnerabilities)
 
     const result: SecurityScanResult = {
@@ -252,22 +481,17 @@ export class SecurityService {
       recommendations,
     }
 
-    // Store scan result
     await this.supabase.from("security_scans").insert(result)
 
     return result
   }
 
-  // Log security events
   async logSecurityEvent(event: SecurityEvent): Promise<void> {
-    // Store in database
     await this.supabase.from("security_events").insert(event)
 
-    // Store in cache for quick access
     await this.redis.lpush("security_events", JSON.stringify(event))
-    await this.redis.ltrim("security_events", 0, 999) // Keep last 1000 events
+    await this.redis.ltrim("security_events", 0, 999)
 
-    // Send alert for high severity events
     if (event.severity === "high" || event.severity === "critical") {
       await this.sendSecurityAlert(event)
     }
@@ -275,7 +499,6 @@ export class SecurityService {
     console.log(`🔒 Security event logged: ${event.type} (${event.severity})`)
   }
 
-  // Get security metrics
   async getSecurityMetrics(timeRange: "1h" | "24h" | "7d" = "24h"): Promise<{
     total_events: number
     blocked_attempts: number
@@ -290,7 +513,6 @@ export class SecurityService {
     const totalEvents = events?.length || 0
     const blockedAttempts = events?.filter((e) => e.blocked).length || 0
 
-    // Aggregate threat types
     const threatTypes = events?.reduce(
       (acc, event) => {
         acc[event.type] = (acc[event.type] || 0) + 1
@@ -304,7 +526,6 @@ export class SecurityService {
       .slice(0, 5)
       .map(([type, count]) => ({ type, count }))
 
-    // Aggregate threat sources
     const threatSources = events?.reduce(
       (acc, event) => {
         acc[event.ip_address] = (acc[event.ip_address] || 0) + 1
@@ -318,7 +539,6 @@ export class SecurityService {
       .slice(0, 10)
       .map(([ip, count]) => ({ ip, count }))
 
-    // Get latest security score
     const { data: latestScan } = await this.supabase
       .from("security_scans")
       .select("security_score")
@@ -336,7 +556,6 @@ export class SecurityService {
     }
   }
 
-  // Private helper methods
   private async checkEnvironmentVariables(vulnerabilities: SecurityScanResult["vulnerabilities"]): Promise<void> {
     const requiredEnvVars = ["NEXTAUTH_SECRET", "JWT_SECRET", "ENCRYPTION_KEY", "SUPABASE_SERVICE_ROLE_KEY"]
 
@@ -354,8 +573,6 @@ export class SecurityService {
   }
 
   private async checkDependencies(vulnerabilities: SecurityScanResult["vulnerabilities"]): Promise<void> {
-    // This would typically use npm audit or similar
-    // For now, we'll add a placeholder
     vulnerabilities.push({
       type: "dependency_check",
       severity: "low",
@@ -374,8 +591,6 @@ export class SecurityService {
       "Content-Security-Policy",
     ]
 
-    // This would check actual HTTP responses
-    // For now, we'll assume they need to be verified
     vulnerabilities.push({
       type: "security_headers",
       severity: "medium",
@@ -386,9 +601,7 @@ export class SecurityService {
   }
 
   private async checkDatabaseSecurity(vulnerabilities: SecurityScanResult["vulnerabilities"]): Promise<void> {
-    // Check for common database security issues
     try {
-      // This would perform actual database security checks
       const { data: users } = await this.supabase.from("users").select("count").limit(1)
 
       if (users) {
@@ -407,11 +620,9 @@ export class SecurityService {
   }
 
   private async checkAPIEndpoints(vulnerabilities: SecurityScanResult["vulnerabilities"]): Promise<void> {
-    // Check for API security issues
     const endpoints = ["/api/auth", "/api/users", "/api/admin"]
 
     for (const endpoint of endpoints) {
-      // This would perform actual endpoint security checks
       vulnerabilities.push({
         type: "api_security",
         severity: "low",
@@ -447,7 +658,6 @@ export class SecurityService {
   }
 
   private async sendSecurityAlert(event: SecurityEvent): Promise<void> {
-    // Implementation for sending security alerts
     console.log(`🚨 Security alert: ${event.type} - ${event.severity}`)
   }
 
