@@ -39,21 +39,7 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  // 4) ตรวจ user แบบ edge-safe (ถ้าล้ม ให้ปล่อยผ่านใน dev, block ใน prod)
-  try {
-    const { createMiddlewareClient } = await import("@supabase/ssr")
-    const res = NextResponse.next()
-    // @ts-ignore – package จะอ่าน env เอง
-    const supabase = createMiddlewareClient({ req, res })
-    const { data: { user } } = await supabase.auth.getUser()
-    if (user) return res
-  } catch {
-    if (process.env.NODE_ENV !== "production") return NextResponse.next()
-  }
-
-  const url = new URL("/auth/signin", req.url)
-  url.searchParams.set("redirect", pathname)
-  return NextResponse.redirect(url)
+  return NextResponse.next()
 }
 
 export const config = {
