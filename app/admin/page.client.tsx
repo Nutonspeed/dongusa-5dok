@@ -1,31 +1,35 @@
-"use client"
+"use client";
 
 export const dynamic = "force-dynamic"
 
 import { useState, useEffect } from "react"
-import { TrendingUp, TrendingDown, Users, Package, ShoppingCart, Eye, Clock } from "lucide-react"
+import { TrendingUp, TrendingDown, Users, Package, ShoppingCart, Eye, Clock } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import loadable from "next/dynamic"
+import nextDynamic from "next/dynamic"
 
-const AdminAnalytics = loadable(() => import("./analytics/page"), {
+const AdminAnalytics = nextDynamic(() => import("./analytics/page"), {
   loading: () => <div className="animate-pulse bg-gray-200 h-64 rounded-lg"></div>,
+  ssr: false,
 })
 
-const AdminOrders = loadable(() => import("./orders/page"), {
+const AdminOrders = nextDynamic(() => import("./orders/page"), {
   loading: () => <div className="animate-pulse bg-gray-200 h-64 rounded-lg"></div>,
+  ssr: false,
 })
 
-const AdminCustomers = loadable(() => import("./customers/page"), {
+const AdminCustomers = nextDynamic(() => import("./customers/page"), {
   loading: () => <div className="animate-pulse bg-gray-200 h-64 rounded-lg"></div>,
+  ssr: false,
 })
 
-const AdminInventory = loadable(() => import("./inventory/page"), {
+const AdminInventory = nextDynamic(() => import("./inventory/page"), {
   loading: () => <div className="animate-pulse bg-gray-200 h-64 rounded-lg"></div>,
+  ssr: false,
 })
 
-const AdminDashboard = ({ summary }: { summary: { orders: number; revenue: number } }) => {
+export default function AdminDashboardClient({ summary }: { summary: { orders: number; revenue: number } }) {
   const [currentTime, setCurrentTime] = useState(new Date())
   const [analytics, setAnalytics] = useState({
     totalOrders: {
@@ -150,7 +154,7 @@ const AdminDashboard = ({ summary }: { summary: { orders: number; revenue: numbe
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">แดshboard</h1>
+          <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
           <p className="text-gray-600 mt-1">ภาพรวมธุรกิจและข้อมูลสำคัญ</p>
         </div>
         <div className="mt-4 md:mt-0">
@@ -351,6 +355,3 @@ const AdminDashboard = ({ summary }: { summary: { orders: number; revenue: numbe
     </div>
   )
 }
-
-// Export AdminDashboard as default export
-export default AdminDashboard
