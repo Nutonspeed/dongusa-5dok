@@ -372,11 +372,46 @@ class MarketingAutomationService {
     await emailService.sendBulkEmail([customer.email], template.subject, template.html)
   }
 
-  // SMS Marketing (placeholder for future implementation)
+  // SMS Marketing
   async sendSMS(phone: string, message: string) {
-    // TODO: Implement SMS service integration
-    console.log(`SMS to ${phone}: ${message}`)
-    return { success: true, messageId: `sms_${Date.now()}` }
+    const accountSid = process.env.TWILIO_ACCOUNT_SID
+    const authToken = process.env.TWILIO_AUTH_TOKEN
+    const fromNumber = process.env.TWILIO_FROM_NUMBER
+
+    if (!accountSid || !authToken || !fromNumber) {
+      console.error("Twilio credentials are not set")
+      return { success: false, error: "Missing Twilio credentials" }
+    }
+
+    try {
+      const url = `https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json`
+      const body = new URLSearchParams({
+        From: fromNumber,
+        To: phone,
+        Body: message,
+      })
+
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          Authorization: `Basic ${Buffer.from(`${accountSid}:${authToken}`).toString("base64")}`,
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: body.toString(),
+      })
+
+      if (!response.ok) {
+        const errorText = await response.text()
+        console.error("Failed to send SMS:", response.status, errorText)
+        return { success: false, error: `Twilio error: ${response.statusText}` }
+      }
+
+      const data = await response.json()
+      return { success: true, messageId: data.sid }
+    } catch (error) {
+      console.error("Failed to send SMS:", error)
+      return { success: false, error: "SMS sending failed" }
+    }
   }
 
   // Campaign Management
