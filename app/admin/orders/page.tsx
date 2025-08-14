@@ -29,7 +29,7 @@ import Link from "next/link"
 import { DatabaseService } from "@/lib/database"
 import { createClient } from "@/lib/supabase/client"
 import { formatCurrency } from "@/lib/money"
-import { statusBadgeVariant, toStatusLabelTH, toChannelLabelTH } from "@/lib/i18n/status"
+import { statusBadgeVariant, statusToTH, toChannelLabelTH } from "@/lib/i18n/status"
 
 interface Order {
   id: string
@@ -169,7 +169,7 @@ export default function AdminOrdersPage() {
             `"${order.customer_name}"`,
             order.customer_phone,
             order.total_amount,
-            `"${toStatusLabelTH(order.status)}"`,
+            `"${statusToTH(order.status)}"`,
             `"${toChannelLabelTH(order.channel)}"`,
             new Date(order.created_at).toLocaleDateString("th-TH"),
             `"${order.notes || ""}"`,
@@ -210,7 +210,7 @@ export default function AdminOrdersPage() {
         prevOrders.map((order) => (selectedOrders.includes(order.id) ? { ...order, status: newStatus } : order)),
       )
 
-      toast.success(`อัพเดทสถานะ ${selectedOrders.length} รายการเป็น "${toStatusLabelTH(newStatus)}" สำเร็จ`)
+      toast.success(`อัพเดทสถานะ ${selectedOrders.length} รายการเป็น "${statusToTH(newStatus)}" สำเร็จ`)
       setSelectedOrders([])
       setIsStatusModalOpen(false)
     } catch (error) {
@@ -278,7 +278,7 @@ export default function AdminOrdersPage() {
                 <p><strong>ลูกค้า:</strong> ${order.customer_name}</p>
                 <p><strong>เบอร์โทร:</strong> ${order.customer_phone}</p>
                 <p><strong>ยอดรวม:</strong> ${formatCurrency(order.total_amount ?? 0)}</p>
-                <p><strong>สถานะ:</strong> ${toStatusLabelTH(order.status)}</p>
+                <p><strong>สถานะ:</strong> ${statusToTH(order.status)}</p>
                 <p><strong>ช่องทาง:</strong> ${toChannelLabelTH(order.channel)}</p>
                 <p><strong>วันที่:</strong> ${new Date(order.created_at).toLocaleDateString("th-TH", {
                   month: "short",
@@ -339,7 +339,7 @@ export default function AdminOrdersPage() {
   }
 
   const getStatusBadge = (status: string) => {
-    return <Badge variant={statusBadgeVariant(status)}>{toStatusLabelTH(status)}</Badge>
+    return <Badge variant={statusBadgeVariant(status)}>{statusToTH(status)}</Badge>
   }
 
   if (loading) {
@@ -446,7 +446,7 @@ export default function AdminOrdersPage() {
                   <SelectItem value="all">ทุกสถานะ</SelectItem>
                   {Object.keys(statusBadgeVariant()).map((status) => (
                     <SelectItem key={status} value={status}>
-                      {toStatusLabelTH(status)}
+                      {statusToTH(status)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -649,7 +649,7 @@ export default function AdminOrdersPage() {
               <SelectContent>
                 {Object.keys(statusBadgeVariant()).map((status) => (
                   <SelectItem key={status} value={status}>
-                    {toStatusLabelTH(status)}
+                    {statusToTH(status)}
                   </SelectItem>
                 ))}
               </SelectContent>

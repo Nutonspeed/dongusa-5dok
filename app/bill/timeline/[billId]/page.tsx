@@ -8,7 +8,12 @@ import { ArrowLeft, CheckCircle, Clock, Package, Truck, XCircle } from "lucide-r
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { toast } from "sonner"
-import { statusBadgeVariant, toStatusLabelTH } from "@/lib/i18n/status"
+import {
+  OrderStatus,
+  statusBadgeVariant,
+  statusToTH,
+  statusFromString,
+} from "@/lib/i18n/status"
 
 type TimelineEvent = {
   id: string
@@ -113,8 +118,18 @@ export default function BillTimelinePage() {
           <p className="text-gray-600">ออร์เดอร์ {bill.code || bill.id}</p>
 
           <div className="flex items-center justify-center gap-2 mt-4">
-            <StatusIcon className="w-5 h-5" />
-            <Badge variant={statusBadgeVariant(bill.status)}>{toStatusLabelTH(bill.status)}</Badge>
+            {(() => {
+              const statusEnum =
+                statusFromString(bill.status) ?? OrderStatus.PENDING_PAYMENT
+              return (
+                <>
+                  <StatusIcon className="w-5 h-5" />
+                  <Badge variant={statusBadgeVariant(statusEnum)}>
+                    {statusToTH(statusEnum)}
+                  </Badge>
+                </>
+              )
+            })()}
           </div>
         </div>
 
@@ -127,7 +142,13 @@ export default function BillTimelinePage() {
             <div className="text-center">
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border-2 bg-burgundy-100 text-burgundy-800 border-burgundy-200">
                 <StatusIcon className="w-6 h-6" />
-                <span className="font-semibold text-lg">{toStatusLabelTH(bill.status)}</span>
+                {(() => {
+                  const statusEnum =
+                    statusFromString(bill.status) ?? OrderStatus.PENDING_PAYMENT
+                  return (
+                    <span className="font-semibold text-lg">{statusToTH(statusEnum)}</span>
+                  )
+                })()}
               </div>
 
               {bill.status === "production" && (
@@ -197,7 +218,12 @@ export default function BillTimelinePage() {
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-1">
                             <h3 className={`font-semibold ${isLatest ? "text-burgundy-800" : "text-gray-700"}`}>
-                              {toStatusLabelTH(event.status)}
+                              {(() => {
+                                const statusEnum = statusFromString(event.status)
+                                return statusEnum
+                                  ? statusToTH(statusEnum)
+                                  : event.status
+                              })()}
                             </h3>
                             {isLatest && (
                               <Badge variant="secondary" className="text-xs">

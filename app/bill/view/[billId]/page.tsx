@@ -12,7 +12,13 @@ import { MapPin, Phone, Calendar, Package, Eye, Copy, Check, Save, CreditCard, B
 import { toast } from "sonner"
 import Link from "next/link"
 import { formatCurrency } from "@/lib/money"
-import { statusBadgeVariant, toStatusLabelTH, toChannelLabelTH } from "@/lib/i18n/status"
+import {
+  OrderStatus,
+  statusBadgeVariant,
+  statusToTH,
+  toChannelLabelTH,
+  statusFromString,
+} from "@/lib/i18n/status"
 
 type BillItem = {
   id: string
@@ -185,9 +191,18 @@ export default function BillViewPage() {
                 <p className="text-sm text-gray-600 mt-1">โทร: 02-123-4567 | Line: @sofacover</p>
               </div>
               <div className="flex items-center gap-2">
-                <Badge variant={statusBadgeVariant(bill.status)} className="bg-burgundy-100 text-burgundy-800">
-                  {toStatusLabelTH(bill.status)}
-                </Badge>
+                {(() => {
+                  const statusEnum =
+                    statusFromString(bill.status) ?? OrderStatus.PENDING_PAYMENT
+                  return (
+                    <Badge
+                      variant={statusBadgeVariant(statusEnum)}
+                      className="bg-burgundy-100 text-burgundy-800"
+                    >
+                      {statusToTH(statusEnum)}
+                    </Badge>
+                  )
+                })()}
                 <Button size="sm" variant="outline" onClick={handleCopyBillLink}>
                   {linkCopied ? (
                     <>
