@@ -42,6 +42,7 @@
     "notifications:test": "tsx lib/real-time-notification-service.ts",
     "precommit": "lint-staged",
     "prepare": "husky install",
+    "production:readiness": "tsx scripts/final-production-readiness-check.ts",
     "qa:smoke": "tsx scripts/qa-smoke.ts",
     "qa:supabase": "tsx scripts/qa-supabase.ts",
     "rc:tag": "node -e \"console.log('v'+new Date().toISOString().slice(0,10))\"",
