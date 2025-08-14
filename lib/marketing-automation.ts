@@ -1,3 +1,5 @@
+import "server-only"
+
 import { emailService } from "@/lib/email"
 import { supabase } from "@/lib/supabase"
 import { USE_SUPABASE } from "@/lib/runtime"
