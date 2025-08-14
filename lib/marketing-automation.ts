@@ -1,15 +1,6 @@
-import "server-only"
-
 import { emailService } from "@/lib/email"
 import { supabase } from "@/lib/supabase"
 import { USE_SUPABASE } from "@/lib/runtime"
-import twilio from "twilio"
-
-const twilioAccountSid = process.env.TWILIO_ACCOUNT_SID
-const twilioAuthToken = process.env.TWILIO_AUTH_TOKEN
-const twilioFromNumber = process.env.TWILIO_FROM_NUMBER
-const twilioClient =
-  twilioAccountSid && twilioAuthToken ? twilio(twilioAccountSid, twilioAuthToken) : null
 
 interface Customer {
   id: string
@@ -381,35 +372,11 @@ class MarketingAutomationService {
     await emailService.sendBulkEmail([customer.email], template.subject, template.html)
   }
 
-  // SMS Marketing
+  // SMS Marketing (placeholder for future implementation)
   async sendSMS(phone: string, message: string) {
-    if (!twilioClient || !twilioFromNumber) {
-      const missingVars = [
-        !twilioAccountSid && "TWILIO_ACCOUNT_SID",
-        !twilioAuthToken && "TWILIO_AUTH_TOKEN",
-        !twilioFromNumber && "TWILIO_FROM_NUMBER",
-      ]
-        .filter(Boolean)
-        .join(", ")
-
-      console.error("Twilio credentials are not set:", missingVars)
-      return { success: false, error: `Missing Twilio credentials: ${missingVars}` }
-    }
-
-    try {
-      const sms = await twilioClient.messages.create({
-        from: twilioFromNumber,
-        to: phone,
-        body: message,
-      })
-      return { success: true, messageId: sms.sid }
-    } catch (error) {
-      console.error("Failed to send SMS:", error)
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : "SMS sending failed",
-      }
-    }
+    // TODO: Implement SMS service integration
+    console.log(`SMS to ${phone}: ${message}`)
+    return { success: true, messageId: `sms_${Date.now()}` }
   }
 
   // Campaign Management

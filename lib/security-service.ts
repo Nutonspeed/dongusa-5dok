@@ -2,76 +2,6 @@ import { randomBytes, scrypt } from "crypto"
 import { promisify } from "util"
 import { createClient } from "@supabase/supabase-js"
 import { Redis } from "@upstash/redis"
-import { logger } from "./logger"
-
-class InMemoryRedis {
-  private store = new Map<string, any>()
-  private sortedSets = new Map<string, Array<{ score: number; member: string }>>()
-
-  async get(key: string) {
-    return this.store.get(key)
-  }
-
-  async del(key: string) {
-    this.store.delete(key)
-  }
-
-  async incr(key: string) {
-    const val = Number(this.store.get(key) ?? 0) + 1
-    this.store.set(key, val)
-    return val
-  }
-
-  async expire(key: string, seconds: number) {
-    if (this.store.has(key)) {
-      setTimeout(() => this.store.delete(key), seconds * 1000).unref?.()
-    }
-  }
-
-  async setex(key: string, seconds: number, value: string) {
-    this.store.set(key, value)
-    await this.expire(key, seconds)
-  }
-
-  async zcount(key: string, min: number, max: number) {
-    const arr = this.sortedSets.get(key) ?? []
-    return arr.filter((e) => e.score >= min && e.score <= max).length
-  }
-
-  async zadd(key: string, score: number, member: string) {
-    const arr = this.sortedSets.get(key) ?? []
-    arr.push({ score, member })
-    this.sortedSets.set(key, arr)
-  }
-
-  async zremrangebyscore(key: string, min: number, max: number) {
-    const arr = this.sortedSets.get(key) ?? []
-    this.sortedSets.set(key, arr.filter((e) => e.score < min || e.score > max))
-  }
-
-  async lpush(key: string, value: string) {
-    const list = this.store.get(key) ?? []
-    list.unshift(value)
-    this.store.set(key, list)
-  }
-
-  async ltrim(key: string, start: number, stop: number) {
-    const list = this.store.get(key) ?? []
-    this.store.set(key, list.slice(start, stop + 1))
-  }
-}
-
-class MockSupabase {
-  from(_table: string) {
-    return {
-      insert: async (_data: any) => ({ data: null, error: null }),
-      select: (_columns: string) => ({
-        gte: async (_column: string, _value: any) => ({ data: [], error: null }),
-        limit: async (_n: number) => ({ data: [{ count: 0 }], error: null }),
-      }),
-    }
-  }
-}
 
 const scryptAsync = promisify(scrypt)
 
@@ -121,29 +51,16 @@ interface SecurityScanResult {
 }
 
 export class SecurityService {
-  private redis: any
+  private redis: Redis
   private supabase: any
 
   constructor() {
-    const redisUrl = process.env.UPSTASH_REDIS_REST_URL
-    const redisToken = process.env.UPSTASH_REDIS_REST_TOKEN
+    this.redis = new Redis({
+      url: process.env.UPSTASH_REDIS_REST_URL!,
+      token: process.env.UPSTASH_REDIS_REST_TOKEN!,
+    })
 
-    if (redisUrl && redisToken) {
-      this.redis = new Redis({ url: redisUrl, token: redisToken })
-    } else {
-      logger.warn("Missing Redis configuration, falling back to in-memory store")
-      this.redis = new InMemoryRedis()
-    }
-
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-
-    if (supabaseUrl && supabaseKey) {
-      this.supabase = createClient(supabaseUrl, supabaseKey)
-    } else {
-      logger.warn("Missing Supabase configuration, using mock client")
-      this.supabase = new MockSupabase()
-    }
+    this.supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
   }
 
   async checkLoginAttempt(

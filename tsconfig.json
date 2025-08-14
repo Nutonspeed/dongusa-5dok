@@ -36,15 +36,11 @@
   "include": [
     "app/**/*",
     "components/**/*",
-    "lib/config/**/*",
-    "lib/i18n/**/*",
-    "lib/auth/**/*",
-    "lib/export/**/*",
-    "lib/sms-service.ts",
-    "providers/**/*",
-    "types/**/*",
-    "next-env.d.ts",
-    ".next/types/**/*.ts"
+    "lib/**/*",
+    "pages/**/*",
+      "scripts/**/*",
+      "types/**/*",
+      "next-env.d.ts"
   ],
   "exclude": [
     "node_modules",

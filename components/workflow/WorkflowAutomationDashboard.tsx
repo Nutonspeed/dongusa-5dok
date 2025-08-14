@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -31,9 +31,7 @@ import {
   Database,
   Webhook,
 } from "lucide-react"
-// Placeholder workflow types until API integration is available
-interface Workflow { id: string; name: string; status: string }
-interface WorkflowExecution { id: string; status: string; started_at: string; completed_at?: string }
+import { workflowAutomation, type Workflow, type WorkflowExecution } from "@/lib/comprehensive-workflow-automation"
 
 const COLORS = ["#ec4899", "#f43f5e", "#3b82f6", "#10b981", "#f59e0b", "#8b5cf6"]
 
@@ -42,7 +40,34 @@ export default function WorkflowAutomationDashboard() {
   const [executions, setExecutions] = useState<WorkflowExecution[]>([])
   const [selectedWorkflow, setSelectedWorkflow] = useState<Workflow | null>(null)
   const [analytics, setAnalytics] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState("overview")
+
+  useEffect(() => {
+    loadWorkflowData()
+  }, [])
+
+  const loadWorkflowData = async () => {
+    try {
+      setLoading(true)
+      const [workflowsData, executionsData] = await Promise.all([
+        workflowAutomation.getWorkflows(),
+        workflowAutomation.getExecutions(),
+      ])
+      setWorkflows(workflowsData)
+      setExecutions(executionsData)
+
+      if (workflowsData.length > 0) {
+        const analyticsData = await workflowAutomation.getWorkflowAnalytics(workflowsData[0].id)
+        setAnalytics(analyticsData)
+        setSelectedWorkflow(workflowsData[0])
+      }
+    } catch (error) {
+      console.error("Error loading workflow data:", error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -118,6 +143,21 @@ export default function WorkflowAutomationDashboard() {
     if (ms < 60000) return `${(ms / 1000).toFixed(1)}s`
     if (ms < 3600000) return `${(ms / 60000).toFixed(1)}m`
     return `${(ms / 3600000).toFixed(1)}h`
+  }
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="animate-pulse space-y-4">
+          <div className="h-8 bg-gray-200 rounded w-1/3"></div>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="h-32 bg-gray-200 rounded"></div>
+            ))}
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (

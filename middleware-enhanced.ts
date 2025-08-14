@@ -1,34 +1,22 @@
+// Enhanced Middleware with comprehensive authentication and authorization
+// Handles both Supabase and mock authentication modes
+
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
-import { USE_SUPABASE } from "@/lib/runtime"
-import { sessionManager } from "@/lib/session-management"
 import { createServerClient } from "@supabase/ssr"
+import type { Database } from "@/lib/supabase/types"
+import { USE_SUPABASE } from "@/lib/runtime"
+import { logger } from "@/lib/logger"
 
 export const config = {
-  matcher: [
-    "/admin/:path*",
-    "/profile/:path*",
-    "/orders/:path*",
-    "/checkout",
-    "/auth/callback",
-    "/api/admin/:path*",
-    "/api/user/:path*",
-  ],
+  matcher: ["/admin/:path*", "/profile/:path*", "/orders/:path*", "/checkout", "/auth/callback"],
 }
 
 const PROTECTED_ROUTES = {
-  admin: ["/admin", "/api/admin"],
-  user: ["/profile", "/orders", "/checkout", "/api/user"],
+  admin: ["/admin"],
+  staff: ["/admin/orders", "/admin/customers", "/admin/products"],
+  customer: ["/profile", "/orders", "/checkout"],
   public: ["/auth/callback"],
-}
-
-function getClientIP(request: NextRequest): string {
-  return (
-    request.headers.get("x-forwarded-for")?.split(",")[0] ||
-    request.headers.get("x-real-ip") ||
-    request.headers.get("cf-connecting-ip") ||
-    "unknown"
-  )
 }
 
 function requiresAuth(pathname: string): { required: boolean; role?: string } {
@@ -40,14 +28,18 @@ function requiresAuth(pathname: string): { required: boolean; role?: string } {
     return { required: true, role: "admin" }
   }
 
-  if (PROTECTED_ROUTES.user.some((route) => pathname.startsWith(route))) {
-    return { required: true, role: "user" }
+  if (PROTECTED_ROUTES.staff.some((route) => pathname.startsWith(route))) {
+    return { required: true, role: "staff" }
+  }
+
+  if (PROTECTED_ROUTES.customer.some((route) => pathname.startsWith(route))) {
+    return { required: true, role: "customer" }
   }
 
   return { required: false }
 }
 
-async function handleSessionAuth(request: NextRequest) {
+async function handleMockAuth(request: NextRequest) {
   const { pathname } = request.nextUrl
   const authCheck = requiresAuth(pathname)
 
@@ -55,51 +47,41 @@ async function handleSessionAuth(request: NextRequest) {
     return NextResponse.next()
   }
 
-  const sessionId = request.cookies.get("session_id")?.value
-  const clientIP = getClientIP(request)
-  const userAgent = request.headers.get("user-agent") || ""
+  // Check for mock authentication
+  const authUser = request.cookies.get("auth_user")?.value
+  const adminToken = request.cookies.get("admin_token")?.value
 
-  if (!sessionId) {
-    const loginUrl = new URL("/auth/login", request.url)
+  if (!authUser) {
+    const loginUrl = new URL("/login", request.url)
     loginUrl.searchParams.set("redirect", pathname)
     return NextResponse.redirect(loginUrl)
   }
 
   try {
-    const validation = await sessionManager.validateSession(sessionId, clientIP, userAgent)
-
-    if (!validation.isValid) {
-      const response = NextResponse.redirect(new URL("/auth/login", request.url))
-      response.cookies.delete("session_id")
-      return response
-    }
+    const user = JSON.parse(authUser)
 
     // Check role-based access
-    if (authCheck.role === "admin" && validation.session?.role !== "admin") {
+    if (authCheck.role === "admin" && user.role !== "admin") {
       return NextResponse.redirect(new URL("/", request.url))
     }
 
-    // Handle session refresh
-    if (validation.shouldRefresh) {
-      await sessionManager.refreshSession(sessionId)
+    if (authCheck.role === "staff" && !["admin", "staff"].includes(user.role)) {
+      return NextResponse.redirect(new URL("/", request.url))
     }
 
-    // Add security warnings to response headers for client-side handling
-    const response = NextResponse.next()
-    if (validation.securityWarnings.length > 0) {
-      response.headers.set("X-Security-Warnings", JSON.stringify(validation.securityWarnings))
+    // For admin routes, also check admin token
+    if (pathname.startsWith("/admin") && !adminToken) {
+      const loginUrl = new URL("/admin/login", request.url)
+      loginUrl.searchParams.set("redirect", pathname)
+      return NextResponse.redirect(loginUrl)
     }
 
-    if (validation.requiresReauth) {
-      response.headers.set("X-Requires-Reauth", "true")
-    }
-
-    return response
+    return NextResponse.next()
   } catch (error) {
-    console.error("Session validation error:", error)
-    const response = NextResponse.redirect(new URL("/auth/login", request.url))
-    response.cookies.delete("session_id")
-    return response
+    logger.error("Mock auth parsing error:", error)
+    const loginUrl = new URL("/login", request.url)
+    loginUrl.searchParams.set("redirect", pathname)
+    return NextResponse.redirect(loginUrl)
   }
 }
 
@@ -114,7 +96,7 @@ async function handleSupabaseAuth(request: NextRequest) {
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL!
     const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY!
 
-    const supabase = createServerClient(url, anon, {
+    const supabase = createServerClient<Database>(url, anon, {
       cookies: {
         getAll() {
           return request.cookies.getAll()
@@ -143,7 +125,7 @@ async function handleSupabaseAuth(request: NextRequest) {
     } = await supabase.auth.getSession()
 
     if (sessionError) {
-      console.error("Session error:", sessionError)
+      logger.error("Session error:", sessionError)
     }
 
     const authCheck = requiresAuth(pathname)
@@ -169,7 +151,7 @@ async function handleSupabaseAuth(request: NextRequest) {
           .single()
 
         if (profileError) {
-          console.error("Profile fetch error:", profileError)
+          logger.error("Profile fetch error:", profileError)
           // Allow access if profile check fails (graceful degradation)
           return supabaseResponse
         }
@@ -180,15 +162,20 @@ async function handleSupabaseAuth(request: NextRequest) {
         if (authCheck.role === "admin" && userRole !== "admin") {
           return NextResponse.redirect(new URL("/", request.url))
         }
+
+        // Check staff access
+        if (authCheck.role === "staff" && !["admin", "staff"].includes(userRole)) {
+          return NextResponse.redirect(new URL("/", request.url))
+        }
       } catch (error) {
-        console.error("Role check error:", error)
+        logger.error("Role check error:", error)
         // Allow access if role check fails (graceful degradation)
       }
     }
 
     return supabaseResponse
   } catch (error) {
-    console.error("Supabase middleware error:", error)
+    logger.error("Supabase middleware error:", error)
     return NextResponse.next()
   }
 }
@@ -201,13 +188,8 @@ export default async function middleware(request: NextRequest) {
     return NextResponse.rewrite(new URL("/maintenance", request.url))
   }
 
-  // Skip middleware for static files and API routes (except protected ones)
-  if (
-    pathname.startsWith("/_next") ||
-    pathname.startsWith("/favicon") ||
-    pathname.includes(".") ||
-    (pathname.startsWith("/api") && !pathname.startsWith("/api/admin") && !pathname.startsWith("/api/user"))
-  ) {
+  // Skip middleware for static files and API routes
+  if (pathname.startsWith("/_next") || pathname.startsWith("/api") || pathname.includes(".")) {
     return NextResponse.next()
   }
 
@@ -220,6 +202,6 @@ export default async function middleware(request: NextRequest) {
   if (USE_SUPABASE) {
     return handleSupabaseAuth(request)
   } else {
-    return handleSessionAuth(request)
+    return handleMockAuth(request)
   }
 }

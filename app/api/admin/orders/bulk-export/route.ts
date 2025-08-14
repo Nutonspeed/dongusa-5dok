@@ -1,13 +1,10 @@
-import { ordersProvider } from "@/providers/orders";
-import { requireAdmin } from "@/lib/auth/getUser";
-
 export const runtime = "nodejs";
 
 export async function GET() {
   try {
-    await requireAdmin();
-    const csv = await ordersProvider.exportCSV();
-    return new Response(csv, {
+    const header = "id,customer,total\n";
+    const lines = ["mock-1,คุณเอ,1234.50", "mock-2,คุณบี,999.00"].join("\n");
+    return new Response(header + lines + "\n", {
       status: 200,
       headers: {
         "Content-Type": "text/csv; charset=utf-8",
@@ -15,9 +12,6 @@ export async function GET() {
       },
     });
   } catch (e) {
-    if (e instanceof Error && e.message === "Unauthorized") {
-      return new Response("Unauthorized", { status: 401 });
-    }
     console.error("GET /bulk-export error", e);
     return new Response("csv_error", { status: 500 });
   }

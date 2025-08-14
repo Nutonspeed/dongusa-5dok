@@ -1,5 +1,3 @@
-import { ENV } from "@/lib/config/env";
-
 interface SMSConfig {
   provider: "twilio" | "nexmo" | "aws_sns" | "thai_bulk_sms"
   apiKey: string
@@ -69,7 +67,7 @@ class SMSService {
   }
 
   async sendOrderConfirmationSMS(customerName: string, phone: string, orderId: string) {
-    const message = `${customerName} ขอบคุณสำหรับคำสั่งซื้อ #${orderId} 🛍️ เราจะแจ้งสถานะการจัดส่งให้ทราบ ติดตาม: ${ENV.BASE_URL}/orders/${orderId}`
+    const message = `${customerName} ขอบคุณสำหรับคำสั่งซื้อ #${orderId} 🛍️ เราจะแจ้งสถานะการจัดส่งให้ทราบ ติดตาม: ${process.env.NEXT_PUBLIC_SITE_URL}/orders/${orderId}`
     return this.sendSMS(phone, message)
   }
 
@@ -79,12 +77,12 @@ class SMSService {
   }
 
   async sendPromotionSMS(customerName: string, phone: string, discount: number, code: string) {
-    const message = `${customerName} โปรโมชันพิเศษ! 🎉 รับส่วนลด ${discount}% ใช้โค้ด ${code} วันนี้-พรุ่งนี้เท่านั้น! 🛋️ สั่งเลย: ${ENV.BASE_URL}`
+    const message = `${customerName} โปรโมชันพิเศษ! 🎉 รับส่วนลด ${discount}% ใช้โค้ด ${code} วันนี้-พรุ่งนี้เท่านั้น! 🛋️ สั่งเลย: ${process.env.NEXT_PUBLIC_SITE_URL}`
     return this.sendSMS(phone, message)
   }
 
   async sendWinBackSMS(customerName: string, phone: string, discount: number) {
-    const message = `${customerName} เราคิดถึงคุณ! 💜 กลับมาพร้อมส่วนลด ${discount}% สำหรับผ้าคลุมโซฟาใหม่ๆ 🛋️ ดูเลย: ${ENV.BASE_URL}`
+    const message = `${customerName} เราคิดถึงคุณ! 💜 กลับมาพร้อมส่วนลด ${discount}% สำหรับผ้าคลุมโซฟาใหม่ๆ 🛋️ ดูเลย: ${process.env.NEXT_PUBLIC_SITE_URL}`
     return this.sendSMS(phone, message)
   }
 

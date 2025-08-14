@@ -3,11 +3,9 @@ import { USE_SUPABASE } from "@/lib/runtime"
 import { DatabaseService } from "@/lib/database"
 import { createClient } from "@/lib/supabase/client"
 import { logger } from "@/lib/logger"
-import { requireAdmin } from "@/lib/auth/getUser"
 
 export async function POST(request: NextRequest) {
   try {
-    await requireAdmin()
     const body = await request.json()
     const orderIds: string[] = body?.orderIds || []
     const newStatus: string = body?.status || body?.newStatus
@@ -73,12 +71,6 @@ export async function POST(request: NextRequest) {
       mode: "mock",
     })
   } catch (error) {
-    if (error instanceof Error && error.message === "Unauthorized") {
-      return NextResponse.json(
-        { success: false, message: "Unauthorized" },
-        { status: 401 },
-      )
-    }
     logger.error("Bulk status update error:", error)
     return NextResponse.json(
       {
