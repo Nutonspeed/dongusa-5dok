@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { bruteForceProtection } from "@/lib/brute-force-protection"
 import { securityService } from "@/lib/security-service"
+import { createClient } from "@/lib/supabase/server"
 
 export async function POST(request: NextRequest) {
   try {
@@ -73,9 +74,32 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Here you would perform the actual authentication
-    // For this example, we'll simulate it
-    const isValidCredentials = await simulateAuthentication(emailValidation.sanitized, password)
+    // Perform authentication against Supabase
+    const supabase = createClient()
+    const {
+      data: authData,
+      error: authError,
+    } = await supabase.auth.signInWithPassword({
+      email: emailValidation.sanitized,
+      password, // Supabase stores and verifies hashed passwords
+    })
+
+    if (authError && authError.status !== 400) {
+      console.error("Authentication service error:", authError)
+      // Record failed attempt due to service error
+      await bruteForceProtection.checkLoginAttempt(
+        emailValidation.sanitized,
+        clientIP,
+        userAgent,
+        false,
+      )
+      return NextResponse.json(
+        { error: "Authentication service error" },
+        { status: 500 },
+      )
+    }
+
+    const isValidCredentials = !!authData?.user && !authError
 
     // Log the attempt result
     const finalResult = await bruteForceProtection.checkLoginAttempt(
@@ -102,15 +126,4 @@ export async function POST(request: NextRequest) {
     console.error("Login API error:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
-}
-
-async function simulateAuthentication(email: string, password: string): Promise<boolean> {
-  // This is a mock authentication function
-  // In a real application, you would verify against your database
-  const validCredentials = [
-    { email: "user@sofacover.com", password: "user123" },
-    { email: "admin@sofacover.com", password: "admin123" },
-  ]
-
-  return validCredentials.some((cred) => cred.email === email && cred.password === password)
 }
