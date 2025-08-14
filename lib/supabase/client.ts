@@ -1,12 +1,22 @@
 import { createBrowserClient } from "@supabase/ssr"
 import type { Database } from "@/types/database"
-import { USE_SUPABASE } from "@/lib/runtime"
+
+// Check if Supabase environment variables are available
+export const isSupabaseConfigured =
+  typeof process.env.NEXT_PUBLIC_SUPABASE_URL === "string" &&
+  process.env.NEXT_PUBLIC_SUPABASE_URL.length > 0 &&
+  typeof process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY === "string" &&
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY.length > 0
 
 export function createClient() {
-  if (!USE_SUPABASE) {
+  if (!isSupabaseConfigured) {
+    console.warn("Supabase environment variables are not set. Using dummy client.")
     return {
       from: () => ({
-        select: () => ({ eq: () => ({ single: async () => ({ data: null, error: null }) }) }),
+        select: () => ({
+          eq: () => ({ single: async () => ({ data: null, error: null }) }),
+          order: () => ({ limit: async () => ({ data: [], error: null }) }),
+        }),
         insert: async () => ({ data: null, error: null }),
         update: () => ({ eq: async () => ({ data: null, error: null }) }),
         delete: () => ({ eq: async () => ({ data: null, error: null }) }),
@@ -14,13 +24,17 @@ export function createClient() {
       auth: {
         getUser: async () => ({ data: { user: null }, error: null }),
         getSession: async () => ({ data: { session: null }, error: null }),
+        signInWithPassword: async () => ({ data: null, error: null }),
+        signUp: async () => ({ data: null, error: null }),
+        signOut: async () => ({ error: null }),
       },
     } as any
   }
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL!
-  const anon =
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY!
-  return createBrowserClient<Database>(url, anon)
+
+  return createBrowserClient<Database>(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+  )
 }
 
 // Create a singleton instance of the Supabase client for Client Components
