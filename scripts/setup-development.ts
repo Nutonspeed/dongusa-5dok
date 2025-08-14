@@ -1,3 +1,4 @@
+import "server-only"
 import { writeFileSync, existsSync, readFileSync, mkdirSync } from "fs"
 import { join } from "path"
 

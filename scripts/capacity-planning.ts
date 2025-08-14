@@ -1,3 +1,4 @@
+import "server-only"
 import { scalingService } from "../lib/scaling-service"
 import fs from "fs"
 import path from "path"

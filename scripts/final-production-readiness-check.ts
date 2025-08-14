@@ -1,3 +1,4 @@
+import "server-only"
 import { readFileSync, existsSync } from "fs"
 
 interface ProductionReadinessCheck {
