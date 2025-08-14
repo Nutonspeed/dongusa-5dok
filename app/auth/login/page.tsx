@@ -5,8 +5,6 @@ import { USE_SUPABASE } from "@/lib/runtime"
 import { redirect } from "next/navigation"
 import LoginForm from "@/components/login-form"
 
-export const runtime = "nodejs"
-
 export default async function LoginPage() {
   if (!USE_SUPABASE) {
     return (
