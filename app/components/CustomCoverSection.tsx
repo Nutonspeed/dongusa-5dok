@@ -125,7 +125,9 @@ Estimated Price: ฿${estimatedPrice.toLocaleString()}
 I'd like to consult further and see fabric samples.`
 
     const facebookUrl = `https://m.me/your-facebook-page?text=${encodeURIComponent(message)}`
-    window.open(facebookUrl, "_blank")
+    if (typeof window !== "undefined") {
+      window.open(facebookUrl, "_blank")
+    }
   }
 
   return (
