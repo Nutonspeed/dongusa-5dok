@@ -8,6 +8,7 @@ module.exports = {
     "@next/next/no-img-element": "off",
     "unused-imports/no-unused-imports": "warn",
     "unused-imports/no-unused-vars": ["warn", { vars: "all", varsIgnorePattern: "^_", argsIgnorePattern: "^_" }],
+    "no-console": process.env.NODE_ENV === "production" ? "warn" : "off",
   },
   overrides: [
     { files: ["app/api/**/route.ts","scripts/**/*.ts"], rules: { "no-console": "off" } },

@@ -34,14 +34,10 @@
     ]
   },
   "include": [
-    "next-env.d.ts",
-    "app/**/*.ts",
-    "app/**/*.tsx",
-    "lib/**/*.ts",
-    "lib/**/*.tsx",
-    "scripts/**/*.ts",
-    "types/**/*.d.ts",
-    ".next/types/**/*.ts"
+    "app/**/*",
+    "lib/**/*",
+    "scripts/**/*",
+    "types/**/*"
   ],
   "exclude": [
     "node_modules",
