@@ -3,7 +3,8 @@ const DB = process.env.DATABASE_URL;
 if (!DB) { console.error("❌ DATABASE_URL missing"); process.exit(1); }
 const MIG_DIR = path.resolve("supabase/migrations");
 (async () => {
-  const client = new Client({ connectionString: DB }); await client.connect();
+  const client = new Client({ connectionString: DB, ssl: { rejectUnauthorized: false }});
+  await client.connect();
   const files = fs.readdirSync(MIG_DIR).filter(f=>f.endsWith(".sql")).sort();
   for (const f of files) {
     const sql = fs.readFileSync(path.join(MIG_DIR,f), "utf8");
