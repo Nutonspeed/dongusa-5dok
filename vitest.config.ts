@@ -1,7 +1,9 @@
-import { defineConfig } from "vitest/config"
+// DO NOT remove or restructure UI; data wiring only
+import { defineConfig } from "vitest/config";
 
 export default defineConfig({
   test: {
-    exclude: ["tests/e2e/**", "node_modules/**"],
+    environment: "node",
+    exclude: ["**/*.e2e.{ts,tsx}", "**/playwright/**"],
   },
-})
+});

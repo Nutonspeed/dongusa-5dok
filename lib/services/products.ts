@@ -1,18 +1,31 @@
+// DO NOT remove or restructure UI; data wiring only
+
 import { createClient } from '@/lib/supabase/server';
 
 interface ListParams {
-  categoryId?: string;
+  categorySlug?: string;
   q?: string;
+  sort?: string;
   limit?: number;
   offset?: number;
+  isActive?: boolean;
 }
 
 export async function listProducts(params: ListParams = {}) {
   const supabase = createClient();
-  const { categoryId, q, limit = 20, offset = 0 } = params;
+  const {
+    categorySlug,
+    q,
+    sort,
+    limit = 24,
+    offset = 0,
+    isActive = true,
+  } = params;
   let query = supabase.from('products').select('*');
-  if (categoryId) query = query.eq('category_id', categoryId);
+  if (categorySlug) query = query.eq('category_slug', categorySlug);
+  if (typeof isActive === 'boolean') query = query.eq('is_active', isActive);
   if (q) query = query.ilike('name', `%${q}%`);
+  if (sort) query = query.order(sort as any);
   const { data, error } = await query.range(offset, offset + limit - 1);
   if (error) throw error;
   return data;
