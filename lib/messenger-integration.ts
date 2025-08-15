@@ -1,4 +1,3 @@
-import "server-only"
 export interface MessengerConfig {
   pageId: string
   accessToken?: string

@@ -1,4 +1,3 @@
-import "server-only"
 import { execSync } from "child_process"
 
 interface DeploymentConfig {

@@ -284,9 +284,7 @@ export default function WhyChooseUs() {
                       : "Hi! I'm interested in SofaCover Pro's sofa covers. I'd like to consult and see product samples."
 
                   const facebookUrl = `https://m.me/your-facebook-page?text=${encodeURIComponent(message)}`
-                  if (typeof window !== "undefined") {
-                    window.open(facebookUrl, "_blank")
-                  }
+                  window.open(facebookUrl, "_blank")
                 }}
                 className="bg-white text-primary hover:bg-gray-100 font-semibold px-8 py-4 rounded-lg transition-colors duration-300"
               >
@@ -301,9 +299,7 @@ export default function WhyChooseUs() {
                       : "Hi! I'd like to request a quote for custom sofa covers."
 
                   const facebookUrl = `https://m.me/your-facebook-page?text=${encodeURIComponent(message)}`
-                  if (typeof window !== "undefined") {
-                    window.open(facebookUrl, "_blank")
-                  }
+                  window.open(facebookUrl, "_blank")
                 }}
                 className="bg-transparent border-2 border-white text-white hover:bg-white hover:text-primary font-semibold px-8 py-4 rounded-lg transition-colors duration-300"
               >

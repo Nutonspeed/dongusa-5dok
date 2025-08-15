@@ -44,6 +44,18 @@ interface Order {
   items?: any[]
 }
 
+const ORDERS_CSV_HEADERS = [
+  "รหัสออร์เดอร์",
+  "ลูกค้า",
+  "เบอร์โทร",
+  "ยอดรวม",
+  "สถานะ",
+  "ช่องทาง",
+  "วันที่สร้าง",
+  "หมายเหตุ",
+  "คอลเลกชัน",
+]
+
 interface BulkStatusChangeData {
   orderIds: string[]
   newStatus: string
@@ -138,13 +150,37 @@ export default function AdminOrdersPage() {
 
     setBulkActionLoading(true)
     try {
-      const url = `/api/admin/orders/bulk-export?orderIds=${encodeURIComponent(selectedOrders.join(","))}`
-      const response = await fetch(url)
+      const response = await fetch("/api/admin/orders/bulk-export", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ orderIds: selectedOrders }),
+      })
 
       if (!response.ok) throw new Error("Export failed")
 
-      const csvContent = await response.text()
-      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" })
+      const selectedOrdersData = orders.filter((order) => selectedOrders.includes(order.id))
+
+      // Create CSV with BOM for proper Thai character encoding
+      const csvContent = [
+        ORDERS_CSV_HEADERS.join(","),
+        ...selectedOrdersData.map((order) =>
+          [
+            order.id,
+            `"${order.customer_name}"`,
+            order.customer_phone,
+            order.total_amount,
+            `"${toStatusLabelTH(order.status)}"`,
+            `"${toChannelLabelTH(order.channel)}"`,
+            new Date(order.created_at).toLocaleDateString("th-TH"),
+            `"${order.notes || ""}"`,
+            `"${order.items?.[0]?.collection || ""}"`,
+          ].join(","),
+        ),
+      ].join("\n")
+
+      // Add BOM for UTF-8
+      const BOM = "\uFEFF"
+      const blob = new Blob([BOM + csvContent], { type: "text/csv;charset=utf-8;" })
       const link = document.createElement("a")
       link.href = URL.createObjectURL(blob)
       link.download = `orders_export_${new Date().toISOString().split("T")[0]}.csv`
@@ -167,18 +203,11 @@ export default function AdminOrdersPage() {
 
     setBulkActionLoading(true)
     try {
-      const response = await fetch("/api/admin/orders/bulk-status", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ orderIds: selectedOrders, newStatus }),
-      })
+      await (db as any).updateOrdersStatus(selectedOrders, newStatus)
 
-      if (!response.ok) throw new Error("Bulk status update failed")
-
+      // Update local state
       setOrders((prevOrders) =>
-        prevOrders.map((order) =>
-          selectedOrders.includes(order.id) ? { ...order, status: newStatus } : order,
-        ),
+        prevOrders.map((order) => (selectedOrders.includes(order.id) ? { ...order, status: newStatus } : order)),
       )
 
       toast.success(`อัพเดทสถานะ ${selectedOrders.length} รายการเป็น "${toStatusLabelTH(newStatus)}" สำเร็จ`)

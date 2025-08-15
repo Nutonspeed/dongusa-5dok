@@ -1,4 +1,3 @@
-import "server-only"
 import { SystemHealthChecker } from "./system-health-check"
 import { existsSync, readFileSync } from "fs"
 import { join } from "path"

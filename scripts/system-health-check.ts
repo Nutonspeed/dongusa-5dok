@@ -1,4 +1,3 @@
-import "server-only"
 import { createClient } from "@supabase/supabase-js"
 import { existsSync } from "fs"
 import { join } from "path"

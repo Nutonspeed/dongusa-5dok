@@ -128,9 +128,7 @@ Price range: ${formatPrice(collection.priceRange.min)} - ${formatPrice(collectio
 I'd like to see fabric samples and more details.`
 
     const facebookUrl = `https://m.me/your-facebook-page?text=${encodeURIComponent(message)}`
-    if (typeof window !== "undefined") {
-      window.open(facebookUrl, "_blank")
-    }
+    window.open(facebookUrl, "_blank")
   }
 
   return (
@@ -271,9 +269,7 @@ I'd like to see fabric samples and more details.`
                     : "Hi! I'd like to consult about fabric selection and request fabric samples."
 
                 const facebookUrl = `https://m.me/your-facebook-page?text=${encodeURIComponent(message)}`
-                if (typeof window !== "undefined") {
-                  window.open(facebookUrl, "_blank")
-                }
+                window.open(facebookUrl, "_blank")
               }}
             >
               {language === "en" ? "Request Samples" : "ขอตัวอย่างผ้า"}

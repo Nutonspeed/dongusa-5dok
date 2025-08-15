@@ -1,4 +1,3 @@
-import "server-only"
 // scripts/qa-supabase.ts
 // Run with: pnpm exec tsx scripts/qa-supabase.ts --verbose
 import { spawn } from "node:child_process";

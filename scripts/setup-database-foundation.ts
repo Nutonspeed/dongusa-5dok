@@ -1,5 +1,4 @@
 #!/usr/bin/env tsx
-import "server-only"
 // Database Foundation Setup Script
 // Run with: pnpm exec tsx scripts/setup-database-foundation.ts
 

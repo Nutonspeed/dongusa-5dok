@@ -1,4 +1,3 @@
-import "server-only"
 import { spawn } from "child_process";
 
 const BASE = "http://localhost:3000";
