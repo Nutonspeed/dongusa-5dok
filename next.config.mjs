@@ -1,7 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   experimental: {
-    missingSuspenseWithCSRBailout: false,
   },
   eslint: {
     ignoreDuringBuilds: false,
@@ -41,7 +40,6 @@ const nextConfig = {
   compress: true,
   poweredByHeader: false,
   generateEtags: true,
-  swcMinify: true,
   async headers() {
     return [
       {
