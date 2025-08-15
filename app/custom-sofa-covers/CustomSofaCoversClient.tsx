@@ -146,6 +146,17 @@ export default function CustomSofaCoversClient({ fabrics }: { fabrics: MockFabri
 function Row({k,v,bold}:{k:string;v:string;bold?:boolean}) {
   return <div className="flex justify-between"><span className="text-gray-600">{k}</span><span className={bold?"font-semibold":""}>{v}</span></div>
 }
+function Select({label,value,onChange,options,className}:{label:string;value:string;onChange:(v:string)=>void;options:{v:string;t:string}[];className?:string}){
+  return (
+    <label className={"text-sm "+(className||"")}>
+      <span className="block text-gray-600 mb-1">{label}</span>
+      <select value={value} onChange={(e)=>onChange(e.target.value)}
+        className="w-full rounded-lg border px-3 py-2 bg-white">
+        {options.map(o=> <option key={o.v} value={o.v}>{o.t}</option>)}
+      </select>
+    </label>
+  );
+}
 function NumberInput({label,value,onChange,min=0,max=999,className}:{label:string;value:number;onChange:(v:number)=>void;min?:number;max?:number;className?:string}){
   return (
     <label className={"text-sm "+(className||"")}>

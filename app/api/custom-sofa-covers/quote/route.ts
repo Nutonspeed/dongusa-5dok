@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { estimatePrice } from "@/utils/sofa-pricing";
 
+export const runtime = 'nodejs';
+
 const Body = z.object({
   customer: z.object({
     name: z.string().min(1),
