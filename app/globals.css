@@ -280,4 +280,52 @@
   .admin-glow {
     box-shadow: 0 0 20px hsla(188, 78%, 41%, 0.3);
   }
+
+  /* Admin fabric management specific utilities */
+  .bg-admin-fabric-gradient {
+    background: linear-gradient(135deg, hsl(188, 78%, 19%) 0%, hsl(231, 48%, 48%) 100%);
+  }
+
+  .text-admin-fabric-gradient {
+    background: linear-gradient(135deg, hsl(188, 78%, 19%) 0%, hsl(231, 48%, 48%) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .admin-fabric-shadow {
+    box-shadow: 0 4px 6px -1px hsla(188, 78%, 19%, 0.1), 0 2px 4px -1px hsla(188, 78%, 19%, 0.06);
+  }
+
+  .admin-fabric-shadow-lg {
+    box-shadow: 0 10px 15px -3px hsla(188, 78%, 19%, 0.1), 0 4px 6px -2px hsla(188, 78%, 19%, 0.05);
+  }
+
+  .fabric-upload-zone {
+    border: 2px dashed hsl(var(--border));
+    background: hsl(var(--muted));
+    transition: all 0.3s ease;
+    cursor: pointer;
+  }
+
+  .fabric-upload-zone:hover,
+  .fabric-upload-zone.drag-over {
+    border-color: hsl(var(--primary));
+    background: hsl(var(--primary) / 0.05);
+  }
+
+  .fabric-card-interactive {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .fabric-card-interactive:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px -5px hsla(188, 78%, 19%, 0.1), 0 4px 10px -2px hsla(188, 78%, 19%, 0.04);
+  }
+
+  .bulk-action-bar {
+    background: hsl(var(--card));
+    border: 1px solid hsl(var(--border));
+    box-shadow: 0 10px 15px -3px hsla(188, 78%, 19%, 0.1), 0 4px 6px -2px hsla(188, 78%, 19%, 0.05);
+  }
 }
