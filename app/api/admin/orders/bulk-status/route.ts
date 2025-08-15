@@ -1,14 +1,21 @@
 import { NextResponse, type NextRequest } from "next/server"
 import { USE_SUPABASE } from "@/lib/runtime"
-import { DatabaseService } from "@/lib/database"
-import { createClient } from "@/lib/supabase/client"
+import { createClient } from "@/lib/supabase/server"
 import { logger } from "@/lib/logger"
+import { OrderStatus } from "@/lib/i18n/status"
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
     const orderIds: string[] = body?.orderIds || []
-    const newStatus: string = body?.status || body?.newStatus
+    const normalize = (s: string) => s?.trim().toUpperCase()
+    const allow = new Set(Object.values(OrderStatus))
+    const newStatusRaw = body?.status ?? body?.newStatus
+    const newStatus = normalize(newStatusRaw)
+
+    if (!allow.has(newStatus as OrderStatus)) {
+      return NextResponse.json({ success: false, message: "Invalid status" }, { status: 400 })
+    }
 
     if (!Array.isArray(orderIds) || orderIds.length === 0 || !newStatus) {
       return NextResponse.json(
@@ -23,7 +30,6 @@ export async function POST(request: NextRequest) {
     if (USE_SUPABASE) {
       try {
         const supabase = createClient()
-        const db = new DatabaseService(supabase)
 
         // Update orders status in database
         const { error } = await supabase

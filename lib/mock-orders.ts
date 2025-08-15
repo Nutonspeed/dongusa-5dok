@@ -1,3 +1,5 @@
+import { OrderStatus } from "./i18n/status"
+
 export interface Order {
   id: string
   customerId: string
@@ -42,34 +44,12 @@ export interface OrderTimeline {
   updatedBy: string
 }
 
-export enum OrderStatus {
-  PENDING = "PENDING",
-  PENDING_PAYMENT = "PENDING_PAYMENT",
-  PAID = "PAID",
-  IN_PRODUCTION = "IN_PRODUCTION",
-  READY_TO_SHIP = "READY_TO_SHIP",
-  SHIPPED = "SHIPPED",
-  DONE = "DONE",
-  CANCELLED = "CANCELLED",
-}
-
 export enum OrderChannel {
   WEBSITE = "WEBSITE",
   FACEBOOK = "FACEBOOK",
   LINE = "LINE",
   PHONE = "PHONE",
   WALK_IN = "WALK_IN",
-}
-
-export const statusLabelTH: Record<OrderStatus, string> = {
-  [OrderStatus.PENDING]: "รอดำเนินการ",
-  [OrderStatus.PENDING_PAYMENT]: "รอชำระเงิน",
-  [OrderStatus.PAID]: "ชำระแล้ว",
-  [OrderStatus.IN_PRODUCTION]: "กำลังผลิต",
-  [OrderStatus.READY_TO_SHIP]: "พร้อมส่ง",
-  [OrderStatus.SHIPPED]: "จัดส่งแล้ว",
-  [OrderStatus.DONE]: "เสร็จสิ้น",
-  [OrderStatus.CANCELLED]: "ยกเลิก",
 }
 
 export const channelLabelTH: Record<OrderChannel, string> = {
