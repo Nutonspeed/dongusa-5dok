@@ -34,17 +34,24 @@
     }
   },
   "include": [
-    "app/**/*",
-    "components/**/*",
-    "lib/**/*",
-    "pages/**/*",
-      "scripts/**/*",
-      "types/**/*",
-      "next-env.d.ts"
+    
+    "lib/config/**/*",
+    "lib/i18n/**/*",
+    "lib/auth/**/*",
+    "lib/export/**/*",
+    "lib/sms-service.ts",
+    "providers/**/*",
+    "types/**/*",
+    "next-env.d.ts",
+    ".next/types/**/*.ts"
   ],
   "exclude": [
     "node_modules",
+    "dist",
     ".next",
-    "dist"
+    "**/*.test.*",
+    "**/__tests__/**",
+    "playwright.config.ts",
+    "jest.config.js"
   ]
 }

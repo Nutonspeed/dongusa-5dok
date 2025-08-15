@@ -1,11 +1,18 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { monitoringService } from "@/lib/monitoring-service"
+import { USE_SUPABASE } from "@/lib/runtime"
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const timeRange = (searchParams.get("range") as "1h" | "24h" | "7d") || "24h"
 
+    if (!USE_SUPABASE) {
+      return NextResponse.json(
+        { success: false, error: "Monitoring disabled" },
+        { status: 503 },
+      )
+    }
+    const { monitoringService } = await import("@/lib/monitoring-service")
     const metrics = await monitoringService.collectMetrics()
     const logs = await monitoringService.aggregateLogs(timeRange)
 
@@ -33,7 +40,13 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
     const { action } = body
-
+    if (!USE_SUPABASE) {
+      return NextResponse.json(
+        { success: false, error: "Monitoring disabled" },
+        { status: 503 },
+      )
+    }
+    const { monitoringService } = await import("@/lib/monitoring-service")
     switch (action) {
       case "run_maintenance":
         await monitoringService.runMaintenanceTasks()
