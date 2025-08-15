@@ -1,3 +1,4 @@
+import "server-only"
 import { randomBytes, scrypt } from "crypto"
 import { promisify } from "util"
 import { createClient } from "@supabase/supabase-js"
@@ -56,8 +57,8 @@ export class SecurityService {
 
   constructor() {
     this.redis = new Redis({
-      url: process.env.UPSTASH_REDIS_REST_URL!,
-      token: process.env.UPSTASH_REDIS_REST_TOKEN!,
+      url: process.env.KV_REST_API_URL!,
+      token: process.env.KV_REST_API_TOKEN!,
     })
 
     this.supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)

@@ -8,6 +8,23 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: false,
   },
+  webpack: (config, { isServer }) => {
+    if (!isServer) {
+      // Provide fallbacks for Node.js modules in client-side bundles
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        net: false,
+        dns: false,
+        crypto: false,
+        stream: false,
+        util: false,
+        path: false,
+        os: false,
+      }
+    }
+    return config
+  },
   images: {
     remotePatterns: [
       {
