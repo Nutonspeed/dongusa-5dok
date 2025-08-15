@@ -1,6 +1,5 @@
 "use client"
 
-import { DemoBanner } from "@/components/DemoBanner"
 import { MockServiceIndicator } from "@/components/MockServiceIndicator"
 import Header from "./components/Header"
 import Footer from "./components/Footer"
@@ -15,7 +14,6 @@ export const dynamic = "force-dynamic"
 export default function HomePage() {
   return (
     <div className="min-h-screen bg-white">
-      <DemoBanner />
       <Header />
 
       <main>
