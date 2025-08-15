@@ -1,4 +1,5 @@
 // NOTE: No UI restructure. Types/boundary only.
+import "server-only"
 import { createServerClient } from "@supabase/ssr"
 import type { Database } from "@/types/database"
 import { cookies } from "next/headers"
