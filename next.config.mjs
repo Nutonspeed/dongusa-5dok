@@ -4,14 +4,35 @@ const nextConfig = {
     missingSuspenseWithCSRBailout: false,
   },
   eslint: {
-    ignoreDuringBuilds: process.env.NODE_ENV !== 'production',
+    ignoreDuringBuilds: false,
   },
   typescript: {
-    ignoreBuildErrors: process.env.NODE_ENV !== 'production',
+    ignoreBuildErrors: false,
   },
   images: {
-    domains: ['placeholder.svg', '*.supabase.co', 'supabase.co'],
-    unoptimized: process.env.NODE_ENV !== 'production',
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: '*.supabase.co',
+      },
+      {
+        protocol: 'https',
+        hostname: 'supabase.co',
+      },
+      {
+        protocol: 'https',
+        hostname: 'placeholder.svg',
+      },
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'via.placeholder.com',
+      }
+    ],
+    unoptimized: false,
     formats: ['image/webp', 'image/avif'],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
@@ -20,6 +41,7 @@ const nextConfig = {
   compress: true,
   poweredByHeader: false,
   generateEtags: true,
+  swcMinify: true,
   async headers() {
     return [
       {
@@ -30,11 +52,11 @@ const nextConfig = {
             key: 'Content-Security-Policy',
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://vercel.live https://va.vercel-scripts.com",
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://vercel.live https://va.vercel-scripts.com https://www.googletagmanager.com",
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "font-src 'self' https://fonts.gstatic.com",
               "img-src 'self' data: blob: https: http:",
-              "connect-src 'self' https://*.supabase.co https://vercel.live wss://*.supabase.co",
+              "connect-src 'self' https://*.supabase.co https://vercel.live wss://*.supabase.co https://api.vercel.com",
               "frame-src 'self' https://vercel.live",
               "object-src 'none'",
               "base-uri 'self'",
@@ -80,14 +102,14 @@ const nextConfig = {
               'usb=()'
             ].join(', ')
           },
-          // Cross-Origin Policies
+          // Cross-Origin Policies - Relaxed for better compatibility
           {
             key: 'Cross-Origin-Embedder-Policy',
-            value: 'credentialless'
+            value: 'unsafe-none'
           },
           {
             key: 'Cross-Origin-Opener-Policy',
-            value: 'same-origin'
+            value: 'same-origin-allow-popups'
           },
           {
             key: 'Cross-Origin-Resource-Policy',
@@ -108,7 +130,33 @@ const nextConfig = {
             value: 'noindex, nofollow'
           }
         ]
+      },
+      {
+        source: '/_next/static/(.*)',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable'
+          }
+        ]
       }
+    ]
+  },
+  async redirects() {
+    return [
+      {
+        source: '/admin',
+        destination: '/admin/login',
+        permanent: false,
+      },
+    ]
+  },
+  async rewrites() {
+    return [
+      {
+        source: '/health',
+        destination: '/api/health',
+      },
     ]
   }
 }

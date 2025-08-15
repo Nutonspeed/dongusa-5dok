@@ -1,1 +1,3 @@
-export { default } from "../../../orders/[id]/page";
+import OrderDetailPage from "../../../orders/[id]/page"
+
+export default OrderDetailPage
