@@ -1,3 +1,4 @@
+// NOTE: No UI restructure. Types/boundary only.
 import { advancedAI } from "./advanced-ai-features"
 import { logger } from "./logger"
 
@@ -518,4 +519,3 @@ class VoiceCommerceEngine {
 }
 
 export const voiceCommerce = new VoiceCommerceEngine()
-export type { VoiceCommand, VoiceResponse, VoiceSession }

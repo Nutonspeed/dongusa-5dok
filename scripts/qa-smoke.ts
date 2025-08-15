@@ -56,6 +56,7 @@ async function run() {
       if (res.status !== 200) throw new Error(`status ${res.status}`);
       health = await res.json();
       if (health.mode !== "supabase") throw new Error("supabase off");
+      if (health.mock) throw new Error("mock on");
     });
 
     await check("health tables", async () => {
@@ -73,6 +74,18 @@ async function run() {
       );
       if (missing.length) {
         throw new Error(`missing tables: ${missing.join(',')}`);
+      }
+    });
+
+    await check("GET /collections/linen", async () => {
+      const res = await fetch(`${BASE}/collections/linen`);
+      if (res.status !== 200) throw new Error(`status ${res.status}`);
+    });
+
+    await check("permissions /api/admin/orders/bulk-status", async () => {
+      const res = await fetch(`${BASE}/api/admin/orders/bulk-status`);
+      if (![401, 403].includes(res.status)) {
+        throw new Error(`expected 401/403 got ${res.status}`);
       }
     });
 

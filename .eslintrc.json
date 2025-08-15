@@ -1,3 +1,4 @@
+// NOTE: Boundary fix only. Do NOT restructure or remove existing UI.
 {
   "root": true,
   "extends": ["next/core-web-vitals", "eslint:recommended"],
@@ -21,6 +22,23 @@
         "@typescript-eslint/no-unused-vars": "warn",
         "react-hooks/rules-of-hooks": "warn",
         "react-hooks/exhaustive-deps": "warn"
+      }
+    },
+    {
+      "files": ["**/*.tsx", "**/*.ts"],
+      "excludedFiles": ["**/*.server.*", "app/api/**", "lib/**/server.*"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "paths": [
+              { "name": "server-only", "message": "Client components must not import server-only." },
+              { "name": "next/headers", "message": "Use API route or fetch via server component." },
+              { "name": "next/cache", "message": "Server-only APIs are not allowed in client components." }
+            ],
+            "patterns": ["**/lib/supabase/server*"]
+          }
+        ]
       }
     }
   ]
