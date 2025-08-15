@@ -5,10 +5,11 @@ import { cache } from "react"
 
 // Check if Supabase environment variables are available
 export const isSupabaseConfigured =
-  typeof process.env.NEXT_PUBLIC_SUPABASE_URL === "string" &&
-  process.env.NEXT_PUBLIC_SUPABASE_URL.length > 0 &&
-  typeof process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY === "string" &&
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY.length > 0
+  typeof (process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL) ===
+    "string" &&
+  (process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL)!.length > 0 &&
+  typeof process.env.SUPABASE_SERVICE_ROLE_KEY === "string" &&
+  process.env.SUPABASE_SERVICE_ROLE_KEY.length > 0
 
 // Create a cached version of the Supabase client for Server Components
 export const createClient = cache(() => {
@@ -35,8 +36,8 @@ export const createClient = cache(() => {
     const cookieStore = cookies()
 
     return createServerClient<Database>(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      (process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL)!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
       {
         cookies: {
           getAll() {
