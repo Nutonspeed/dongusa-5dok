@@ -1,7 +1,7 @@
 {
   "version": 2,
-  "buildCommand": "pnpm build",
-  "installCommand": "pnpm i",
+  "buildCommand": "tsx scripts/fix-deployment.ts && tsx scripts/build-with-fallback.ts",
+  "installCommand": "pnpm install --no-frozen-lockfile --prefer-offline",
   "outputDirectory": ".next",
   "functions": {
     "app/api/**/*.ts": {
@@ -75,6 +75,7 @@
     }
   ],
   "env": {
-    "NODE_ENV": "production"
+    "NODE_ENV": "production",
+    "CI": "true"
   }
 }
