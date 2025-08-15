@@ -58,6 +58,8 @@
     "security:headers": "tsx lib/security-headers.ts",
     "start": "next start",
     "test": "jest",
+    "test:backend": "tsx scripts/test-complete-backend-functionality.ts",
+    "test:backend:full": "npm run test:backend && npm run backend:verify && npm run backend:health",
     "test:coverage": "jest --coverage",
     "test:e2e": "playwright test",
     "test:env": "tsx lib/environment-validator.ts",
@@ -97,6 +99,7 @@
     ]
   },
   "dependencies": {
+    "@ai-sdk/xai": "latest",
     "@edge-runtime/vm": "latest",
     "@hookform/resolvers": "^3.9.1",
     "@jest/globals": "latest",
@@ -135,8 +138,10 @@
     "@testing-library/user-event": "^14.5.1",
     "@types/debug": "latest",
     "@upstash/redis": "latest",
+    "@vercel/blob": "latest",
     "@vitest/browser": "latest",
     "@vitest/ui": "latest",
+    "ai": "latest",
     "autoprefixer": "^10.4.20",
     "child_process": "latest",
     "class-variance-authority": "^0.7.1",

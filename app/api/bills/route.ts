@@ -1,31 +1,131 @@
-import { NextResponse } from "next/server";
-import { USE_SUPABASE } from "@/lib/runtime";
+import { NextResponse } from "next/server"
+import { USE_SUPABASE } from "@/lib/runtime"
+import { logger } from "@/lib/logger"
 
-export const runtime = "nodejs";
+export const runtime = "nodejs"
 
 export async function POST(req: Request) {
   try {
+    const body = await req.json().catch(() => ({}))
+
     if (!USE_SUPABASE) {
-      const body = await req.json().catch(() => ({}));
-      const id = crypto.randomUUID();
-      return NextResponse.json({ id, ...body, mock: true }, { status: 201 });
+      const id = crypto.randomUUID()
+      const mockBill = {
+        id,
+        billNumber: body.billNumber || `BILL-${Date.now()}`,
+        customerEmail: body.customerEmail || "customer@example.com",
+        customerName: body.customerName || "คุณลูกค้าตัวอย่าง",
+        customerPhone: body.customerPhone || "081-234-5678",
+        amount: body.amount || 2890,
+        subtotal: body.subtotal || 2890,
+        tax: body.tax || 0,
+        shipping: body.shipping || 0,
+        status: body.status || "draft",
+        paymentMethod: body.paymentMethod || "bank_transfer",
+        items: body.items || [
+          {
+            id: "item-1",
+            name: "ผ้าคลุมโซฟากำมะหยี่พรีเมียม",
+            quantity: 1,
+            price: 2890,
+            total: 2890,
+          },
+        ],
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        dueDate: body.dueDate || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+        notes: body.notes || "",
+        mock: true,
+      }
+
+      logger.info("📄 [MOCK] Bill created:", { id, amount: mockBill.amount })
+      return NextResponse.json(mockBill, { status: 201 })
     }
 
-    const body = await req.json();
-    const { enhancedBillDatabase } = await import("@/lib/enhanced-bill-database");
-    const bill = await enhancedBillDatabase.createBill({
+    const { enhancedBillDatabase } = await import("@/lib/enhanced-bill-database")
+
+    const billData = {
       billNumber: body.billNumber || `BILL-${Date.now()}`,
       customerEmail: body.customerEmail || "customer@example.com",
-      customerName: body.customerName || "Mock Customer",
+      customerName: body.customerName || "ลูกค้า",
+      customerPhone: body.customerPhone,
       amount: body.amount || 0,
+      subtotal: body.subtotal || body.amount || 0,
+      tax: body.tax || 0,
+      shipping: body.shipping || 0,
       status: body.status || "draft",
+      paymentMethod: body.paymentMethod || "bank_transfer",
+      items: body.items || [],
+      notes: body.notes || "",
       createdAt: new Date().toISOString(),
       dueDate: body.dueDate || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-      items: body.items || [],
-    });
-    return NextResponse.json(bill, { status: 201 });
-  } catch (e) {
-    console.error("POST /api/bills error", e);
-    return NextResponse.json({ error: "bill_error" }, { status: 500 });
+    }
+
+    const bill = await enhancedBillDatabase.createBill(billData)
+    logger.info("📄 Bill created:", { id: bill.id, amount: bill.amount })
+
+    return NextResponse.json(bill, { status: 201 })
+  } catch (error) {
+    logger.error("POST /api/bills error:", error)
+    return NextResponse.json({ error: "bill_creation_failed" }, { status: 500 })
+  }
+}
+
+export async function GET(req: Request) {
+  try {
+    const { searchParams } = new URL(req.url)
+    const status = searchParams.get("status")
+    const customerEmail = searchParams.get("customerEmail")
+    const limit = Number.parseInt(searchParams.get("limit") || "10")
+
+    if (!USE_SUPABASE) {
+      const mockBills = [
+        {
+          id: "bill-1",
+          billNumber: "BILL-001",
+          customerName: "คุณสมชาย ใจดี",
+          customerEmail: "somchai@email.com",
+          amount: 2890,
+          status: "paid",
+          createdAt: new Date(Date.now() - 86400000).toISOString(),
+        },
+        {
+          id: "bill-2",
+          billNumber: "BILL-002",
+          customerName: "คุณสมหญิง รักสวย",
+          customerEmail: "somying@email.com",
+          amount: 1950,
+          status: "pending",
+          createdAt: new Date(Date.now() - 172800000).toISOString(),
+        },
+      ]
+
+      let filteredBills = mockBills
+      if (status) filteredBills = filteredBills.filter((b) => b.status === status)
+      if (customerEmail) filteredBills = filteredBills.filter((b) => b.customerEmail === customerEmail)
+
+      return NextResponse.json({
+        bills: filteredBills.slice(0, limit),
+        total: filteredBills.length,
+        source: "mock",
+      })
+    }
+
+    const { enhancedBillDatabase } = await import("@/lib/enhanced-bill-database")
+
+    const filters: any = {}
+    if (status) filters.status = status
+    if (customerEmail) filters.customerEmail = customerEmail
+
+    const bills = await enhancedBillDatabase.getBills(filters, limit)
+
+    return NextResponse.json({
+      bills,
+      total: bills.length,
+      source: "supabase",
+    })
+  } catch (error) {
+    logger.error("GET /api/bills error:", error)
+    return NextResponse.json({ error: "bill_fetch_failed" }, { status: 500 })
   }
 }

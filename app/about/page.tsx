@@ -3,9 +3,11 @@
 import { Award, Users, Clock, Heart, Star, CheckCircle } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { BackButton } from "@/components/ui/back-button"
 import { useLanguage } from "../contexts/LanguageContext"
 import Header from "../components/Header"
 import Footer from "../components/Footer"
+import Link from "next/link"
 
 export const dynamic = "force-dynamic"
 
@@ -141,6 +143,17 @@ export default function AboutPage() {
       <Header />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="flex items-center justify-between mb-6">
+          <BackButton fallbackUrl="/" className="text-gray-600 hover:text-primary" />
+          <nav className="text-sm text-gray-500">
+            <Link href="/" className="hover:text-primary">
+              {language === "th" ? "หน้าแรก" : "Home"}
+            </Link>
+            <span className="mx-2">/</span>
+            <span className="text-gray-900">{language === "th" ? "เกี่ยวกับเรา" : "About Us"}</span>
+          </nav>
+        </div>
+
         {/* Hero Section */}
         <div className="text-center mb-16">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">{language === "th" ? "เกี่ยวกับเรา" : "About Us"}</h1>
