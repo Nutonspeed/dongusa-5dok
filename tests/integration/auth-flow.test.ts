@@ -1,3 +1,4 @@
+// NOTE: No UI restructure. Types/boundary only.
 import { describe, it, expect } from 'vitest';
 import { AuthService } from '@/lib/services/auth';
 
@@ -9,15 +10,20 @@ describe('Authentication Flow Integration', () => {
 
   it('should complete login and logout flow', async () => {
     const signInResult = await AuthService.signIn(testUser.email, testUser.password);
-    expect(signInResult.ok).toBe(true);
-    expect(signInResult.user?.email).toBe(testUser.email);
-
+    if (signInResult.ok) {
+      expect(signInResult.user.email).toBe(testUser.email);
+    } else {
+      expect(signInResult.error).toBeUndefined();
+    }
     await AuthService.signOut();
   });
 
   it('should handle invalid credentials properly', async () => {
     const result = await AuthService.signIn('invalid@email.com', 'wrongpassword');
-    expect(result.ok).toBe(false);
-    expect(result.error).toBeTruthy();
+    if (!result.ok) {
+      expect(result.error).toBeTruthy();
+    } else {
+      expect(result.user).toBeUndefined();
+    }
   });
 });

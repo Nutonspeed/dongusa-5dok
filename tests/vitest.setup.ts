@@ -1,3 +1,4 @@
+// NOTE: No UI restructure. Types/boundary only.
 // tests/vitest.setup.ts
 import { vi } from 'vitest';
 
@@ -19,6 +20,7 @@ try {
 // Mock custom matchers (ถ้าบางเทสต์ import '../../matchers')
 try {
   // หากโปรเจ็กต์มี matchers จริง ให้ import จริงแทนการ mock
+  // @ts-ignore optional project matchers
   await import('../../matchers');
 } catch {
   // สร้าง matcher เปล่า ๆ กันล้ม

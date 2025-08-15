@@ -1,3 +1,4 @@
+// NOTE: No UI restructure. Types/boundary only.
 import type React from "react"
 import { render, type RenderOptions } from "@testing-library/react"
 import type { ReactElement } from "react"
@@ -40,7 +41,6 @@ export const mockProduct = {
   price: 1500,
   description: "A beautiful sofa cover for testing",
   category: "sofa-covers",
-  images: ["/placeholder.svg?height=300&width=300"],
-  inStock: true,
-  stockQuantity: 10,
+  image_url: "/placeholder.svg?height=300&width=300",
+  in_stock: true,
 }

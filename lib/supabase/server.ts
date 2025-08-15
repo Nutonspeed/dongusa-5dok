@@ -1,3 +1,4 @@
+// NOTE: No UI restructure. Types/boundary only.
 import { createServerClient } from "@supabase/ssr"
 import type { Database } from "@/types/database"
 import { cookies } from "next/headers"
@@ -32,7 +33,7 @@ export const createClient = cache(() => {
   }
 
   try {
-    const cookieStore = cookies()
+    const cookieStore = cookies() as any
 
     return createServerClient<Database>(
       process.env.SUPABASE_URL!,

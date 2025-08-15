@@ -1,8 +1,9 @@
+// NOTE: No UI restructure. Types/boundary only.
 import type React from 'react';
 import { describe, it, expect } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '../utils/test-helpers';
 import { CartProvider } from '@/app/contexts/CartContext';
-import { ProductCard } from '@/app/components/ProductCard';
+import ProductCard from '@/app/components/ProductCard';
 import { mockProduct } from '../utils/test-helpers';
 
 describe.skip('E-commerce Flow Integration', () => {
@@ -19,7 +20,7 @@ describe.skip('E-commerce Flow Integration', () => {
     fireEvent.click(addButton);
 
     await waitFor(() => {
-      expect(screen.getByText('Added to Cart')).toBeInTheDocument();
+      expect(screen.getByText('Added to Cart')).toBeTruthy();
     });
   });
 
@@ -29,6 +30,6 @@ describe.skip('E-commerce Flow Integration', () => {
         <div data-testid='cart-total'>Cart functionality test</div>
       </TestWrapper>
     );
-    expect(container).toBeInTheDocument();
+    expect(container).toBeTruthy();
   });
 });

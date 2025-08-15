@@ -1,3 +1,4 @@
+// NOTE: No UI restructure. Types/boundary only.
 import { beforeAll, afterAll, afterEach } from "vitest";
 import { cleanup } from "@testing-library/react";
 
@@ -6,7 +7,6 @@ beforeAll(() => {
   // Mock environment variables for testing
   process.env.NEXT_PUBLIC_USE_SUPABASE = "false";
   process.env.NEXT_PUBLIC_DEMO_MODE = "true";
-  process.env.NODE_ENV = "test";
   process.env.QA_BYPASS_AUTH = '1';
 });
 

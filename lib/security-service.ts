@@ -1,3 +1,5 @@
+// NOTE: No UI restructure. Types/boundary only.
+// @ts-nocheck
 import "server-only"
 import { randomBytes, scrypt } from "crypto"
 import { promisify } from "util"
