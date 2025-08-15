@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
 import { USE_SUPABASE } from "@/lib/runtime"
+import { sessionManager } from "@/lib/session-management"
 import { createServerClient } from "@supabase/ssr"
 
 export const config = {
@@ -47,7 +48,6 @@ function requiresAuth(pathname: string): { required: boolean; role?: string } {
 }
 
 async function handleSessionAuth(request: NextRequest) {
-  const { sessionManager } = await import("@/lib/session-management")
   const { pathname } = request.nextUrl
   const authCheck = requiresAuth(pathname)
 
