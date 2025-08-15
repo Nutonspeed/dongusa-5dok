@@ -4,15 +4,22 @@ const nextConfig = {
     missingSuspenseWithCSRBailout: false,
   },
   eslint: {
-    ignoreDuringBuilds: true,
+    ignoreDuringBuilds: process.env.NODE_ENV !== 'production',
   },
   typescript: {
-    ignoreBuildErrors: true,
+    ignoreBuildErrors: process.env.NODE_ENV !== 'production',
   },
   images: {
-    domains: ['placeholder.svg'],
-    unoptimized: true,
+    domains: ['placeholder.svg', '*.supabase.co', 'supabase.co'],
+    unoptimized: process.env.NODE_ENV !== 'production',
+    formats: ['image/webp', 'image/avif'],
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
   },
+  output: process.env.BUILD_STANDALONE === 'true' ? 'standalone' : undefined,
+  compress: true,
+  poweredByHeader: false,
+  generateEtags: true,
   async headers() {
     return [
       {
