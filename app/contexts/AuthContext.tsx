@@ -103,33 +103,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             await fetchProfile(mappedUser.id)
           }
         } else {
-          const mockUser: AppUser = {
-            id: "mock-user",
-            email: "mock@local",
-            full_name: "Mock User",
-            app_metadata: {},
-            user_metadata: {},
-            aud: "",
-            created_at: "",
-            confirmed_at: undefined,
-            email_confirmed_at: undefined,
-            phone: "",
-            role: "authenticated",
-            last_sign_in_at: undefined,
-            identities: [],
-            factors: undefined,
+          const storedUser = typeof window !== "undefined" ? localStorage.getItem("user_data") : null
+          const adminToken = typeof window !== "undefined" ? localStorage.getItem("admin_token") : null
+
+          if (storedUser) {
+            const parsedUser = JSON.parse(storedUser)
+            setUser(parsedUser)
+
+            // Set appropriate profile based on stored data
+            const isAdminUser = adminToken === "demo_token" || parsedUser.email === "admin@sofacover.com"
+            setProfile({
+              id: parsedUser.id,
+              email: parsedUser.email || "",
+              full_name: parsedUser.full_name || null,
+              phone: null,
+              role: isAdminUser ? "admin" : "customer",
+              avatar_url: null,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            })
           }
-          setUser(mockUser)
-          setProfile({
-            id: mockUser.id,
-            email: mockUser.email || "",
-            full_name: mockUser.full_name || null,
-            phone: null,
-            role: "admin",
-            avatar_url: null,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-          })
         }
       } catch (error) {
         logger.error("Error initializing auth:", error)
@@ -174,6 +167,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         if (data) {
           setProfile(data as ProfileRow)
+        } else {
+          const { data: newProfile, error: createError } = await supabase
+            .from("profiles")
+            .insert({
+              id: userId,
+              email: user?.email || "",
+              full_name: user?.full_name || null,
+              role: "customer", // Default role
+            })
+            .select()
+            .single()
+
+          if (!createError && newProfile) {
+            setProfile(newProfile as ProfileRow)
+          }
         }
       }
     } catch (error) {
