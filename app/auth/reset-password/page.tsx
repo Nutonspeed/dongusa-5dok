@@ -1,4 +1,5 @@
 "use client"
+// NOTE: Boundary fix only. Do NOT restructure or remove existing UI.
 
 import type React from "react"
 
@@ -10,7 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Loader2, Eye, EyeOff, CheckCircle } from "lucide-react"
 import Link from "next/link"
-import { securityService } from "@/lib/security-service"
+import { securityService } from "@/lib/security-service.client"
 import { createClient } from "@/lib/supabase/client"
 import { USE_SUPABASE } from "@/lib/runtime"
 
