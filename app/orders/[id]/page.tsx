@@ -43,7 +43,7 @@ const statusIcons: Record<OrderStatus, any> = {
 }
 
 export default function OrderDetailPage() {
-  const params = useParams()
+  const { id } = useParams<{ id: string }>()!
   const router = useRouter()
   const { toast } = useToast()
 const [order, setOrder] = useState<Order | null>(null)
@@ -63,11 +63,11 @@ const [statusNotes, setStatusNotes] = useState("")
 
   useEffect(() => {
     loadOrder()
-  }, [params.id])
+  }, [id])
 
   const loadOrder = async () => {
     try {
-      const orderData = await getOrderById(params.id as string)
+      const orderData = await getOrderById(id)
       setOrder(orderData)
     } catch (error) {
       toast({
