@@ -1,3 +1,4 @@
+// DO NOT remove or restructure UI; data wiring only
 import { spawn } from "child_process";
 
 const BASE = "http://localhost:3000";
@@ -55,6 +56,24 @@ async function run() {
       if (res.status !== 200) throw new Error(`status ${res.status}`);
       health = await res.json();
       if (health.mode !== "supabase") throw new Error("supabase off");
+    });
+
+    await check("health tables", async () => {
+      const required = [
+        "products",
+        "categories",
+        "orders",
+        "order_items",
+        "customers",
+        "payments",
+        "shipments",
+      ];
+      const missing = required.filter(
+        (t) => !(health?.tables || []).includes(t),
+      );
+      if (missing.length) {
+        throw new Error(`missing tables: ${missing.join(',')}`);
+      }
     });
 
     await check("POST /api/admin/orders/bulk-status idempotent", async () => {

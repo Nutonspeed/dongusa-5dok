@@ -70,6 +70,7 @@
     "test:performance:stress": "tsx lib/comprehensive-performance-testing.ts stress",
     "test:watch": "jest --watch",
     "typecheck": "pnpm type-check",
+    "type-check": "tsc --noEmit",
     "validate:deployment": "tsx scripts/validate-production-deployment.ts",
     "validate:input": "tsx lib/input-validation.ts",
     "verify:all": "npm run verify:system && npm run verify:build",
