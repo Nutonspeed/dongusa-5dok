@@ -1,7 +1,7 @@
 // NOTE: No UI restructure. Types/boundary only.
-import { createServerClient } from "@supabase/ssr"
+import "server-only"
+import { createClient as createSupabaseClient } from "@supabase/supabase-js"
 import type { Database } from "@/types/database"
-import { cookies } from "next/headers"
 import { cache } from "react"
 
 // Check if Supabase environment variables are available
@@ -33,29 +33,9 @@ export const createClient = cache(() => {
   }
 
   try {
-    const cookieStore = cookies() as any
-
-    return createServerClient<Database>(
+    return createSupabaseClient<Database>(
       process.env.SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!,
-      {
-        cookies: {
-          getAll() {
-            return cookieStore.getAll()
-          },
-          setAll(cookiesToSet) {
-            try {
-              cookiesToSet.forEach(({ name, value, options }) => {
-                cookieStore.set(name, value, options)
-              })
-            } catch {
-              // The `setAll` method was called from a Server Component.
-              // This can be ignored if you have middleware refreshing
-              // user sessions.
-            }
-          },
-        },
-      },
     )
   } catch (error) {
     console.warn("Failed to create server client, falling back to dummy client:", error)
