@@ -5,34 +5,38 @@
 @layer base {
   :root {
     --background: 0 0% 100%;
-    --foreground: 220 13% 29%;
-    --card: 220 14% 98%;
-    --card-foreground: 220 13% 29%;
+    --foreground: 213 27% 34%;
+    --card: 188 100% 97%;
+    --card-foreground: 164 86% 25%;
     --popover: 0 0% 100%;
-    --popover-foreground: 220 13% 29%;
-    --primary: 188 78% 41%;
+    --popover-foreground: 213 27% 34%;
+    --primary: 164 86% 25%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 25 95% 53%;
+    --secondary: 84 81% 44%;
     --secondary-foreground: 0 0% 100%;
-    --muted: 220 14% 98%;
-    --muted-foreground: 220 13% 29%;
-    --accent: 25 95% 53%;
+    --muted: 142 76% 97%;
+    --muted-foreground: 215 25% 27%;
+    --accent: 84 81% 44%;
     --accent-foreground: 0 0% 100%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
     --border: 220 13% 91%;
-    --input: 0 0% 100%;
-    --ring: 188 78% 41%;
+    --input: 248 100% 97%;
+    --ring: 164 86% 25%;
     --radius: 0.5rem;
-    /* Updated primary colors to burgundy red theme */
-    --sidebar: 220 14% 98%;
-    --sidebar-foreground: 220 13% 29%;
-    --sidebar-primary: 188 78% 41%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 25 95% 53%;
+    --sidebar: 0 0% 100%;
+    --sidebar-foreground: 213 27% 34%;
+    --sidebar-primary: 188 100% 97%;
+    --sidebar-primary-foreground: 164 86% 25%;
+    --sidebar-accent: 84 81% 44%;
     --sidebar-accent-foreground: 0 0% 100%;
     --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 188 78% 41%;
+    --sidebar-ring: 164 86% 25%;
+    --chart-1: 164 86% 25%;
+    --chart-2: 84 81% 44%;
+    --chart-3: 188 100% 97%;
+    --chart-4: 213 27% 34%;
+    --chart-5: 215 25% 27%;
   }
 
   .dark {
@@ -90,39 +94,37 @@
     -webkit-line-clamp: 3;
   }
 
-  /* Added modern login-specific utility classes */
   .bg-login-gradient {
-    background: linear-gradient(135deg, hsl(188, 78%, 41%) 0%, hsl(188, 78%, 51%) 100%);
+    background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--accent)) 100%);
   }
 
   .bg-login-light-gradient {
-    background: linear-gradient(135deg, hsl(220, 14%, 98%) 0%, hsl(220, 13%, 95%) 100%);
+    background: linear-gradient(135deg, hsl(var(--card)) 0%, hsl(var(--muted)) 100%);
   }
 
   .text-login-gradient {
-    background: linear-gradient(135deg, hsl(188, 78%, 41%) 0%, hsl(188, 78%, 51%) 100%);
+    background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--accent)) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
 
   .login-shadow {
-    box-shadow: 0 4px 6px -1px hsla(188, 78%, 41%, 0.1), 0 2px 4px -1px hsla(188, 78%, 41%, 0.06);
+    box-shadow: 0 4px 6px -1px hsla(var(--primary), 0.1), 0 2px 4px -1px hsla(var(--primary), 0.06);
   }
 
   .login-shadow-lg {
-    box-shadow: 0 10px 15px -3px hsla(188, 78%, 41%, 0.1), 0 4px 6px -2px hsla(188, 78%, 41%, 0.05);
+    box-shadow: 0 10px 15px -3px hsla(var(--primary), 0.1), 0 4px 6px -2px hsla(var(--primary), 0.05);
   }
 
   .login-glow {
-    box-shadow: 0 0 20px hsla(188, 78%, 41%, 0.3);
+    box-shadow: 0 0 20px hsla(var(--primary), 0.3);
   }
 
   .social-button-shadow {
     box-shadow: 0 2px 4px -1px hsla(220, 13%, 29%, 0.1), 0 1px 2px -1px hsla(220, 13%, 29%, 0.06);
   }
 
-  /* Added burgundy gradient utilities */
   .bg-admin-gradient {
     background: linear-gradient(135deg, hsl(188, 78%, 41%) 0%, hsl(188, 78%, 51%) 100%);
   }
@@ -152,9 +154,43 @@
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
+
+  .fabric-card-hover {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .fabric-card-hover:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 20px 25px -5px rgba(22, 78, 99, 0.1), 0 10px 10px -5px rgba(22, 78, 99, 0.04);
+  }
+
+  .fabric-image-zoom {
+    transition: transform 0.3s ease-in-out;
+  }
+
+  .fabric-image-zoom:hover {
+    transform: scale(1.05);
+  }
+
+  .fabric-gradient-overlay {
+    background: linear-gradient(135deg, rgba(22, 78, 99, 0.8) 0%, rgba(132, 204, 22, 0.6) 100%);
+  }
+
+  .fabric-shimmer {
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+    animation: shimmer 1.5s infinite;
+  }
+
+  @keyframes shimmer {
+    0% {
+      transform: translateX(-100%);
+    }
+    100% {
+      transform: translateX(100%);
+    }
+  }
 }
 
-/* Updated scrollbar colors to burgundy theme */
 ::-webkit-scrollbar {
   width: 8px;
 }
@@ -172,7 +208,6 @@
   background: hsl(220, 13%, 60%);
 }
 
-/* Smooth transitions */
 * {
   transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow,
     transform, filter, backdrop-filter;
@@ -180,7 +215,6 @@
   transition-duration: 150ms;
 }
 
-/* Loading animations */
 @keyframes pulse {
   0%,
   100% {
@@ -195,7 +229,6 @@
   animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
-/* Added modern login animations and transitions */
 @keyframes slide-in-from-top-2 {
   from {
     transform: translateY(-8px);
@@ -217,14 +250,12 @@
   animation-name: slide-in-from-top-2;
 }
 
-/* Focus styles */
 .focus-visible\:ring-2:focus-visible {
   outline: 2px solid transparent;
   outline-offset: 2px;
   box-shadow: 0 0 0 2px var(--ring);
 }
 
-/* Added burgundy-specific utility classes */
 @layer utilities {
   .burgundy-shadow {
     box-shadow: 0 4px 6px -1px hsla(345, 85%, 35%, 0.1), 0 2px 4px -1px hsla(345, 85%, 35%, 0.06);
