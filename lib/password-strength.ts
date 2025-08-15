@@ -52,4 +52,3 @@ export function validatePasswordStrength(
 
   return { score, feedback, isValid, strength };
 }
-

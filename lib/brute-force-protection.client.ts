@@ -23,4 +23,3 @@ export const bruteForceProtection = {
     return res.json();
   },
 } as const;
-

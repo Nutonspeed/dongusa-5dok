@@ -5,4 +5,3 @@ import { validatePasswordStrength } from "./password-strength";
 export const securityService = {
   validatePasswordStrength,
 } as const;
-

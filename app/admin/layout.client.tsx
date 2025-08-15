@@ -23,6 +23,7 @@ import {
   MessageSquare,
   ImageIcon,
   Shield,
+  Cog,
   type LucideIcon,
 } from "lucide-react"
 import { useAuth } from "../contexts/AuthContext"
@@ -44,6 +45,7 @@ const navigation: NavItem[] = [
   { name: "Shipping", href: "/admin/shipping", icon: Truck },
   { name: "Messages", href: "/admin/messages", icon: MessageSquare },
   { name: "Analytics", href: "/admin/analytics", icon: BarChart3 },
+  { name: "System Config", href: "/admin/system-config", icon: Cog },
   { name: "Settings", href: "/admin/settings", icon: Settings },
   { name: "Demo", href: "/admin/demo", icon: TestTube },
 ]

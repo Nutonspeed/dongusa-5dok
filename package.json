@@ -27,6 +27,7 @@
     "clean": "rm -rf .next out dist",
     "clean:all": "rm -rf .next out dist node_modules package-lock.json",
     "crm:migrate": "tsx lib/crm-data-migration.ts",
+    "db:apply": "tsx scripts/db-apply.ts",
     "db:reset": "tsx scripts/reset-database.ts",
     "db:seed": "tsx scripts/db-seed.ts",
     "db:setup": "tsx scripts/setup-database.ts",
@@ -75,8 +76,7 @@
     "verify:all": "npm run verify:system && npm run verify:build",
     "verify:build": "npm run build && npm run typecheck",
     "verify:system": "tsx scripts/system-verification.ts",
-    "workflow:test": "tsx lib/comprehensive-workflow-automation.ts",
-    "db:apply": "tsx scripts/db-apply.ts"
+    "workflow:test": "tsx lib/comprehensive-workflow-automation.ts"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
@@ -104,6 +104,7 @@
     "@edge-runtime/vm": "latest",
     "@hookform/resolvers": "^3.9.1",
     "@jest/globals": "latest",
+    "@neondatabase/serverless": "latest",
     "@radix-ui/react-accordion": "latest",
     "@radix-ui/react-alert-dialog": "latest",
     "@radix-ui/react-aspect-ratio": "latest",
@@ -159,11 +160,13 @@
     "jsdom": "latest",
     "jspdf": "latest",
     "lucide-react": "^0.454.0",
+    "matchers": "latest",
     "next": "15.2.4",
     "next-themes": "latest",
     "node-cron": "latest",
     "nodemailer": "latest",
     "path": "latest",
+    "pg-native": "latest",
     "react": "^19",
     "react-day-picker": "latest",
     "react-dom": "^19",
