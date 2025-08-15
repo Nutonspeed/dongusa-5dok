@@ -38,8 +38,6 @@ async function run() {
     await waitForServer();
 
     let ok = true;
-    let billId = "";
-
     async function check(label: string, fn: () => Promise<void>) {
       try {
         await fn();
@@ -51,49 +49,80 @@ async function run() {
       }
     }
 
-    await check("GET /", async () => {
-      const res = await fetch(`${BASE}/`);
-      if (res.status !== 200) throw new Error(`status ${res.status}`);
-    });
-
     let health: any = null;
     await check("GET /api/health", async () => {
       const res = await fetch(`${BASE}/api/health`);
       if (res.status !== 200) throw new Error(`status ${res.status}`);
       health = await res.json();
-      console.log("/api/health", { bypass: health.bypass, mock: health.mock });
+      if (health.mode !== "supabase") throw new Error("supabase off");
     });
 
-    await check("GET /admin", async () => {
-      const res = await fetch(`${BASE}/admin`);
-      if (res.status !== 200) {
-        throw new Error(`/admin failed while health says bypass=${health?.bypass} mock=${health?.mock} status ${res.status}`);
-      }
-    });
-
-    await check("POST /api/bills", async () => {
-      const res = await fetch(`${BASE}/api/bills`, {
+    await check("POST /api/admin/orders/bulk-status idempotent", async () => {
+      const key = Date.now().toString();
+      const body = {
+        ids: ["00000000-0000-0000-0000-000000000000"],
+        status: "PENDING",
+        idempotencyKey: key,
+      };
+      const res1 = await fetch(`${BASE}/api/admin/orders/bulk-status`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ items: [{}] }),
+        body: JSON.stringify(body),
       });
-      if (res.status !== 201) throw new Error(`status ${res.status}`);
-      const data = await res.json();
-      billId = data.id;
-      if (!billId) throw new Error("missing id");
+      if (res1.status !== 200) throw new Error(`status ${res1.status}`);
+      const data1 = await res1.json();
+      const res2 = await fetch(`${BASE}/api/admin/orders/bulk-status`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      const data2 = await res2.json();
+      if (res2.status !== 200) throw new Error(`status ${res2.status}`);
+      if (JSON.stringify(data1) !== JSON.stringify(data2)) throw new Error("idempotency failed");
     });
 
-    await check("GET /bill/view/{id}", async () => {
-      const res = await fetch(`${BASE}/bill/view/${billId}`);
+    await check("GET /api/mobile/orders", async () => {
+      const res = await fetch(`${BASE}/api/mobile/orders?userId=test&limit=10`);
       if (res.status !== 200) throw new Error(`status ${res.status}`);
+      const data = await res.json();
+      if (typeof data.pagination?.totalPages !== "number") throw new Error("missing totalPages");
     });
 
     await check("GET /api/admin/orders/bulk-export", async () => {
       const res = await fetch(`${BASE}/api/admin/orders/bulk-export`);
       if (res.status !== 200) throw new Error(`status ${res.status}`);
-      const ct = res.headers.get("content-type") || "";
-      if (!ct.includes("text/csv")) throw new Error("not csv");
+      const buf = await res.arrayBuffer();
+      const bytes = new Uint8Array(buf);
+      if (bytes[0] !== 0xef || bytes[1] !== 0xbb || bytes[2] !== 0xbf)
+        throw new Error("missing BOM");
     });
+
+    const bulkEndpoints = [
+      {
+        label: "POST /api/admin/orders/messages/bulk-preset",
+        url: `${BASE}/api/admin/orders/messages/bulk-preset`,
+        body: {
+          orderIds: ["00000000-0000-0000-0000-000000000000"],
+          presetId: "payment_reminder",
+        },
+      },
+      {
+        label: "POST /api/admin/orders/shipping/create-labels",
+        url: `${BASE}/api/admin/orders/shipping/create-labels`,
+        body: { orderIds: ["00000000-0000-0000-0000-000000000000"] },
+      },
+    ];
+
+    for (const ep of bulkEndpoints) {
+      await check(ep.label, async () => {
+        const res = await fetch(ep.url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(ep.body),
+        });
+        if (res.status !== 200) throw new Error(`status ${res.status}`);
+      });
+    }
 
     console.log(ok ? "SMOKE: PASS" : "SMOKE: FAIL");
     if (!ok) process.exitCode = 1;
