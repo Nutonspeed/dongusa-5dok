@@ -1,3 +1,4 @@
+// NOTE: Boundary fix only. Do NOT restructure or remove existing UI.
 import { defineConfig } from 'vitest/config';
 export default defineConfig({
   test: {
@@ -12,7 +13,19 @@ export default defineConfig({
       'tests/components/ProductCard.test.tsx',
       'tests/integration/ecommerce-flow.test.tsx',
     ],
-    alias: { '@': new URL('./', import.meta.url).pathname, '@/*': new URL('./', import.meta.url).pathname },
+    alias: {
+      '@': new URL('./', import.meta.url).pathname,
+      '@/*': new URL('./', import.meta.url).pathname,
+      'zod/v4': 'zod',
+      '@ai-sdk/gateway/v4': '@ai-sdk/gateway',
+    },
   },
-  resolve: { alias: { '@': '.', '@/*': './*' } },
+  resolve: {
+    alias: {
+      '@': '.',
+      '@/*': './*',
+      'zod/v4': 'zod',
+      '@ai-sdk/gateway/v4': '@ai-sdk/gateway',
+    },
+  },
 });
