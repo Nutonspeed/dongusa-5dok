@@ -1,6 +1,7 @@
 "use client"
 
 import type React from "react"
+import LoginSupportWidget from "@/components/admin/LoginSupportWidget"
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
@@ -116,6 +117,7 @@ export default function AdminLogin() {
           </div>
         </CardContent>
       </Card>
+      <LoginSupportWidget />
     </div>
   )
 }
