@@ -38,7 +38,7 @@ export function CustomerSupportDashboard() {
 
       const endDate = new Date()
       const startDate = new Date()
-      
+
       switch (dateRange) {
         case "1d":
           startDate.setDate(endDate.getDate() - 1)
@@ -238,7 +238,11 @@ export function CustomerSupportDashboard() {
                           <span className="font-medium">{channel.messages.toLocaleString()}</span>
                         </div>
                         <Progress
-                          value={(channel.messages / Math.max(...analytics.channel_performance.map((c: any) => c.messages))) * 100}
+                          value={
+                            (channel.messages /
+                              Math.max(...analytics.channel_performance.map((c: any) => c.messages))) *
+                            100
+                          }
                           className="h-2"
                         />
                       </div>
@@ -259,15 +263,21 @@ export function CustomerSupportDashboard() {
                   <div className="space-y-4">
                     <div className="grid grid-cols-3 gap-4 text-center">
                       <div>
-                        <div className="text-2xl font-bold text-blue-600">{formatTime(analytics.response_times.avg)}</div>
+                        <div className="text-2xl font-bold text-blue-600">
+                          {formatTime(analytics.response_times.avg)}
+                        </div>
                         <div className="text-sm text-gray-600">เฉลี่ย</div>
                       </div>
                       <div>
-                        <div className="text-2xl font-bold text-green-600">{formatTime(analytics.response_times.median)}</div>
+                        <div className="text-2xl font-bold text-green-600">
+                          {formatTime(analytics.response_times.median)}
+                        </div>
                         <div className="text-sm text-gray-600">มัธยฐาน</div>
                       </div>
                       <div>
-                        <div className="text-2xl font-bold text-orange-600">{formatTime(analytics.response_times.p95)}</div>
+                        <div className="text-2xl font-bold text-orange-600">
+                          {formatTime(analytics.response_times.p95)}
+                        </div>
                         <div className="text-sm text-gray-600">95th Percentile</div>
                       </div>
                     </div>
@@ -408,7 +418,7 @@ export function CustomerSupportDashboard() {
                 <div className="space-y-3">
                   <div className="flex justify-between items-center">
                     <span className="text-sm">First Response Time</span>
-                    <span className="font-medium">< 5 นาที</span>
+                    <span className="font-medium">&lt; 5 นาที</span>
                   </div>
                   <Progress value={85} className="h-2" />
                 </div>
@@ -426,7 +436,7 @@ export function CustomerSupportDashboard() {
                   </div>
                   <Progress value={92} className="h-2" />
                 </div>
-                <div className=\"space-y-3\">\
+                <div className="space-y-3">
                   <div className="flex justify-between items-center">
                     <span className="text-sm">Agent Utilization</span>
                     <span className="font-medium">78%</span>
@@ -448,7 +458,7 @@ export function CustomerSupportDashboard() {
                 <div className="grid grid-cols-2 gap-4 text-center">
                   <div className="p-4 border rounded-lg">
                     <div className="text-2xl font-bold text-green-600">94%</div>
-                    <div className=\"text-sm text-gray-600\">Response SLA</div>
+                    <div className="text-sm text-gray-600">Response SLA</div>
                   </div>
                   <div className="p-4 border rounded-lg">
                     <div className="text-2xl font-bold text-blue-600">89%</div>
@@ -460,15 +470,15 @@ export function CustomerSupportDashboard() {
                   <ul className="text-sm space-y-1">
                     <li className="flex justify-between">
                       <span>Email Response:</span>
-                      <span className="text-green-600">< 2 ชั่วโมง ✓</span>
+                      <span className="text-green-600">&lt; 2 ชั่วโมง ✓</span>
                     </li>
                     <li className="flex justify-between">
                       <span>Live Chat Response:</span>
-                      <span className="text-green-600\">< 2 นาที ✓</span>
-                    </li>\
+                      <span className="text-green-600">&lt; 2 นาที ✓</span>
+                    </li>
                     <li className="flex justify-between">
                       <span>Issue Resolution:</span>
-                      <span className="text-yellow-600">< 24 ชั่วโมง ⚠</span>
+                      <span className="text-yellow-600">&lt; 24 ชั่วโมง ⚠</span>
                     </li>
                   </ul>
                 </div>
@@ -478,5 +488,5 @@ export function CustomerSupportDashboard() {
         </TabsContent>
       </Tabs>
     </div>
-  )\
+  )
 }
