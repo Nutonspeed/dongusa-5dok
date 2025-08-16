@@ -7,7 +7,7 @@ const nextConfig = {
     ignoreDuringBuilds: process.env.NODE_ENV !== 'production',
   },
   typescript: {
-    ignoreBuildErrors: process.env.NODE_ENV !== 'production',
+    ignoreBuildErrors: false,
   },
   images: {
     domains: ['placeholder.svg', '*.supabase.co', 'supabase.co'],

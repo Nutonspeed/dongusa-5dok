@@ -150,7 +150,7 @@ const AdminDashboard = ({ summary }: { summary: { orders: number; revenue: numbe
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">แดshboard</h1>
+          <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
           <p className="text-gray-600 mt-1">ภาพรวมธุรกิจและข้อมูลสำคัญ</p>
         </div>
         <div className="mt-4 md:mt-0">
