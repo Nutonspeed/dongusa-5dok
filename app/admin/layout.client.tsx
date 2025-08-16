@@ -24,6 +24,7 @@ import {
   ImageIcon,
   Shield,
   Cog,
+  Brain,
   type LucideIcon,
 } from "lucide-react"
 import { useAuth } from "../contexts/AuthContext"
@@ -44,6 +45,7 @@ const navigation: NavItem[] = [
   { name: "Storefront Manager", href: "/admin/storefront", icon: Settings },
   { name: "Shipping", href: "/admin/shipping", icon: Truck },
   { name: "Messages", href: "/admin/messages", icon: MessageSquare },
+  { name: "AI Chat", href: "/admin/ai-chat", icon: Brain },
   { name: "Analytics", href: "/admin/analytics", icon: BarChart3 },
   { name: "System Config", href: "/admin/system-config", icon: Cog },
   { name: "Settings", href: "/admin/settings", icon: Settings },
