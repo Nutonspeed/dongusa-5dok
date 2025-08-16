@@ -2,14 +2,12 @@ import { NextResponse, type NextRequest } from "next/server"
 import { USE_SUPABASE } from "@/lib/runtime"
 import { createClient } from "@/lib/supabase/client"
 import { logger } from "@/lib/logger"
-import { requireAdmin } from "@/lib/auth/requireAdmin"
 
 function generateTrackingNumber(): string {
   return `TH${Math.random().toString(36).substr(2, 9).toUpperCase()}`
 }
 
 export async function POST(request: NextRequest) {
-  await requireAdmin(request)
   try {
     const body = await request.json()
     const orderIds: string[] = body?.orderIds || []

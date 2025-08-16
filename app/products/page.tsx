@@ -1,5 +1,5 @@
 "use client"
-import { logger } from "@/lib/logger"
+import { logger } from '@/lib/logger';
 
 import { useState, useMemo, useEffect } from "react"
 import Link from "next/link"
@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
-import { BackButton } from "@/components/ui/back-button"
 import { useLanguage } from "../contexts/LanguageContext"
 import { useCart } from "../contexts/CartContext"
 import Header from "../components/Header"
@@ -275,17 +274,6 @@ export default function ProductsPage() {
       <Header />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex items-center justify-between mb-6">
-          <BackButton fallbackUrl="/" className="text-gray-600 hover:text-primary" />
-          <nav className="text-sm text-gray-500">
-            <Link href="/" className="hover:text-primary">
-              {language === "th" ? "หน้าแรก" : "Home"}
-            </Link>
-            <span className="mx-2">/</span>
-            <span className="text-gray-900">{language === "th" ? "สินค้าทั้งหมด" : "All Products"}</span>
-          </nav>
-        </div>
-
         {/* Header */}
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">{language === "th" ? "สินค้าทั้งหมด" : "All Products"}</h1>

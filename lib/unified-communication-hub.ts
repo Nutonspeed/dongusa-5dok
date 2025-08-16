@@ -1,4 +1,3 @@
-// NOTE: No UI restructure. Types/boundary only.
 import { logger } from "@/lib/logger"
 import { createClient } from "@/lib/supabase/client"
 
@@ -403,7 +402,7 @@ export class UnifiedCommunicationHub {
         return { templates: [], categories: [] }
       }
 
-      const templates = (data ?? []) as Array<{ category: string }>
+      const templates = data || []
       const categories = [...new Set(templates.map((t) => t.category))]
 
       return { templates, categories }

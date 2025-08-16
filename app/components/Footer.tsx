@@ -51,19 +51,17 @@ export default function Footer() {
   }
 
   return (
-    <footer className="bg-gradient-to-br from-gray-900 via-gray-800 to-cyan-900 text-white relative overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-br from-cyan-600/10 to-blue-600/5"></div>
+    <footer className="bg-gray-900 text-white relative overflow-hidden">
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent"></div>
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Company Info */}
           <div className="lg:col-span-1">
-            <div className="flex items-center space-x-3 mb-4">
-              <div className="w-10 h-10 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
-                <span className="text-white font-bold text-lg tracking-wider">ELF</span>
+            <div className="flex items-center space-x-2 mb-4">
+              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+                <span className="text-white font-bold text-sm">SC</span>
               </div>
-              <span className="text-xl font-bold bg-gradient-to-r from-cyan-300 to-blue-300 bg-clip-text text-transparent">
-                {language === "en" ? "ELF SofaCover Pro" : "ELF โซฟาคัฟเวอร์ โปร"}
-              </span>
+              <span className="text-xl font-bold">{language === "en" ? "SofaCover Pro" : "โซฟาคัฟเวอร์ โปร"}</span>
             </div>
             <p className="text-gray-300 mb-6 text-sm leading-relaxed">
               {language === "en"
@@ -75,21 +73,21 @@ export default function Footer() {
             <div className="flex space-x-4">
               <a
                 href="https://facebook.com"
-                className="text-gray-400 hover:text-cyan-400 transition-colors transform hover:scale-110 duration-200"
+                className="text-gray-400 hover:text-primary transition-colors"
                 aria-label="Facebook"
               >
                 <Facebook className="w-5 h-5" />
               </a>
               <a
                 href="https://instagram.com"
-                className="text-gray-400 hover:text-cyan-400 transition-colors transform hover:scale-110 duration-200"
+                className="text-gray-400 hover:text-primary transition-colors"
                 aria-label="Instagram"
               >
                 <Instagram className="w-5 h-5" />
               </a>
               <a
                 href="https://twitter.com"
-                className="text-gray-400 hover:text-cyan-400 transition-colors transform hover:scale-110 duration-200"
+                className="text-gray-400 hover:text-primary transition-colors"
                 aria-label="Twitter"
               >
                 <Twitter className="w-5 h-5" />
@@ -100,14 +98,11 @@ export default function Footer() {
           {/* Footer Links */}
           {Object.entries(footerSections).map(([key, section]) => (
             <div key={key}>
-              <h3 className="text-lg font-semibold mb-4 text-cyan-300">{section.title[language]}</h3>
+              <h3 className="text-lg font-semibold mb-4 text-primary">{section.title[language]}</h3>
               <ul className="space-y-2">
                 {section.links.map((link, index) => (
                   <li key={index}>
-                    <Link
-                      href={link.href}
-                      className="text-gray-300 hover:text-cyan-300 transition-colors text-sm hover:underline"
-                    >
+                    <Link href={link.href} className="text-gray-300 hover:text-primary transition-colors text-sm">
                       {link.name[language]}
                     </Link>
                   </li>
@@ -118,37 +113,31 @@ export default function Footer() {
 
           {/* Contact Information */}
           <div>
-            <h3 className="text-lg font-semibold mb-4 text-cyan-300">
+            <h3 className="text-lg font-semibold mb-4 text-primary">
               {language === "en" ? "Contact Info" : "ข้อมูลติดต่อ"}
             </h3>
             <div className="space-y-3">
               <div className="flex items-start space-x-3">
-                <MapPin className="w-4 h-4 text-cyan-400 mt-1 flex-shrink-0" />
+                <MapPin className="w-4 h-4 text-primary mt-1 flex-shrink-0" />
                 <span className="text-gray-300 text-sm">{contactInfo.address[language]}</span>
               </div>
 
               <div className="flex items-center space-x-3">
-                <Phone className="w-4 h-4 text-cyan-400 flex-shrink-0" />
-                <a
-                  href={`tel:${contactInfo.phone}`}
-                  className="text-gray-300 hover:text-cyan-300 text-sm transition-colors"
-                >
+                <Phone className="w-4 h-4 text-primary flex-shrink-0" />
+                <a href={`tel:${contactInfo.phone}`} className="text-gray-300 hover:text-primary text-sm">
                   {contactInfo.phone}
                 </a>
               </div>
 
               <div className="flex items-center space-x-3">
-                <Mail className="w-4 h-4 text-cyan-400 flex-shrink-0" />
-                <a
-                  href={`mailto:${contactInfo.email}`}
-                  className="text-gray-300 hover:text-cyan-300 text-sm transition-colors"
-                >
+                <Mail className="w-4 h-4 text-primary flex-shrink-0" />
+                <a href={`mailto:${contactInfo.email}`} className="text-gray-300 hover:text-primary text-sm">
                   {contactInfo.email}
                 </a>
               </div>
 
               <div className="flex items-start space-x-3">
-                <Clock className="w-4 h-4 text-cyan-400 mt-1 flex-shrink-0" />
+                <Clock className="w-4 h-4 text-primary mt-1 flex-shrink-0" />
                 <span className="text-gray-300 text-sm">{contactInfo.hours[language]}</span>
               </div>
             </div>
@@ -156,21 +145,21 @@ export default function Footer() {
         </div>
 
         {/* Bottom Bar */}
-        <div className="border-t border-gray-700 mt-12 pt-8">
+        <div className="border-t border-gray-800 mt-12 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <p className="text-gray-400 text-sm">
-              © 2024 {language === "en" ? "ELF SofaCover Pro" : "ELF โซฟาคัฟเวอร์ โปร"}.{" "}
+              © 2024 {language === "en" ? "SofaCover Pro" : "โซฟาคัฟเวอร์ โปร"}.{" "}
               {language === "en" ? "All rights reserved." : "สงวนลิขสิทธิ์"}
             </p>
 
             <div className="flex space-x-6 mt-4 md:mt-0">
-              <Link href="/privacy" className="text-gray-400 hover:text-cyan-300 text-sm transition-colors">
+              <Link href="/privacy" className="text-gray-400 hover:text-primary text-sm transition-colors">
                 {language === "en" ? "Privacy Policy" : "นโยบายความเป็นส่วนตัว"}
               </Link>
-              <Link href="/terms" className="text-gray-400 hover:text-cyan-300 text-sm transition-colors">
+              <Link href="/terms" className="text-gray-400 hover:text-primary text-sm transition-colors">
                 {language === "en" ? "Terms of Service" : "ข้อกำหนดการใช้งาน"}
               </Link>
-              <Link href="/cookies" className="text-gray-400 hover:text-cyan-300 text-sm transition-colors">
+              <Link href="/cookies" className="text-gray-400 hover:text-primary text-sm transition-colors">
                 {language === "en" ? "Cookie Policy" : "นโยบายคุกกี้"}
               </Link>
             </div>

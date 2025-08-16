@@ -1,4 +1,3 @@
-// NOTE: No UI restructure. Types/boundary only.
 import { createClient } from "@supabase/supabase-js"
 import type { Database } from "@/types/database"
 import { USE_SUPABASE } from "@/lib/runtime"
@@ -169,7 +168,7 @@ export const db = {
     })
 
     // Clear related caches
-    ;(dbOptimizer as any).clearCacheByPattern("products:")
+    dbOptimizer.clearCacheByPattern("products:")
 
     return result
   },
@@ -190,8 +189,8 @@ export const db = {
     })
 
     // Clear related caches
-    ;(dbOptimizer as any).clearCacheByPattern("products:")
-    ;(dbOptimizer as any).clearCacheByPattern(`product:${id}`)
+    dbOptimizer.clearCacheByPattern("products:")
+    dbOptimizer.clearCacheByPattern(`product:${id}`)
 
     return result
   },
@@ -206,8 +205,8 @@ export const db = {
     })
 
     // Clear related caches
-    ;(dbOptimizer as any).clearCacheByPattern("products:")
-    ;(dbOptimizer as any).clearCacheByPattern(`product:${id}`)
+    dbOptimizer.clearCacheByPattern("products:")
+    dbOptimizer.clearCacheByPattern(`product:${id}`)
   },
 
   // Customers

@@ -29,20 +29,13 @@ export default function CartPage() {
     }).format(price)
   }
 
-  const handleApplyPromo = async () => {
-    try {
-      const res = await fetch("/api/promotions/validate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code: promoCode }),
-      })
-      const data = await res.json()
-      if (data.valid) {
-        setDiscount(totalPrice * (data.discountPct / 100))
-      } else {
-        setDiscount(0)
-      }
-    } catch {
+  const handleApplyPromo = () => {
+    // Mock promo code logic
+    if (promoCode.toLowerCase() === "save10") {
+      setDiscount(totalPrice * 0.1)
+    } else if (promoCode.toLowerCase() === "welcome") {
+      setDiscount(200)
+    } else {
       setDiscount(0)
     }
   }

@@ -1,6 +1,5 @@
 import { logger } from '@/lib/logger';
-import { type Order, OrderChannel } from "./mock-orders"
-import { OrderStatus } from "./i18n/status"
+import { type Order, OrderStatus, OrderChannel } from "./mock-orders"
 import type { Product } from "./mock-products"
 
 // Unified Customer interface

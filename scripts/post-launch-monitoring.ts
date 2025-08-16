@@ -2,7 +2,6 @@ import { exec } from "child_process"
 import { promisify } from "util"
 import fs from "fs/promises"
 import path from "path"
-import { fetchWithTimeout } from "@/utils/net"
 
 const execAsync = promisify(exec)
 
@@ -108,7 +107,7 @@ class PostLaunchMonitoring {
     let responseTime = 0
 
     try {
-      const response = await fetchWithTimeout(siteUrl, { timeoutMs: 10000 })
+      const response = await fetch(siteUrl, { timeout: 10000 })
       uptime = response.ok
       responseTime = Date.now() - startTime
     } catch (error) {
@@ -147,7 +146,7 @@ class PostLaunchMonitoring {
 
     try {
       // Check API health
-      const apiResponse = await fetchWithTimeout(`${siteUrl}/api/health`, { timeoutMs: 5000 })
+      const apiResponse = await fetch(`${siteUrl}/api/health`, { timeout: 5000 })
       if (apiResponse.ok) {
         const healthData = await apiResponse.json()
         checks.api = true
@@ -156,7 +155,7 @@ class PostLaunchMonitoring {
       }
 
       // Check CDN (by testing static asset)
-      const cdnResponse = await fetchWithTimeout(`${siteUrl}/favicon.ico`, { timeoutMs: 5000 })
+      const cdnResponse = await fetch(`${siteUrl}/favicon.ico`, { timeout: 5000 })
       checks.cdn = cdnResponse.ok
     } catch (error) {
       console.error("System health check failed:", error)
@@ -182,7 +181,7 @@ class PostLaunchMonitoring {
 
       for (const endpoint of endpoints) {
         try {
-          const response = await fetchWithTimeout(`${siteUrl}${endpoint}`, { timeoutMs: 5000 })
+          const response = await fetch(`${siteUrl}${endpoint}`, { timeout: 5000 })
           if (!response.ok && response.status >= 500) {
             errors++
           }

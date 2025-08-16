@@ -167,7 +167,7 @@ export class InputValidationService {
       ValidationSchemas[type].parse(sanitized)
     } catch (error) {
       if (error instanceof z.ZodError) {
-        errors.push(...error.issues.map((e: z.ZodIssue) => e.message))
+        errors.push(...error.errors.map((e) => e.message))
       }
     }
 

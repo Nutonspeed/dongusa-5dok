@@ -1,6 +1,5 @@
 import type { NextRequest } from "next/server"
 import { advancedReportingService } from "@/lib/advanced-reporting-service"
-import { exportService } from "@/lib/export-service"
 
 export async function GET(request: NextRequest, { params }: { params: { executionId: string } }) {
   try {
@@ -70,58 +69,6 @@ export async function GET(request: NextRequest, { params }: { params: { executio
         headers: {
           "Content-Type": "application/json",
           "Content-Disposition": `attachment; filename="${filename.replace(".json", ".json")}"`,
-        },
-      })
-    } else if (format === "pdf") {
-      const exportData = {
-        title: template.name,
-        headers: template.visualization.columns.map((col) => col.label),
-        rows: execution.data.map((row) =>
-          template.visualization.columns.map((col) => {
-            const value = row[col.key]
-            if (col.type === "currency") {
-              return new Intl.NumberFormat("th-TH", { style: "currency", currency: "THB" }).format(value)
-            }
-            return String(value)
-          }),
-        ),
-        metadata: execution.metadata,
-      }
-
-      const pdfBlob = await exportService.exportToPDF(exportData)
-      const buffer = await pdfBlob.arrayBuffer()
-
-      return new Response(buffer, {
-        status: 200,
-        headers: {
-          "Content-Type": "application/pdf",
-          "Content-Disposition": `attachment; filename="${filename.replace(/\.[^/.]+$/, ".pdf")}"`,
-        },
-      })
-    } else if (format === "excel") {
-      const exportData = {
-        title: template.name,
-        headers: template.visualization.columns.map((col) => col.label),
-        rows: execution.data.map((row) =>
-          template.visualization.columns.map((col) => {
-            const value = row[col.key]
-            if (col.type === "currency") {
-              return Number(value)
-            }
-            return value
-          }),
-        ),
-        metadata: execution.metadata,
-      }
-
-      const excelBlob = await exportService.exportToExcel(exportData)
-      const buffer = await excelBlob.arrayBuffer()
-
-      return new Response(buffer, {
-        status: 200,
-        headers: {
-          "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-          "Content-Disposition": `attachment; filename="${filename.replace(/\.[^/.]+$/, ".xlsx")}"`,
         },
       })
     }

@@ -1,7 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { supabase } from "@/lib/supabase"
 import { logger } from "@/lib/logger"
-import { OrderStatus } from "@/lib/i18n/status"
 
 export async function GET(request: NextRequest) {
   try {
@@ -38,18 +37,12 @@ export async function GET(request: NextRequest) {
           )
         )
       `,
-        { count: "exact" }
       )
       .eq("user_id", userId)
 
     // Apply status filter
     if (status && status !== "all") {
-      const normalized = status.trim().toUpperCase()
-      const allow = new Set(Object.values(OrderStatus))
-      if (!allow.has(normalized as OrderStatus)) {
-        return NextResponse.json({ error: "Invalid status" }, { status: 400 })
-      }
-      query = query.eq("status", normalized)
+      query = query.eq("status", status)
     }
 
     // Apply pagination

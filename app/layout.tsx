@@ -10,20 +10,19 @@ import { Toaster } from "@/components/ui/toaster"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "ELF SofaCover Pro - Premium Custom Sofa Covers | ผ้าคลุมโซฟาพรีเมียม",
+  title: "SofaCover Pro - Premium Custom Sofa Covers | ผ้าคลุมโซฟาพรีเมียม",
   description:
-    "Transform your living space with premium custom sofa covers by ELF SofaCover Pro. Perfect fit guaranteed, premium materials, fast delivery. เปลี่ยนโฉมพื้นที่นั่งเล่นด้วยผ้าคลุมโซฟาตามสั่งพรีเมียม",
-  keywords:
-    "sofa covers, custom sofa covers, furniture protection, home decor, ผ้าคลุมโซฟา, ผ้าคลุมโซฟาตามสั่ง, ELF SofaCover Pro",
-  authors: [{ name: "ELF SofaCover Pro Team" }],
-  creator: "ELF SofaCover Pro",
-  publisher: "ELF SofaCover Pro",
+    "Transform your living space with premium custom sofa covers. Perfect fit guaranteed, premium materials, fast delivery. เปลี่ยนโฉมพื้นที่นั่งเล่นด้วยผ้าคลุมโซฟาตามสั่งพรีเมียม",
+  keywords: "sofa covers, custom sofa covers, furniture protection, home decor, ผ้าคลุมโซฟา, ผ้าคลุมโซฟาตามสั่ง",
+  authors: [{ name: "SofaCover Pro Team" }],
+  creator: "SofaCover Pro",
+  publisher: "SofaCover Pro",
   formatDetection: {
     email: false,
     address: false,
     telephone: false,
   },
-  metadataBase: new URL("https://elfsofacoverpro.com"),
+  metadataBase: new URL("https://sofacoverpro.com"),
   alternates: {
     canonical: "/",
     languages: {
@@ -32,17 +31,17 @@ export const metadata: Metadata = {
     },
   },
   openGraph: {
-    title: "ELF SofaCover Pro - Premium Custom Sofa Covers",
+    title: "SofaCover Pro - Premium Custom Sofa Covers",
     description:
-      "Transform your living space with premium custom sofa covers by ELF SofaCover Pro. Perfect fit guaranteed, premium materials, fast delivery.",
-    url: "https://elfsofacoverpro.com",
-    siteName: "ELF SofaCover Pro",
+      "Transform your living space with premium custom sofa covers. Perfect fit guaranteed, premium materials, fast delivery.",
+    url: "https://sofacoverpro.com",
+    siteName: "SofaCover Pro",
     images: [
       {
         url: "/modern-living-room-sofa-covers.png",
         width: 1200,
         height: 630,
-        alt: "Premium Sofa Covers by ELF SofaCover Pro",
+        alt: "Premium Sofa Covers by SofaCover Pro",
       },
     ],
     locale: "en_US",
@@ -50,11 +49,11 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "ELF SofaCover Pro - Premium Custom Sofa Covers",
+    title: "SofaCover Pro - Premium Custom Sofa Covers",
     description:
-      "Transform your living space with premium custom sofa covers by ELF SofaCover Pro. Perfect fit guaranteed, premium materials, fast delivery.",
+      "Transform your living space with premium custom sofa covers. Perfect fit guaranteed, premium materials, fast delivery.",
     images: ["/modern-living-room-sofa-covers.png"],
-    creator: "@elfsofacoverpro",
+    creator: "@sofacoverpro",
   },
   robots: {
     index: true,
@@ -82,10 +81,10 @@ export default function RootLayout({
   const organizationSchema = {
     "@context": "https://schema.org",
     "@type": "Organization",
-    name: "ELF SofaCover Pro",
-    url: "https://elfsofacoverpro.com",
-    logo: "https://elfsofacoverpro.com/logo.png",
-    description: "Premium custom sofa covers with perfect fit guarantee and fast delivery by ELF SofaCover Pro",
+    name: "SofaCover Pro",
+    url: "https://sofacoverpro.com",
+    logo: "https://sofacoverpro.com/logo.png",
+    description: "Premium custom sofa covers with perfect fit guarantee and fast delivery",
     address: {
       "@type": "PostalAddress",
       addressCountry: "TH",
@@ -96,7 +95,7 @@ export default function RootLayout({
       contactType: "customer service",
       availableLanguage: ["Thai", "English"],
     },
-    sameAs: ["https://facebook.com/elfsofacoverpro", "https://instagram.com/elfsofacoverpro"],
+    sameAs: ["https://facebook.com/sofacoverpro", "https://instagram.com/sofacoverpro"],
   }
 
   return (
@@ -106,7 +105,7 @@ export default function RootLayout({
         <link rel="icon" href="/icon.svg" type="image/svg+xml" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <link rel="manifest" href="/manifest.json" />
-        <meta name="theme-color" content="#0891b2" />
+        <meta name="theme-color" content="#8B1538" />
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
         <script
           type="application/ld+json"

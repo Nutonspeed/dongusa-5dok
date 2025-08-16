@@ -1,5 +1,4 @@
 "use client"
-// NOTE: Boundary fix only. Do NOT restructure or remove existing UI.
 import { logger } from "@/lib/logger"
 
 import type React from "react"
@@ -8,7 +7,7 @@ import { supabase } from "@/lib/supabase/client"
 import { USE_SUPABASE } from "@/lib/runtime"
 import type { AppUser } from "@/types/user"
 import type { Database } from "@/lib/supabase/types"
-import { bruteForceProtection } from "@/lib/brute-force-protection.client"
+import { bruteForceProtection } from "@/lib/brute-force-protection"
 
 type ProfileRow = Database["public"]["Tables"]["profiles"]["Row"]
 

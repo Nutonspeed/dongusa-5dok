@@ -1,1 +1,1 @@
-// configuration placeholder
+export const runtime = 'nodejs'

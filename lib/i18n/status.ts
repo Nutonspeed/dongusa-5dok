@@ -1,33 +1,16 @@
-export enum OrderStatus {
-  PENDING = "PENDING",
-  PENDING_PAYMENT = "PENDING_PAYMENT",
-  PAID = "PAID",
-  IN_PRODUCTION = "IN_PRODUCTION",
-  READY_TO_SHIP = "READY_TO_SHIP",
-  SHIPPED = "SHIPPED",
-  DONE = "DONE",
-  CANCELLED = "CANCELLED",
-}
+export type OrderStatusString = "pending" | "confirmed" | "production" | "ready" | "shipped" | "delivered" | "cancelled"
 
-export const statusLabelTH: Record<OrderStatus, string> = {
-  [OrderStatus.PENDING]: "รอดำเนินการ",
-  [OrderStatus.PENDING_PAYMENT]: "รอชำระเงิน",
-  [OrderStatus.PAID]: "ชำระแล้ว",
-  [OrderStatus.IN_PRODUCTION]: "กำลังผลิต",
-  [OrderStatus.READY_TO_SHIP]: "พร้อมส่ง",
-  [OrderStatus.SHIPPED]: "จัดส่งแล้ว",
-  [OrderStatus.DONE]: "เสร็จสิ้น",
-  [OrderStatus.CANCELLED]: "ยกเลิก",
-}
+export type OrderChannelString = "facebook" | "line" | "tiktok" | "lazada" | "shopee" | "walkin" | "other"
 
-export type OrderChannelString =
-  | "facebook"
-  | "line"
-  | "tiktok"
-  | "lazada"
-  | "shopee"
-  | "walkin"
-  | "other"
+export const statusLabelTH: Record<OrderStatusString, string> = {
+  pending: "รอดำเนินการ",
+  confirmed: "ยืนยันแล้ว",
+  production: "กำลังผลิต",
+  ready: "พร้อมจัดส่ง",
+  shipped: "จัดส่งแล้ว",
+  delivered: "ส่งมอบแล้ว",
+  cancelled: "ยกเลิก",
+}
 
 export const channelLabelTH: Record<OrderChannelString, string> = {
   facebook: "Facebook",
@@ -39,28 +22,23 @@ export const channelLabelTH: Record<OrderChannelString, string> = {
   other: "อื่น ๆ",
 }
 
+// fallback helpers (กันกรณีสตริงนอก enum)
 export function toStatusLabelTH(v?: string) {
-  const key = (v || OrderStatus.PENDING).toUpperCase() as OrderStatus
-  return statusLabelTH[key] ?? statusLabelTH[OrderStatus.PENDING]
+  const key = (v || "pending").toLowerCase() as OrderStatusString
+  return statusLabelTH[key] ?? "รอดำเนินการ"
 }
 
 export function toChannelLabelTH(v?: string) {
   const key = (v || "other").toLowerCase() as OrderChannelString
-  return channelLabelTH[key] ?? channelLabelTH.other
+  return channelLabelTH[key] ?? "อื่น ๆ"
 }
 
-export function statusBadgeVariant(
-  status?: string,
-): "default" | "secondary" | "destructive" | "outline" {
-  const s = (status || "").toUpperCase()
-  if (s === OrderStatus.PENDING || s === OrderStatus.PENDING_PAYMENT) return "outline"
-  if (
-    s === OrderStatus.PAID ||
-    s === OrderStatus.IN_PRODUCTION ||
-    s === OrderStatus.READY_TO_SHIP
-  )
-    return "secondary"
-  if (s === OrderStatus.SHIPPED || s === OrderStatus.DONE) return "default"
-  if (s === OrderStatus.CANCELLED) return "destructive"
+// UI variant helper
+export function statusBadgeVariant(status?: string): "default" | "secondary" | "destructive" | "outline" {
+  const s = (status || "").toLowerCase()
+  if (s === "pending") return "outline"
+  if (s === "confirmed" || s === "production" || s === "ready") return "secondary"
+  if (s === "shipped" || s === "delivered") return "default"
+  if (s === "cancelled") return "destructive"
   return "default"
 }
