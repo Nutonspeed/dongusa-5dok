@@ -155,8 +155,6 @@
     "next": "15.2.4",
     "next-themes": "latest",
     "node-cron": "latest",
-    "node:child_process": "latest",
-    "node:http": "latest",
     "nodemailer": "latest",
     "path": "latest",
     "pg": "^8.16.3",
