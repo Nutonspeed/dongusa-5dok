@@ -7,14 +7,8 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { ArrowLeft, Package, Truck, Clock, CheckCircle, XCircle, MessageSquare, Printer, Copy } from "lucide-react"
-import {
-  type Order,
-  OrderStatus,
-  getOrderById,
-  updateOrderStatus,
-  statusLabelTH,
-  channelLabelTH,
-} from "@/lib/mock-orders"
+import { type Order, getOrderById, updateOrderStatus, channelLabelTH } from "@/lib/mock-orders"
+import { OrderStatus, statusLabelTH } from "@/lib/i18n/status"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { useToast } from "@/hooks/use-toast"
@@ -49,7 +43,7 @@ const statusIcons: Record<OrderStatus, any> = {
 }
 
 export default function OrderDetailPage() {
-  const params = useParams()
+  const { id } = useParams<{ id: string }>()!
   const router = useRouter()
   const { toast } = useToast()
 const [order, setOrder] = useState<Order | null>(null)
@@ -69,11 +63,11 @@ const [statusNotes, setStatusNotes] = useState("")
 
   useEffect(() => {
     loadOrder()
-  }, [params.id])
+  }, [id])
 
   const loadOrder = async () => {
     try {
-      const orderData = await getOrderById(params.id as string)
+      const orderData = await getOrderById(id)
       setOrder(orderData)
     } catch (error) {
       toast({

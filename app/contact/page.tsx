@@ -6,9 +6,11 @@ import { useState } from "react"
 import { MapPin, Phone, Mail, Clock, MessageCircle, Send, CheckCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
+import { BackButton } from "@/components/ui/back-button"
 import { useLanguage } from "../contexts/LanguageContext"
 import Header from "../components/Header"
 import Footer from "../components/Footer"
+import Link from "next/link"
 
 export const dynamic = "force-dynamic"
 
@@ -24,12 +26,21 @@ export default function ContactPage() {
     urgency: "normal",
   })
   const [isSubmitted, setIsSubmitted] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setIsSubmitting(true)
 
-    // Create message for Facebook
-    const message = `
+    try {
+      // Validate required fields
+      if (!formData.name || !formData.phone || !formData.message) {
+        alert(language === "th" ? "กรุณากรอกข้อมูลที่จำเป็น" : "Please fill in required fields")
+        return
+      }
+
+      // Create message for Facebook
+      const message = `
 ${language === "th" ? "ข้อมูลการติดต่อ" : "Contact Information"}:
 
 ${language === "th" ? "ชื่อ" : "Name"}: ${formData.name}
@@ -41,13 +52,30 @@ ${language === "th" ? "ความเร่งด่วน" : "Urgency"}: ${for
 
 ${language === "th" ? "ข้อความ" : "Message"}:
 ${formData.message}
-    `
+      `
 
-    const facebookUrl = `https://m.me/your-facebook-page?text=${encodeURIComponent(message)}`
-    window.open(facebookUrl, "_blank")
+      const facebookUrl = `https://m.me/your-facebook-page?text=${encodeURIComponent(message)}`
+      window.open(facebookUrl, "_blank")
 
-    setIsSubmitted(true)
-    setTimeout(() => setIsSubmitted(false), 3000)
+      setIsSubmitted(true)
+      // Reset form
+      setFormData({
+        name: "",
+        email: "",
+        phone: "",
+        subject: "",
+        message: "",
+        sofaType: "",
+        urgency: "normal",
+      })
+
+      setTimeout(() => setIsSubmitted(false), 5000)
+    } catch (error) {
+      console.error("Form submission error:", error)
+      alert(language === "th" ? "เกิดข้อผิดพลาด กรุณาลองใหม่" : "An error occurred. Please try again")
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -120,6 +148,17 @@ ${formData.message}
       <Header />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="flex items-center justify-between mb-6">
+          <BackButton fallbackUrl="/" className="text-gray-600 hover:text-primary" />
+          <nav className="text-sm text-gray-500">
+            <Link href="/" className="hover:text-primary">
+              {language === "th" ? "หน้าแรก" : "Home"}
+            </Link>
+            <span className="mx-2">/</span>
+            <span className="text-gray-900">{language === "th" ? "ติดต่อเรา" : "Contact Us"}</span>
+          </nav>
+        </div>
+
         {/* Header */}
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">{language === "th" ? "ติดต่อเรา" : "Contact Us"}</h1>
@@ -268,11 +307,18 @@ ${formData.message}
 
                   <Button
                     type="submit"
-                    className="w-full bg-gradient-to-r from-pink-500 to-rose-600 hover:from-pink-600 hover:to-rose-700 text-white py-3"
+                    disabled={isSubmitting}
+                    className="w-full bg-gradient-to-r from-pink-500 to-rose-600 hover:from-pink-600 hover:to-rose-700 text-white py-3 disabled:opacity-50"
                     size="lg"
                   >
                     <Send className="w-5 h-5 mr-2" />
-                    {language === "th" ? "ส่งข้อความ" : "Send Message"}
+                    {isSubmitting
+                      ? language === "th"
+                        ? "กำลังส่ง..."
+                        : "Sending..."
+                      : language === "th"
+                        ? "ส่งข้อความ"
+                        : "Send Message"}
                   </Button>
                 </form>
               </CardContent>

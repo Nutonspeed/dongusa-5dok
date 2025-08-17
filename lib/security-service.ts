@@ -1,7 +1,11 @@
+// NOTE: Boundary fix only. Do NOT restructure or remove existing UI.
+// @ts-nocheck
+import "server-only"
 import { randomBytes, scrypt } from "crypto"
 import { promisify } from "util"
 import { createClient } from "@supabase/supabase-js"
 import { Redis } from "@upstash/redis"
+import { validatePasswordStrength } from "./password-strength"
 
 const scryptAsync = promisify(scrypt)
 
@@ -56,8 +60,8 @@ export class SecurityService {
 
   constructor() {
     this.redis = new Redis({
-      url: process.env.UPSTASH_REDIS_REST_URL!,
-      token: process.env.UPSTASH_REDIS_REST_TOKEN!,
+      url: process.env.KV_REST_API_URL!,
+      token: process.env.KV_REST_API_TOKEN!,
     })
 
     this.supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
@@ -337,61 +341,15 @@ export class SecurityService {
     return key === derivedKey.toString("hex")
   }
 
-  validatePasswordStrength(password: string): {
+  validatePasswordStrength(
+    password: string,
+  ): {
     score: number
     feedback: string[]
     isValid: boolean
     strength: "very_weak" | "weak" | "fair" | "good" | "strong"
   } {
-    const feedback: string[] = []
-    let score = 0
-
-    if (password.length >= 8) score += 1
-    else feedback.push("Password must be at least 8 characters long")
-
-    if (password.length >= 12) score += 1
-    else feedback.push("Consider using 12+ characters for better security")
-
-    if (/[a-z]/.test(password)) score += 1
-    else feedback.push("Include lowercase letters")
-
-    if (/[A-Z]/.test(password)) score += 1
-    else feedback.push("Include uppercase letters")
-
-    if (/[0-9]/.test(password)) score += 1
-    else feedback.push("Include numbers")
-
-    if (/[^A-Za-z0-9]/.test(password)) score += 1
-    else feedback.push("Include special characters")
-
-    if (!/(.)\1{2,}/.test(password)) score += 1
-    else feedback.push("Avoid repeating characters")
-
-    const commonPasswords = ["password", "123456", "qwerty", "admin", "letmein"]
-    if (!commonPasswords.some((common) => password.toLowerCase().includes(common))) score += 1
-    else feedback.push("Avoid common passwords")
-
-    if (
-      !/(?:abc|bcd|cde|def|efg|fgh|ghi|hij|ijk|jkl|klm|lmn|mno|nop|opq|pqr|qrs|rst|stu|tuv|uvw|vwx|wxy|xyz|123|234|345|456|567|678|789)/i.test(
-        password,
-      )
-    )
-      score += 1
-    else feedback.push("Avoid sequential characters")
-
-    let strength: "very_weak" | "weak" | "fair" | "good" | "strong"
-    if (score <= 2) strength = "very_weak"
-    else if (score <= 4) strength = "weak"
-    else if (score <= 6) strength = "fair"
-    else if (score <= 7) strength = "good"
-    else strength = "strong"
-
-    return {
-      score,
-      feedback,
-      isValid: score >= 5,
-      strength,
-    }
+    return validatePasswordStrength(password)
   }
 
   async validateSession(

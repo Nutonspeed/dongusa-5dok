@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server"
 import { USE_SUPABASE } from "@/lib/runtime"
 import { createClient } from "@/lib/supabase/client"
 import { logger } from "@/lib/logger"
+import { requireAdmin } from "@/lib/auth/requireAdmin"
 
 const MESSAGE_PRESETS: Record<string, { name: string; template: string }> = {
   payment_reminder: {
@@ -19,6 +20,7 @@ const MESSAGE_PRESETS: Record<string, { name: string; template: string }> = {
 }
 
 export async function POST(request: NextRequest) {
+  await requireAdmin(request)
   try {
     const body = await request.json()
     const orderIds: string[] = body?.orderIds || []

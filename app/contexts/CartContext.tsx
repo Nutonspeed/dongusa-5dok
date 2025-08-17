@@ -1,5 +1,5 @@
 "use client"
-import { logger } from '@/lib/logger';
+import { logger } from "@/lib/logger"
 
 import type React from "react"
 import { createContext, useContext, useState, useEffect } from "react"
@@ -32,7 +32,7 @@ interface CartContextType {
   clearCart: () => void
   getTotalItems: () => number
   getTotalPrice: () => number
-  toggleFavorite: (id: string) => void
+  toggleFavorite: (productId: string) => void
   isLoading: boolean
 }
 
@@ -156,10 +156,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         return updatedItems
       } else {
         // New item, add to cart with composite key as id
-        return [
-          ...prevItems,
-          { ...newItem, productId: newItem.id, id: itemKey, quantity: newItem.quantity || 1 },
-        ]
+        return [...prevItems, { ...newItem, productId: newItem.id, id: itemKey, quantity: newItem.quantity || 1 }]
       }
     })
   }
@@ -181,8 +178,36 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     setItems([])
   }
 
-  const toggleFavorite = (_id: string) => {
-    // Favorites feature not implemented yet
+  const toggleFavorite = async (productId: string) => {
+    if (!user) {
+      console.warn("User must be logged in to manage favorites")
+      return
+    }
+
+    try {
+      const supabase = createClient()
+
+      // Check if item is already in favorites
+      const { data: existing } = await supabase
+        .from("wishlists")
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("product_id", productId)
+        .single()
+
+      if (existing) {
+        // Remove from favorites
+        await supabase.from("wishlists").delete().eq("user_id", user.id).eq("product_id", productId)
+      } else {
+        // Add to favorites
+        await supabase.from("wishlists").insert({
+          user_id: user.id,
+          product_id: productId,
+        })
+      }
+    } catch (error) {
+      logger.error("Error toggling favorite:", error)
+    }
   }
 
   const getTotalItems = () => {

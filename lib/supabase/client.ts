@@ -16,6 +16,7 @@ export function createClient() {
         select: () => ({
           eq: () => ({ single: async () => ({ data: null, error: null }) }),
           order: () => ({ limit: async () => ({ data: [], error: null }) }),
+          limit: async () => ({ data: [], error: null }),
         }),
         insert: async () => ({ data: null, error: null }),
         update: () => ({ eq: async () => ({ data: null, error: null }) }),
@@ -27,6 +28,13 @@ export function createClient() {
         signInWithPassword: async () => ({ data: null, error: null }),
         signUp: async () => ({ data: null, error: null }),
         signOut: async () => ({ error: null }),
+      },
+      storage: {
+        from: () => ({
+          upload: async () => ({ data: null, error: null }),
+          download: async () => ({ data: null, error: null }),
+          remove: async () => ({ data: null, error: null }),
+        }),
       },
     } as any
   }

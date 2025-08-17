@@ -1,3 +1,4 @@
+// NOTE: Boundary fix only. Do NOT restructure or remove existing UI.
 {
   "root": true,
   "extends": ["next/core-web-vitals", "eslint:recommended"],
@@ -12,5 +13,39 @@
       "error",
       { "argsIgnorePattern": "^_", "varsIgnorePattern": "^_" }
     ]
-  }
+  },
+  "overrides": [
+    {
+      "files": ["components/legacy/**"],
+      "rules": {
+        "no-console": "off",
+        "@typescript-eslint/no-unused-vars": "warn",
+        "react-hooks/rules-of-hooks": "warn",
+        "react-hooks/exhaustive-deps": "warn"
+      }
+    },
+    {
+      "files": ["**/app/**/*.tsx", "**/components/**/*.tsx"],
+      "rules": {
+        "no-restricted-syntax": [
+          "error",
+          {
+            "selector": "JSXAttribute[name.name=/^on[A-Z].*/] > :not(Literal)",
+            "message": "Event handlers ต้องประกาศใน Client Components เท่านั้น ห้ามส่ง function จาก Server Component"
+          }
+        ],
+        "no-restricted-imports": [
+          "error",
+          {
+            "paths": [
+              { "name": "server-only", "message": "Client ห้าม import server-only" },
+              { "name": "next/headers", "message": "ใช้ใน Server หรือผ่าน API route เท่านั้น" },
+              { "name": "next/cache", "message": "ใช้ใน Server เท่านั้น" }
+            ],
+            "patterns": ["**/lib/supabase/server*"]
+          }
+        ]
+      }
+    }
+  ]
 }

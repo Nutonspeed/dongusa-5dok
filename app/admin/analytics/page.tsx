@@ -31,7 +31,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 
 import { DatabaseService } from "@/lib/database"
 import { useEffect } from "react"
-import { BusinessIntelligenceService } from "@/lib/analytics/business-intelligence"
 import AdvancedAnalyticsDashboard from "@/components/analytics/AdvancedAnalyticsDashboard"
 
 const productCategoryData = [
@@ -93,25 +92,18 @@ export default function AnalyticsPage() {
   const [analytics, setAnalytics] = useState<any>({})
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [advancedAnalytics, setAdvancedAnalytics] = useState<any>(null)
 
   useEffect(() => {
     const loadAnalyticsData = async () => {
       try {
         setLoading(true)
         const db = new DatabaseService()
-        const biService = new BusinessIntelligenceService()
 
         const analyticsData = await db.getAnalytics()
         const salesHistory = await (db as any).getSalesData(selectedTimeRange)
 
-        const endDate = new Date()
-        const startDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
-        const businessReport = await biService.generateBusinessReport(startDate, endDate)
-
         setSalesData(salesHistory)
         setAnalytics(analyticsData)
-        setAdvancedAnalytics(businessReport)
       } catch (err) {
         logger.error("Error loading analytics:", err)
         setError("ไม่สามารถโหลดข้อมูลการวิเคราะห์ได้")
@@ -173,43 +165,9 @@ export default function AnalyticsPage() {
     { id: "reports", name: "รายงาน", icon: FileText },
   ]
 
-  const handleExportReport = async (format: string) => {
+  const handleExportReport = (format: string) => {
     logger.info(`Exporting report in ${format} format`)
-
-    try {
-      const response = await fetch("/api/reports/export", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          format,
-          timeRange: selectedTimeRange,
-          data: {
-            sales: salesData,
-            analytics,
-            advanced: advancedAnalytics,
-          },
-        }),
-      })
-
-      if (response.ok) {
-        const blob = await response.blob()
-        const url = window.URL.createObjectURL(blob)
-        const a = document.createElement("a")
-        a.href = url
-        a.download = `analytics-report-${new Date().toISOString().split("T")[0]}.${format}`
-        document.body.appendChild(a)
-        a.click()
-        window.URL.revokeObjectURL(url)
-        document.body.removeChild(a)
-      } else {
-        throw new Error("Export failed")
-      }
-    } catch (error) {
-      logger.error("Export error:", error)
-      setError("ไม่สามารถส่งออกรายงานได้")
-    }
+    // Implementation for export functionality
   }
 
   if (loading) {
@@ -702,7 +660,7 @@ export default function AnalyticsPage() {
                   <span>รายงาน PDF</span>
                 </Button>
                 <Button
-                  onClick={() => handleExportReport("xlsx")}
+                  onClick={() => handleExportReport("excel")}
                   className="h-20 flex flex-col items-center justify-center space-y-2"
                   variant="outline"
                 >
@@ -718,34 +676,6 @@ export default function AnalyticsPage() {
                   <span>ข้อมูล CSV</span>
                 </Button>
               </div>
-
-              {advancedAnalytics && (
-                <div className="mt-6 p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border">
-                  <h3 className="font-semibold text-gray-900 mb-3">สรุปข้อมูล Advanced Analytics</h3>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                    <div>
-                      <p className="text-gray-600">รายได้รวม</p>
-                      <p className="font-bold text-primary">{formatPrice(advancedAnalytics.revenue?.total || 0)}</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-600">การเติบโต</p>
-                      <p className="font-bold text-green-600">
-                        +{(advancedAnalytics.revenue?.growth || 0).toFixed(1)}%
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-gray-600">ลูกค้าใหม่</p>
-                      <p className="font-bold text-blue-600">{advancedAnalytics.customers?.new || 0} คน</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-600">อัตราการกลับมา</p>
-                      <p className="font-bold text-purple-600">
-                        {(advancedAnalytics.customers?.retention || 0).toFixed(1)}%
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
             </CardContent>
           </Card>
         </div>

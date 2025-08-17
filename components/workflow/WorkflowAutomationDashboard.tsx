@@ -1,4 +1,5 @@
 "use client"
+// NOTE: Boundary fix only. Do NOT restructure or remove existing UI.
 
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -31,7 +32,11 @@ import {
   Database,
   Webhook,
 } from "lucide-react"
-import { workflowAutomation, type Workflow, type WorkflowExecution } from "@/lib/comprehensive-workflow-automation"
+import {
+  workflowAutomation,
+  type Workflow,
+  type WorkflowExecution,
+} from "@/lib/comprehensive-workflow-automation.client"
 
 const COLORS = ["#ec4899", "#f43f5e", "#3b82f6", "#10b981", "#f59e0b", "#8b5cf6"]
 

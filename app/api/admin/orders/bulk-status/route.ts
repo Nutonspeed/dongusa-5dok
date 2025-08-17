@@ -1,52 +1,68 @@
 import { NextResponse, type NextRequest } from "next/server"
+import { z } from "zod"
+import crypto from "crypto"
 import { USE_SUPABASE } from "@/lib/runtime"
-import { DatabaseService } from "@/lib/database"
-import { createClient } from "@/lib/supabase/client"
+import { createClient } from "@/lib/supabase/server"
 import { logger } from "@/lib/logger"
+import { OrderStatus } from "@/lib/i18n/status"
+import { requireAdmin } from "@/lib/auth/requireAdmin"
 
 export async function POST(request: NextRequest) {
+  await requireAdmin(request)
   try {
-    const body = await request.json()
-    const orderIds: string[] = body?.orderIds || []
-    const newStatus: string = body?.status || body?.newStatus
-
-    if (!Array.isArray(orderIds) || orderIds.length === 0 || !newStatus) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Invalid request body. Expected orderIds array and status string.",
-        },
-        { status: 400 },
-      )
-    }
+    const schema = z.object({
+      ids: z.array(z.string().min(1)).min(1),
+      status: z.nativeEnum(OrderStatus),
+      idempotencyKey: z.string().optional(),
+    })
+    const { ids, status, idempotencyKey } = schema.parse(await request.json())
 
     if (USE_SUPABASE) {
       try {
         const supabase = createClient()
-        const db = new DatabaseService(supabase)
 
-        // Update orders status in database
-        const { error } = await supabase
+        if (idempotencyKey) {
+          const { data: existing } = await supabase
+            .from("ops_log")
+            .select("result")
+            .eq("idempotency_key", idempotencyKey)
+            .maybeSingle()
+          if (existing?.result) {
+            return NextResponse.json(existing.result as any)
+          }
+        }
+
+        const { data, error } = await supabase
           .from("orders")
-          .update({
-            status: newStatus,
-            updated_at: new Date().toISOString(),
-          })
-          .in("id", orderIds)
+          .update({ status, updated_at: new Date().toISOString() })
+          .in("id", ids)
+          .select("id")
 
         if (error) {
           logger.error("Database update failed:", error)
           throw error
         }
 
-        logger.info(`Updated ${orderIds.length} orders to status: ${newStatus}`)
+        const updatedCount = data?.length || 0
+        const result = { updatedCount }
 
-        return NextResponse.json({
-          success: true,
-          message: `Updated ${orderIds.length} orders to ${newStatus}`,
-          updated: orderIds.length,
-          mode: "database",
-        })
+        if (idempotencyKey) {
+          const payloadHash = crypto
+            .createHash("sha256")
+            .update(JSON.stringify({ ids, status }))
+            .digest("hex")
+          await supabase.from("ops_log").insert({
+            idempotency_key: idempotencyKey,
+            op: "bulk-status",
+            payload_hash: payloadHash,
+            result,
+            created_at: new Date().toISOString(),
+          })
+        }
+
+        logger.info(`Updated ${updatedCount} orders to status: ${status}`)
+
+        return NextResponse.json(result)
       } catch (error) {
         logger.error("Bulk status update failed:", error)
         return NextResponse.json(
@@ -62,16 +78,14 @@ export async function POST(request: NextRequest) {
     // Mock mode - simulate processing time
     await new Promise((resolve) => setTimeout(resolve, 800))
 
-    logger.info("Mock bulk status change:", { orderIds, newStatus })
+    logger.info("Mock bulk status change:", { ids, status })
 
-    return NextResponse.json({
-      success: true,
-      message: `Updated ${orderIds.length} orders to ${newStatus}`,
-      updated: orderIds.length,
-      mode: "mock",
-    })
+    return NextResponse.json({ updatedCount: ids.length, mode: "mock" })
   } catch (error) {
     logger.error("Bulk status update error:", error)
+    if (error instanceof z.ZodError) {
+      return NextResponse.json({ message: error.message }, { status: 400 })
+    }
     return NextResponse.json(
       {
         success: false,

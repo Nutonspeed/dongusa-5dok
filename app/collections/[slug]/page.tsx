@@ -22,9 +22,8 @@ interface Collection {
 }
 
 export default function CollectionDetailPage() {
-  const params = useParams()
   const router = useRouter()
-  const slug = params.slug as string
+  const { slug } = useParams<{ slug: string }>()!
 
   const [fabrics, setFabrics] = useState<Fabric[]>([])
   const [collection, setCollection] = useState<Collection | null>(null)

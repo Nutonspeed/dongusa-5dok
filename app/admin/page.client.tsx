@@ -25,7 +25,7 @@ const AdminInventory = loadable(() => import("./inventory/page"), {
   loading: () => <div className="animate-pulse bg-gray-200 h-64 rounded-lg"></div>,
 })
 
-const AdminDashboard = ({ summary }: { summary: { orders: number; revenue: number } }) => {
+function AdminDashboardClient({ summary }: { summary: { orders: number; revenue: number } }) {
   const [currentTime, setCurrentTime] = useState(new Date())
   const [analytics, setAnalytics] = useState({
     totalOrders: {
@@ -352,5 +352,6 @@ const AdminDashboard = ({ summary }: { summary: { orders: number; revenue: numbe
   )
 }
 
-// Export AdminDashboard as default export
-export default AdminDashboard
+export default function AdminDashboard({ summary }: { summary: { orders: number; revenue: number } }) {
+  return <AdminDashboardClient summary={summary} />
+}
