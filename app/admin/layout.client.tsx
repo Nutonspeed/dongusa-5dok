@@ -27,6 +27,7 @@ import {
   Brain,
   Facebook,
   HelpCircle,
+  Activity,
   type LucideIcon,
 } from "lucide-react"
 import { useAuth } from "../contexts/AuthContext"
@@ -49,6 +50,8 @@ const navigation: NavItem[] = [
   { name: "Messages", href: "/admin/messages", icon: MessageSquare },
   { name: "AI Chat", href: "/admin/ai-chat", icon: Brain },
   { name: "Facebook Ads", href: "/admin/facebook-ads", icon: Facebook },
+  { name: "Intelligent Monitoring", href: "/admin/intelligent-monitoring", icon: Activity },
+  { name: "Business Intelligence", href: "/admin/business-intelligence", icon: BarChart3 },
   { name: "Analytics", href: "/admin/analytics", icon: BarChart3 },
   { name: "System Config", href: "/admin/system-config", icon: Cog },
   { name: "Guided Config", href: "/admin/guided-config", icon: HelpCircle },
