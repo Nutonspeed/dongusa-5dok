@@ -1,0 +1,53 @@
+{
+  "moduleStandards": {
+    "naming": {
+      "clientModules": {
+        "pattern": "*.client.ts",
+        "description": "Client-side modules that run in browser environment",
+        "exports": "Named exports only, no default exports for services"
+      },
+      "serverModules": {
+        "pattern": "*.server.ts",
+        "description": "Server-side modules that run in Node.js environment",
+        "exports": "Both named and default exports allowed"
+      },
+      "sharedModules": {
+        "pattern": "*.ts",
+        "description": "Modules that can run in both environments",
+        "exports": "Environment-agnostic code only"
+      }
+    },
+    "importConventions": {
+      "alwaysUseExtensions": false,
+      "aliasPrefix": "@/",
+      "relativePaths": "Discouraged for cross-directory imports"
+    },
+    "exportConventions": {
+      "services": "Named exports (e.g., export const authService = ...)",
+      "components": "Default exports (e.g., export default function Component)",
+      "utilities": "Named exports (e.g., export function utility)",
+      "types": "Named exports (e.g., export interface Type)"
+    }
+  },
+  "runtimeSeparation": {
+    "edgeRuntime": {
+      "allowedModules": ["crypto (web)", "fetch", "URL", "URLSearchParams"],
+      "forbiddenModules": ["fs", "path", "crypto (node)", "util", "child_process"]
+    },
+    "nodeRuntime": {
+      "allowedModules": ["All Node.js built-ins", "npm packages"],
+      "forbiddenModules": []
+    }
+  },
+  "dependencyManagement": {
+    "peerDependencies": {
+      "react": "^18.2.0",
+      "react-dom": "^18.2.0",
+      "zod": "^3.25.76"
+    },
+    "conflictResolution": {
+      "strategy": "Lock compatible versions",
+      "validation": "Pre-build dependency check"
+    }
+  }
+}
