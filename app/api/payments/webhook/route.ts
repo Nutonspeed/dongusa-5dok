@@ -4,12 +4,24 @@ import Stripe from "stripe"
 import { enhancedPaymentService } from "@/lib/payment-service-enhanced"
 import { logger } from "@/lib/logger"
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2024-06-20",
-})
+function getStripeInstance(): Stripe | null {
+  const apiKey = process.env.STRIPE_SECRET_KEY
+  if (!apiKey) {
+    console.log("STRIPE_SECRET_KEY not configured - webhook functionality disabled")
+    return null
+  }
+  return new Stripe(apiKey, {
+    apiVersion: "2024-06-20",
+  })
+}
 
 export async function POST(req: NextRequest) {
   try {
+    const stripe = getStripeInstance()
+    if (!stripe) {
+      return NextResponse.json({ error: "Payment service not configured" }, { status: 503 })
+    }
+
     const body = await req.text()
     const signature = headers().get("stripe-signature")
 
