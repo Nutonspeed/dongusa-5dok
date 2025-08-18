@@ -5,11 +5,13 @@ export class StripeGateway {
   private stripe: Stripe
 
   constructor() {
-    if (!process.env.STRIPE_SECRET_KEY) {
+    const apiKey = process.env.STRIPE_SECRET_KEY
+    if (!apiKey) {
+      logger.warn("STRIPE_SECRET_KEY is not configured - Stripe functionality will be disabled")
       throw new Error("STRIPE_SECRET_KEY is required")
     }
 
-    this.stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+    this.stripe = new Stripe(apiKey, {
       apiVersion: "2024-06-20",
     })
   }

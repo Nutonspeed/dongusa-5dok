@@ -9,7 +9,7 @@ export class PromptPayGateway {
     this.merchantName = process.env.PROMPTPAY_MERCHANT_NAME || "ELF SofaCover Pro"
 
     if (!this.promptPayId) {
-      throw new Error("PROMPTPAY_ID is required")
+      logger.warn("PROMPTPAY_ID is not configured - PromptPay functionality will be disabled")
     }
   }
 

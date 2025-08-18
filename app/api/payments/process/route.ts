@@ -10,6 +10,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
     }
 
+    if (!process.env.STRIPE_SECRET_KEY && method === "credit_card") {
+      return NextResponse.json({ error: "Credit card payments not configured" }, { status: 503 })
+    }
+
+    if (!process.env.PROMPTPAY_ID && method === "promptpay") {
+      return NextResponse.json({ error: "PromptPay payments not configured" }, { status: 503 })
+    }
+
     const result = await enhancedPaymentService.processPayment(orderId, method, amount, paymentData)
 
     return NextResponse.json({

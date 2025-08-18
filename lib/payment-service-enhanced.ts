@@ -7,9 +7,11 @@ export class EnhancedPaymentService {
   private supabase = createClient()
   private stripeGateway: StripeGateway | null = null
   private promptPayGateway: PromptPayGateway | null = null
+  private initialized = false
 
-  constructor() {
-    // Initialize gateways if configured
+  private initializeGateways() {
+    if (this.initialized) return
+
     try {
       if (process.env.STRIPE_SECRET_KEY) {
         this.stripeGateway = new StripeGateway()
@@ -17,12 +19,16 @@ export class EnhancedPaymentService {
       if (process.env.PROMPTPAY_ID) {
         this.promptPayGateway = new PromptPayGateway()
       }
+      this.initialized = true
     } catch (error) {
       logger.error("Payment gateway initialization failed:", error)
+      this.initialized = true // Mark as initialized even if failed to prevent retries
     }
   }
 
   async processPayment(orderId: string, method: string, amount: number, paymentData?: any) {
+    this.initializeGateways()
+
     try {
       const transactionId = `TXN-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
 
@@ -191,6 +197,8 @@ export class EnhancedPaymentService {
   }
 
   async verifyPayment(transactionId: string, verificationData: any): Promise<boolean> {
+    this.initializeGateways()
+
     try {
       const { data: transaction } = await this.supabase
         .from("payment_transactions")
