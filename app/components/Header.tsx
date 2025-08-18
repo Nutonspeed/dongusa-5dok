@@ -15,9 +15,9 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu"
-import { useLanguage } from "../contexts/LanguageContext"
-import { useCart } from "../contexts/CartContext"
-import { useAuth } from "../contexts/AuthContext"
+import { useLanguage } from "@/app/contexts/LanguageContext"
+import { useCart } from "@/app/contexts/CartContext"
+import { useAuth } from "@/app/contexts/AuthContext"
 
 interface NavItem {
   name: { en: string; th: string }

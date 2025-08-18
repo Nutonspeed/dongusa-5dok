@@ -1,17 +1,16 @@
 import { MockServiceIndicator } from "@/components/MockServiceIndicator"
-import Header from "./components/Header"
-import Footer from "./components/Footer"
-import Hero from "./components/Hero"
-import FeaturedProducts from "./components/FeaturedProducts"
-import { CustomCoverSection } from "./components/CustomCoverSection"
-import FabricCollections from "./components/FabricCollections"
-import WhyChooseUs from "./components/WhyChooseUs"
+import Header from "@/app/components/Header"
+import Footer from "@/app/components/Footer"
+import Hero from "@/app/components/Hero"
+import FeaturedProducts from "@/app/components/FeaturedProducts"
+import { CustomCoverSection } from "@/app/components/CustomCoverSection"
+import FabricCollections from "@/app/components/FabricCollections"
+import WhyChooseUs from "@/app/components/WhyChooseUs"
 
 export default function HomePage() {
   return (
     <div className="min-h-screen bg-white">
       <Header />
-
       <main>
         <Hero />
         <FeaturedProducts />
@@ -19,7 +18,6 @@ export default function HomePage() {
         <FabricCollections />
         <WhyChooseUs />
       </main>
-
       <Footer />
       <MockServiceIndicator />
     </div>

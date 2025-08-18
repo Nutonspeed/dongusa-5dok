@@ -1,5 +1,5 @@
 "use client"
-import { logger } from '@/lib/logger';
+import { logger } from "@/lib/logger"
 
 import type React from "react"
 import { createContext, useContext, useState, useEffect } from "react"
@@ -29,7 +29,8 @@ const translations = {
 
     // Featured Products
     featuredProductsTitle: "Featured Products",
-    featuredProductsSubtitle: "Discover our most popular sofa covers, carefully selected for their quality, style, and customer satisfaction.",
+    featuredProductsSubtitle:
+      "Discover our most popular sofa covers, carefully selected for their quality, style, and customer satisfaction.",
     addToCart: "Add to Cart",
     viewAllProducts: "View All Products",
     newLabel: "New",
@@ -277,6 +278,10 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     language,
     setLanguage: handleSetLanguage,
     t,
+  }
+
+  if (!isHydrated) {
+    return <div style={{ visibility: "hidden" }}>{children}</div>
   }
 
   return <LanguageContext.Provider value={contextValue}>{children}</LanguageContext.Provider>

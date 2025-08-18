@@ -417,6 +417,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     checkAccountStatus,
   }
 
+  if (!isMounted) {
+    return <div style={{ visibility: "hidden" }}>{children}</div>
+  }
+
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
 
