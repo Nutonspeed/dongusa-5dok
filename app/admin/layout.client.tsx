@@ -59,7 +59,7 @@ const navigation: NavItem[] = [
   { name: "Demo", href: "/admin/demo", icon: TestTube },
 ]
 
-export default function AdminLayoutClient({
+function AdminLayoutClient({
   children,
 }: {
   children: React.ReactNode
@@ -209,3 +209,5 @@ export default function AdminLayoutClient({
     </div>
   )
 }
+
+export default AdminLayoutClient

@@ -352,6 +352,4 @@ function AdminDashboardClient({ summary }: { summary: { orders: number; revenue:
   )
 }
 
-export default function AdminDashboard({ summary }: { summary: { orders: number; revenue: number } }) {
-  return <AdminDashboardClient summary={summary} />
-}
+export default AdminDashboardClient
