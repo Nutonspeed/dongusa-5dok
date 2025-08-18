@@ -109,7 +109,7 @@ class LoginSystemTester {
     await this.runTest("Brute Force Protection Test", async () => {
       // Test that brute force protection module exists and has required methods
       try {
-        const { bruteForceProtection } = await import("../lib/brute-force-protection.client")
+        const { bruteForceProtection } = await import("../lib/brute-force-client")
 
         if (!bruteForceProtection.checkLoginAttempt) {
           throw new Error("checkLoginAttempt method not found")
