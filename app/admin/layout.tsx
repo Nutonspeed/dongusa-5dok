@@ -1,5 +1,5 @@
 import type React from "react"
-import AdminLayoutClient from "./layout.client"
+import AdminLayoutClient from "./layout.client.tsx"
 import { USE_SUPABASE } from "@/lib/runtime"
 
 export const runtime = "nodejs"

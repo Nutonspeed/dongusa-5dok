@@ -8,7 +8,7 @@ import { supabase } from "@/lib/supabase/client"
 import { USE_SUPABASE } from "@/lib/runtime"
 import type { AppUser } from "@/types/user"
 import type { Database } from "@/lib/supabase/types"
-import { bruteForceProtection } from "@/lib/brute-force-protection.client"
+import { bruteForceProtection } from "@/lib/brute-force-client"
 
 type ProfileRow = Database["public"]["Tables"]["profiles"]["Row"]
 
