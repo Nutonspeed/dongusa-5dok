@@ -230,10 +230,6 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     isLoading,
   }
 
-  if (!isMounted) {
-    return <div style={{ display: "none" }}>{children}</div>
-  }
-
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>
 }
 

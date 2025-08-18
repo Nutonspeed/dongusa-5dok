@@ -280,10 +280,6 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     t,
   }
 
-  if (!isHydrated) {
-    return <div style={{ visibility: "hidden" }}>{children}</div>
-  }
-
   return <LanguageContext.Provider value={contextValue}>{children}</LanguageContext.Provider>
 }
 
