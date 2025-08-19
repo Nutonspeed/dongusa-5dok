@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
 import { USE_SUPABASE } from "@/lib/runtime"
-import { sessionManager } from "@/lib/session-management"
-import { createServerClient } from "@supabase/ssr"
 
 export const config = {
   matcher: [
@@ -55,17 +53,26 @@ async function handleSessionAuth(request: NextRequest) {
     return NextResponse.next()
   }
 
-  const sessionId = request.cookies.get("session_id")?.value
-  const clientIP = getClientIP(request)
-  const userAgent = request.headers.get("user-agent") || ""
-
-  if (!sessionId) {
-    const loginUrl = new URL("/auth/login", request.url)
-    loginUrl.searchParams.set("redirect", pathname)
-    return NextResponse.redirect(loginUrl)
-  }
-
   try {
+    const { sessionManager } = await import("@/lib/session-management").catch(() => ({ sessionManager: null }))
+
+    if (!sessionManager) {
+      console.warn("Session manager not available, falling back to basic auth")
+      const loginUrl = new URL("/auth/login", request.url)
+      loginUrl.searchParams.set("redirect", pathname)
+      return NextResponse.redirect(loginUrl)
+    }
+
+    const sessionId = request.cookies.get("session_id")?.value
+    const clientIP = getClientIP(request)
+    const userAgent = request.headers.get("user-agent") || ""
+
+    if (!sessionId) {
+      const loginUrl = new URL("/auth/login", request.url)
+      loginUrl.searchParams.set("redirect", pathname)
+      return NextResponse.redirect(loginUrl)
+    }
+
     const validation = await sessionManager.validateSession(sessionId, clientIP, userAgent)
 
     if (!validation.isValid) {
@@ -111,8 +118,32 @@ async function handleSupabaseAuth(request: NextRequest) {
   })
 
   try {
-    const url = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL!
-    const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY!
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL
+    const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY
+
+    if (!url || !anon) {
+      console.error("Missing Supabase environment variables")
+      const authCheck = requiresAuth(pathname)
+      if (authCheck.required) {
+        const loginUrl = new URL("/auth/login", request.url)
+        loginUrl.searchParams.set("redirect", pathname)
+        return NextResponse.redirect(loginUrl)
+      }
+      return NextResponse.next()
+    }
+
+    const { createServerClient } = await import("@supabase/ssr").catch(() => ({ createServerClient: null }))
+
+    if (!createServerClient) {
+      console.warn("Supabase SSR not available, falling back to basic auth")
+      const authCheck = requiresAuth(pathname)
+      if (authCheck.required) {
+        const loginUrl = new URL("/auth/login", request.url)
+        loginUrl.searchParams.set("redirect", pathname)
+        return NextResponse.redirect(loginUrl)
+      }
+      return NextResponse.next()
+    }
 
     const supabase = createServerClient(url, anon, {
       cookies: {
@@ -132,8 +163,13 @@ async function handleSupabaseAuth(request: NextRequest) {
     // Handle auth callback
     const code = request.nextUrl.searchParams.get("code")
     if (code && pathname === "/auth/callback") {
-      await supabase.auth.exchangeCodeForSession(code)
-      return NextResponse.redirect(new URL("/", request.url))
+      try {
+        await supabase.auth.exchangeCodeForSession(code)
+        return NextResponse.redirect(new URL("/", request.url))
+      } catch (error) {
+        console.error("Auth callback error:", error)
+        return NextResponse.redirect(new URL("/auth/login?error=callback_failed", request.url))
+      }
     }
 
     // Refresh session
@@ -170,7 +206,9 @@ async function handleSupabaseAuth(request: NextRequest) {
 
         if (profileError) {
           console.error("Profile fetch error:", profileError)
-          // Allow access if profile check fails (graceful degradation)
+          if (authCheck.role === "admin") {
+            return NextResponse.redirect(new URL("/auth/login?error=profile_access", request.url))
+          }
           return supabaseResponse
         }
 
@@ -178,48 +216,70 @@ async function handleSupabaseAuth(request: NextRequest) {
 
         // Check admin access
         if (authCheck.role === "admin" && userRole !== "admin") {
-          return NextResponse.redirect(new URL("/", request.url))
+          return NextResponse.redirect(new URL("/?error=insufficient_permissions", request.url))
         }
       } catch (error) {
         console.error("Role check error:", error)
-        // Allow access if role check fails (graceful degradation)
+        if (authCheck.role === "admin") {
+          return NextResponse.redirect(new URL("/auth/login?error=role_check_failed", request.url))
+        }
       }
     }
 
     return supabaseResponse
   } catch (error) {
     console.error("Supabase middleware error:", error)
+    const authCheck = requiresAuth(pathname)
+    if (authCheck.required) {
+      const loginUrl = new URL("/auth/login", request.url)
+      loginUrl.searchParams.set("error", "middleware_error")
+      loginUrl.searchParams.set("redirect", pathname)
+      return NextResponse.redirect(loginUrl)
+    }
     return NextResponse.next()
   }
 }
 
 export default async function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl
+  try {
+    const { pathname } = request.nextUrl
 
-  // Handle maintenance mode
-  if (process.env.MAINTENANCE === "1") {
-    return NextResponse.rewrite(new URL("/maintenance", request.url))
-  }
+    // Handle maintenance mode
+    if (process.env.MAINTENANCE === "1") {
+      return NextResponse.rewrite(new URL("/maintenance", request.url))
+    }
 
-  // Skip middleware for static files and API routes (except protected ones)
-  if (
-    pathname.startsWith("/_next") ||
-    pathname.startsWith("/favicon") ||
-    pathname.includes(".") ||
-    (pathname.startsWith("/api") && !pathname.startsWith("/api/admin") && !pathname.startsWith("/api/user"))
-  ) {
+    // Skip middleware for static files and API routes (except protected ones)
+    if (
+      pathname.startsWith("/_next") ||
+      pathname.startsWith("/favicon") ||
+      pathname.includes(".") ||
+      (pathname.startsWith("/api") && !pathname.startsWith("/api/admin") && !pathname.startsWith("/api/user"))
+    ) {
+      return NextResponse.next()
+    }
+
+    // QA bypass mode - skip all authentication
+    if (process.env.QA_BYPASS_AUTH === "1") {
+      return NextResponse.next()
+    }
+
+    let useSupabase = false
+    try {
+      useSupabase = USE_SUPABASE
+    } catch (error) {
+      console.warn("Runtime configuration not available, defaulting to Supabase auth")
+      useSupabase = true
+    }
+
+    // Route to appropriate auth handler
+    if (useSupabase) {
+      return await handleSupabaseAuth(request)
+    } else {
+      return await handleSessionAuth(request)
+    }
+  } catch (error) {
+    console.error("Critical middleware error:", error)
     return NextResponse.next()
-  }
-
-  // QA bypass mode - skip all authentication
-  if (process.env.QA_BYPASS_AUTH === "1") {
-    return NextResponse.next()
-  }
-
-  // Route to appropriate auth handler
-  if (USE_SUPABASE) {
-    return handleSupabaseAuth(request)
-  } else {
-    return handleSessionAuth(request)
   }
 }
