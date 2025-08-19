@@ -1,5 +1,8 @@
 export const runtime = "nodejs"
 
+import fs from "fs"
+import path from "path"
+
 interface OptimizationResult {
   category: string
   before: number
@@ -18,7 +21,7 @@ const logger = {
 // Essential Environment Variables (ลดจาก 100+ เหลือ 30)
 const ESSENTIAL_ENV_VARS = [
   // Database Core
-  "NEON_DATABASE_URL",
+  "NEON_NEON_DATABASE_URL",
   "SUPABASE_URL",
   "SUPABASE_ANON_KEY",
   "SUPABASE_SERVICE_ROLE_KEY",
@@ -256,20 +259,22 @@ LOG_LEVEL=info
 # ===========================================`
 
   // บันทึกไฟล์ (ในการใช้งานจริงจะใช้ fs.writeFileSync)
-  console.log("\n📄 .env.minimal template:")
-  console.log(minimalEnv)
+  const envFilePath = path.join(__dirname, "..", ".env.minimal")
+  fs.writeFileSync(envFilePath, minimalEnv)
+
+  console.log(`\n📄 .env.minimal template ถูกสร้างที่ ${envFilePath}`)
 
   logger.success("สร้าง .env.minimal template เรียบร้อย")
 }
 
 async function runSystemOptimization(): Promise<void> {
   try {
-    logger.info("🚀 เริ่มต้นการปรับปรุงประสิทธิภาพระบบ")
+    logger.info("🚀 เริ่มต้นการวิเคราะห์และปรับปรุงประสิทธิภาพระบบ")
 
     // วิเคราะห์ระบบปัจจุบัน
     const analysisResults = await analyzeCurrentSystem()
 
-    console.log("\n📊 ผลการวิเคราะห์:")
+    console.log("\n📊 ผลการวิเคราะห์ระบบปัจจุบัน:")
     console.log("=".repeat(60))
     analysisResults.forEach((result) => {
       console.log(`${result.category}:`)
@@ -298,14 +303,26 @@ async function runSystemOptimization(): Promise<void> {
     console.log("🛡️ เพิ่มความปลอดภัย: 30%")
 
     logger.success("การวิเคราะห์และสร้างแผนปรับปรุงเสร็จสิ้น!")
+
+    // ขั้นตอนถัดไป
+    console.log("\n📋 ขั้นตอนถัดไป:")
+    console.log("1. ทบทวนแผนการปรับปรุงที่แสดงด้านบน")
+    console.log("2. สำรองข้อมูลก่อนทำการเปลี่ยนแปลง")
+    console.log("3. ดำเนินการตามแผนทีละขั้นตอน")
+    console.log("4. ทดสอบระบบหลังจากการปรับปรุงแต่ละขั้นตอน")
   } catch (error) {
     logger.error(`เกิดข้อผิดพลาด: ${error}`)
+    process.exit(1)
   }
 }
 
-// รันการปรับปรุงถ้าไฟล์นี้ถูกเรียกใช้โดยตรง
-if (require.main === module) {
-  runSystemOptimization()
+// Main execution function
+async function main(): Promise<void> {
+  await runSystemOptimization()
 }
 
-export default runSystemOptimization
+// Execute the main function
+main().catch((error) => {
+  console.error("Fatal error:", error)
+  process.exit(1)
+})

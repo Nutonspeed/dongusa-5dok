@@ -130,10 +130,10 @@ export const FEATURE_FLAGS = {
   advancedAnalytics: process.env.ENABLE_ADVANCED_ANALYTICS === "true",
   bulkOperations: process.env.ENABLE_BULK_OPERATIONS === "true",
   exportFeatures: process.env.ENABLE_EXPORT_FEATURES === "true",
-  previewMode: process.env.ENABLE_PREVIEW_MODE !== "false", // Default enabled
-  arPreview: process.env.ENABLE_AR_PREVIEW !== "false", // Default enabled
-  productPreview: process.env.ENABLE_PRODUCT_PREVIEW !== "false", // Default enabled
-  eyeIconPreview: process.env.ENABLE_EYE_ICON_PREVIEW !== "false", // Default enabled
+  previewMode: true, // Always enabled
+  arPreview: true, // Always enabled
+  productPreview: true, // Always enabled
+  eyeIconPreview: true, // Always enabled
 }
 
 // Localization Configuration

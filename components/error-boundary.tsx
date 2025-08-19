@@ -34,7 +34,9 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error("[v0] Error caught by boundary:", error, errorInfo)
+    console.error("[v0] Error caught by boundary:", error)
+    console.error("[v0] Component stack:", errorInfo.componentStack)
+    console.error("[v0] Error stack:", error.stack)
 
     this.setState({
       error,
@@ -56,6 +58,8 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
         userAgent: typeof window !== "undefined" ? navigator.userAgent : "unknown",
       }
 
+      console.error("[v0] Full error data:", errorData)
+
       // Store in localStorage for debugging
       if (typeof window !== "undefined") {
         const existingErrors = JSON.parse(localStorage.getItem("app_errors") || "[]")
@@ -66,8 +70,6 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
         }
         localStorage.setItem("app_errors", JSON.stringify(existingErrors))
       }
-
-      console.error("[v0] Error logged:", errorData)
     } catch (loggingError) {
       console.error("[v0] Failed to log error:", loggingError)
     }
@@ -95,29 +97,33 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
       }
 
       return (
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-          <Card className="w-full max-w-md">
+        <div className="min-h-screen bg-gradient-to-br from-rose-50 to-pink-50 flex items-center justify-center p-4">
+          <Card className="w-full max-w-md border-primary/20">
             <CardHeader className="text-center">
-              <div className="mx-auto w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mb-4">
-                <AlertTriangle className="w-6 h-6 text-red-600" />
+              <div className="mx-auto w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+                <AlertTriangle className="w-6 h-6 text-primary" />
               </div>
-              <CardTitle className="text-xl font-semibold text-gray-900">เกิดข้อผิดพลาด</CardTitle>
+              <CardTitle className="text-xl font-semibold text-primary">เกิดข้อผิดพลาด</CardTitle>
               <CardDescription>ขออภัย เกิดข้อผิดพลาดที่ไม่คาดคิด กรุณาลองใหม่อีกครั้ง</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               {process.env.NODE_ENV === "development" && this.state.error && (
-                <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-                  <p className="text-sm font-medium text-red-800 mb-2">Error Details:</p>
-                  <p className="text-xs text-red-700 font-mono break-all">{this.state.error.message}</p>
+                <div className="bg-primary/5 border border-primary/20 rounded-lg p-3">
+                  <p className="text-sm font-medium text-primary mb-2">Error Details:</p>
+                  <p className="text-xs text-primary/80 font-mono break-all">{this.state.error.message}</p>
                 </div>
               )}
 
               <div className="flex flex-col gap-2">
-                <Button onClick={this.handleReset} className="w-full">
+                <Button onClick={this.handleReset} className="w-full burgundy-gradient">
                   <RefreshCw className="w-4 h-4 mr-2" />
                   ลองใหม่
                 </Button>
-                <Button variant="outline" onClick={this.handleGoHome} className="w-full bg-transparent">
+                <Button
+                  variant="outline"
+                  onClick={this.handleGoHome}
+                  className="w-full border-primary/20 text-primary hover:bg-primary/5 bg-transparent"
+                >
                   <Home className="w-4 h-4 mr-2" />
                   กลับหน้าแรก
                 </Button>
