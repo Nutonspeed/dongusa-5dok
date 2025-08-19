@@ -642,6 +642,31 @@
     box-shadow: 0 0 20px hsl(var(--gold) / 0.4);
   }
 
+  /* เพิ่ม utility classes สำหรับสีทอง */
+  .text-gold {
+    color: hsl(var(--gold));
+  }
+
+  .fill-gold {
+    fill: hsl(var(--gold));
+  }
+
+  .bg-gold {
+    background-color: hsl(var(--gold));
+  }
+
+  .border-gold {
+    border-color: hsl(var(--gold));
+  }
+
+  .text-gold-light {
+    color: hsl(var(--gold-light));
+  }
+
+  .fill-gold-light {
+    fill: hsl(var(--gold-light));
+  }
+
   .preview-enabled {
     opacity: 1;
     visibility: visible;

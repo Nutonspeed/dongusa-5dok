@@ -2,6 +2,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   experimental: {
+    serverComponentsExternalPackages: ['@supabase/supabase-js'],
   },
   eslint: {
     ignoreDuringBuilds: true,
@@ -16,6 +17,7 @@ const nextConfig = {
       'zod/v4': 'zod',
       '@ai-sdk/gateway/v4': '@ai-sdk/gateway',
     }
+    
     if (!isServer) {
       // Provide fallbacks for Node.js modules in client-side bundles
       config.resolve.fallback = {
@@ -28,8 +30,17 @@ const nextConfig = {
         util: false,
         path: false,
         os: false,
+        buffer: false,
+        process: false,
       }
     }
+
+    // Handle CSS imports properly
+    config.module.rules.push({
+      test: /\.css$/,
+      use: ['style-loader', 'css-loader'],
+    })
+
     return config
   },
   images: {
@@ -53,6 +64,10 @@ const nextConfig = {
       {
         protocol: 'https',
         hostname: 'via.placeholder.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'hebbkx1anhila5yf.public.blob.vercel-storage.com',
       }
     ],
     unoptimized: false,
@@ -64,6 +79,7 @@ const nextConfig = {
   compress: true,
   poweredByHeader: false,
   generateEtags: true,
+  swcMinify: true,
   async headers() {
     return [
       {
@@ -78,7 +94,7 @@ const nextConfig = {
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "font-src 'self' https://fonts.gstatic.com",
               "img-src 'self' data: blob: https: http:",
-              "connect-src 'self' https://*.supabase.co https://vercel.live wss://*.supabase.co https://api.vercel.com",
+              "connect-src 'self' https://*.supabase.co https://vercel.live wss://*.supabase.co https://api.vercel.com https://hebbkx1anhila5yf.public.blob.vercel-storage.com",
               "frame-src 'self' https://vercel.live",
               "object-src 'none'",
               "base-uri 'self'",

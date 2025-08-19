@@ -534,7 +534,7 @@ export default function FabricGalleryPage() {
                   {/* Rating display */}
                   {pattern.rating && (
                     <div className="flex items-center gap-1 mb-2">
-                      <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                      <Star className="w-3 h-3 fill-gold text-gold" />
                       <span className="text-xs text-muted-foreground">{pattern.rating}</span>
                     </div>
                   )}
@@ -595,7 +595,7 @@ export default function FabricGalleryPage() {
 
                       {pattern.rating && (
                         <div className="flex items-center gap-1 mb-1">
-                          <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                          <Star className="w-3 h-3 fill-gold text-gold" />
                           <span className="text-xs text-muted-foreground">{pattern.rating}</span>
                         </div>
                       )}
@@ -686,7 +686,7 @@ export default function FabricGalleryPage() {
                     <p className="text-sm text-gray-300">{zoomedImage.texture}</p>
                     {zoomedImage.rating && (
                       <div className="flex items-center gap-1 mb-1">
-                        <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                        <Star className="w-4 h-4 fill-gold text-gold" />
                         <span className="text-sm text-gray-300">{zoomedImage.rating}</span>
                       </div>
                     )}
