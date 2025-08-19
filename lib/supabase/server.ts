@@ -2,7 +2,6 @@
 import "server-only"
 import { createClient as createSupabaseClient } from "@supabase/supabase-js"
 import type { Database } from "@/types/database"
-import { cache } from "react"
 
 // Check if Supabase environment variables are available
 export const isSupabaseConfigured =
@@ -11,11 +10,14 @@ export const isSupabaseConfigured =
   typeof process.env.SUPABASE_SERVICE_ROLE_KEY === "string" &&
   process.env.SUPABASE_SERVICE_ROLE_KEY.length > 0
 
-// Create a cached version of the Supabase client for Server Components
-export const createClient = cache(() => {
+// Create a singleton Supabase client for server usage
+let _client: ReturnType<typeof createSupabaseClient<Database>> | any | undefined
+
+export const createClient = () => {
+  if (_client) return _client
   if (!isSupabaseConfigured) {
     console.warn("Supabase environment variables are not set. Using dummy client.")
-    return {
+    _client = {
       auth: {
         getUser: () => Promise.resolve({ data: { user: null }, error: null }),
         getSession: () => Promise.resolve({ data: { session: null }, error: null }),
@@ -30,16 +32,18 @@ export const createClient = cache(() => {
         delete: () => ({ eq: () => Promise.resolve({ data: null, error: null }) }),
       }),
     } as any
+    return _client
   }
 
   try {
-    return createSupabaseClient<Database>(
+    _client = createSupabaseClient<Database>(
       process.env.SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!,
     )
+    return _client
   } catch (error) {
     console.warn("Failed to create server client, falling back to dummy client:", error)
-    return {
+    _client = {
       auth: {
         getUser: () => Promise.resolve({ data: { user: null }, error: null }),
         getSession: () => Promise.resolve({ data: { session: null }, error: null }),
@@ -54,5 +58,6 @@ export const createClient = cache(() => {
         delete: () => ({ eq: () => Promise.resolve({ data: null, error: null }) }),
       }),
     } as any
+    return _client
   }
-})
+}
