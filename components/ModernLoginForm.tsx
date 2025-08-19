@@ -26,6 +26,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/app/contexts/AuthContext"
 import { useToast } from "@/hooks/use-toast"
+import { IS_PRODUCTION } from "@/lib/runtime"
 
 export default function ModernLoginForm() {
   const router = useRouter()
@@ -396,41 +397,45 @@ export default function ModernLoginForm() {
         </CardContent>
       </Card>
 
-      <div className="mt-6 space-y-3">
-        <div className="p-4 bg-gradient-to-r from-cyan-50 to-blue-50 border border-cyan-200 rounded-lg">
-          <h4 className="font-semibold text-foreground mb-2 flex items-center">
-            <Shield className="w-4 h-4 mr-2 text-cyan-600" />
-            Demo Credentials - ELF SofaCover Pro
-          </h4>
-          <div className="space-y-2 text-sm">
-            <div>
-              <span className="text-muted-foreground">Customer:</span>{" "}
-              <span className="text-foreground font-mono bg-white px-2 py-1 rounded">user@sofacover.com / user123</span>
-            </div>
-            <div>
-              <span className="text-muted-foreground">Admin:</span>{" "}
-              <span className="text-foreground font-mono bg-white px-2 py-1 rounded">
-                admin@sofacover.com / admin123
-              </span>
+      {!IS_PRODUCTION && (
+        <div className="mt-6 space-y-3">
+          <div className="p-4 bg-gradient-to-r from-cyan-50 to-blue-50 border border-cyan-200 rounded-lg">
+            <h4 className="font-semibold text-foreground mb-2 flex items-center">
+              <Shield className="w-4 h-4 mr-2 text-cyan-600" />
+              Demo Credentials - ELF SofaCover Pro
+            </h4>
+            <div className="space-y-2 text-sm">
+              <div>
+                <span className="text-muted-foreground">Customer:</span>{" "}
+                <span className="text-foreground font-mono bg-white px-2 py-1 rounded">
+                  user@sofacover.com / user123
+                </span>
+              </div>
+              <div>
+                <span className="text-muted-foreground">Admin:</span>{" "}
+                <span className="text-foreground font-mono bg-white px-2 py-1 rounded">
+                  admin@sofacover.com / admin123
+                </span>
+              </div>
             </div>
           </div>
-        </div>
 
-        <div className="flex items-center justify-center space-x-4 text-xs text-muted-foreground">
-          <div className="flex items-center">
-            <Shield className="w-3 h-3 mr-1 text-green-600" />
-            <span>256-bit SSL</span>
-          </div>
-          <div className="flex items-center">
-            <Smartphone className="w-3 h-3 mr-1 text-blue-600" />
-            <span>Mobile Ready</span>
-          </div>
-          <div className="flex items-center">
-            <CheckCircle className="w-3 h-3 mr-1 text-cyan-600" />
-            <span>GDPR Compliant</span>
+          <div className="flex items-center justify-center space-x-4 text-xs text-muted-foreground">
+            <div className="flex items-center">
+              <Shield className="w-3 h-3 mr-1 text-green-600" />
+              <span>256-bit SSL</span>
+            </div>
+            <div className="flex items-center">
+              <Smartphone className="w-3 h-3 mr-1 text-blue-600" />
+              <span>Mobile Ready</span>
+            </div>
+            <div className="flex items-center">
+              <CheckCircle className="w-3 h-3 mr-1 text-cyan-600" />
+              <span>GDPR Compliant</span>
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   )
 }

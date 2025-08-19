@@ -1,6 +1,12 @@
+import { IS_PRODUCTION } from "@/lib/runtime"
+import { redirect } from "next/navigation"
 import { LoginSystemTestDashboard } from "@/components/LoginSystemTestDashboard"
 
 export default function TestLoginPage() {
+  if (IS_PRODUCTION) {
+    redirect("/admin")
+  }
+
   return (
     <div className="container mx-auto py-8">
       <div className="mb-8">
