@@ -202,7 +202,7 @@ export default function ModernLoginForm() {
               <Button
                 variant="outline"
                 onClick={() => handleSocialLogin("Apple")}
-                className="hover:bg-gray-50 hover:border-gray-300 transition-all duration-300 transform hover:scale-105"
+                className="hover:bg-gray-50 hover:border-gray-300 transition-all duration-300 bg-transparent"
               >
                 <Apple className="w-4 h-4 text-gray-800" />
               </Button>
@@ -405,14 +405,12 @@ export default function ModernLoginForm() {
           <div className="space-y-2 text-sm">
             <div>
               <span className="text-muted-foreground">Customer:</span>{" "}
-              <span className="text-foreground font-mono bg-white px-2 py-1 rounded">
-                user@elfsofacover.com / user123
-              </span>
+              <span className="text-foreground font-mono bg-white px-2 py-1 rounded">user@sofacover.com / user123</span>
             </div>
             <div>
               <span className="text-muted-foreground">Admin:</span>{" "}
               <span className="text-foreground font-mono bg-white px-2 py-1 rounded">
-                admin@elfsofacover.com / admin123
+                admin@sofacover.com / admin123
               </span>
             </div>
           </div>

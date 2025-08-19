@@ -407,9 +407,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const value: AuthContextType = {
     user,
     profile,
-    isLoading,
-    isAuthenticated: !!user,
-    isAdmin,
+    isLoading: !isMounted || isLoading,
+    isAuthenticated: isMounted && !!user,
+    isAdmin: isMounted && profile?.role === "admin",
     signIn,
     signUp,
     signOut,

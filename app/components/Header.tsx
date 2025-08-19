@@ -235,13 +235,13 @@ export default function Header() {
                 ) : (
                   <>
                     <DropdownMenuItem asChild>
-                      <Link href="/login" className="flex items-center">
+                      <Link href="/auth/login" className="flex items-center">
                         <User className="w-4 h-4 mr-2" />
                         {language === "en" ? "Login" : "เข้าสู่ระบบ"}
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
-                      <Link href="/register" className="flex items-center">
+                      <Link href="/auth/sign-up" className="flex items-center">
                         <User className="w-4 h-4 mr-2" />
                         {language === "en" ? "Register" : "สมัครสมาชิก"}
                       </Link>

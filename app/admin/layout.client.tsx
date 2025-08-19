@@ -67,11 +67,13 @@ function AdminLayoutClient({
   const pathname = usePathname()
   const router = useRouter()
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const { user, profile, isAuthenticated, isAdmin, signOut } = useAuth()
+  const { user, profile, isAuthenticated, isAdmin, isLoading, signOut } = useAuth()
 
   useEffect(() => {
+    if (isLoading) return
+
     if (!isAuthenticated) {
-      router.push("/login?redirect=" + encodeURIComponent(pathname))
+      router.push("/auth/login?redirect=" + encodeURIComponent(pathname))
       return
     }
 
@@ -79,7 +81,7 @@ function AdminLayoutClient({
       router.push("/")
       return
     }
-  }, [isAuthenticated, isAdmin, pathname, router])
+  }, [isAuthenticated, isAdmin, isLoading, pathname, router])
 
   const handleLogout = () => {
     signOut()
@@ -87,6 +89,18 @@ function AdminLayoutClient({
   }
 
   const filteredNavigation: NavItem[] = navigation
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-accent flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">Loading...</h2>
+          <p className="text-gray-600">Checking authentication status...</p>
+        </div>
+      </div>
+    )
+  }
 
   // Show loading or redirect if not authenticated/authorized
   if (!isAuthenticated || !isAdmin) {
@@ -102,7 +116,7 @@ function AdminLayoutClient({
               ? "Please log in to access the admin dashboard."
               : "You don't have permission to access this area."}
           </p>
-          <Button onClick={() => router.push("/login")} className="bg-primary">
+          <Button onClick={() => router.push("/auth/login")} className="bg-primary">
             Go to Login
           </Button>
         </div>
