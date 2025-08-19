@@ -2,16 +2,33 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { Eye, EyeOff, Lock, Mail, Shield } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { DEV_CONFIG } from "@/lib/runtime"
 
 export const dynamic = "force-dynamic"
 
 export default function AdminLogin() {
   const router = useRouter()
+
+  // If demo mode is disabled, immediately redirect to real auth
+  useEffect(() => {
+    if (!DEV_CONFIG.demoMode) {
+      router.replace("/auth/login")
+    }
+  }, [router])
+
+  if (!DEV_CONFIG.demoMode) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-6">
+        <p className="text-sm text-gray-500">กำลังนำทางไปยังหน้าล็อกอินจริง...</p>
+      </div>
+    )
+  }
+
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -50,8 +67,8 @@ export default function AdminLogin() {
           <div className="w-16 h-16 bg-burgundy-gradient rounded-full flex items-center justify-center mx-auto mb-4">
             <Shield className="w-8 h-8 text-white" />
           </div>
-          <CardTitle className="text-2xl font-bold text-gray-900">เข้าสู่ระบบผู้ดูแล</CardTitle>
-          <p className="text-gray-600">กรุณาเข้าสู่ระบบเพื่อจัดการร้านค้า</p>
+          <CardTitle className="text-2xl font-bold text-gray-900">เข้าสู่ระบบผู้ดูแล (Demo)</CardTitle>
+          <p className="text-gray-600">หน้านี้แสดงเฉพาะโหมดเดโม่เท่านั้น</p>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -105,12 +122,12 @@ export default function AdminLogin() {
               disabled={isLoading}
               className="w-full bg-burgundy-gradient hover:opacity-90 text-white"
             >
-              {isLoading ? "กำลังเข้าสู่ระบบ..." : "เข้าสู่ระบบ"}
+              {isLoading ? "กำลังเข้าสู่ระบบ..." : "เข้าสู่ระบบ (Demo)"}
             </Button>
           </form>
 
           <div className="mt-6 p-4 bg-accent border border-primary/20 rounded-lg">
-            <h4 className="font-semibold text-primary mb-2">ข้อมูลสำหรับทดสอบ:</h4>
+            <h4 className="font-semibold text-primary mb-2">ข้อมูลสำหรับทดสอบ (Demo):</h4>
             <p className="text-sm text-primary/80">อีเมล: admin@sofacover.com</p>
             <p className="text-sm text-primary/80">รหัสผ่าน: admin123</p>
           </div>

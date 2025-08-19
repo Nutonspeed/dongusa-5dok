@@ -99,6 +99,33 @@ async function handleSupabaseAuth(request: NextRequest) {
     if (code && pathname === "/auth/callback") {
       try {
         await supabase.auth.exchangeCodeForSession(code)
+        // Determine where to go next: redirect param > role-based > home
+        const redirectParam = request.nextUrl.searchParams.get("redirect")
+        if (redirectParam) {
+          return NextResponse.redirect(new URL(redirectParam, request.url))
+        }
+
+        // Fetch session and role to decide default landing
+        const {
+          data: { session: postSession },
+        } = await supabase.auth.getSession()
+
+        if (postSession) {
+          try {
+            const { data: profile } = await supabase
+              .from("profiles")
+              .select("role")
+              .eq("id", postSession.user.id)
+              .single()
+
+            if (profile?.role === "admin") {
+              return NextResponse.redirect(new URL("/admin", request.url))
+            }
+          } catch {
+            // ignore role fetch error and fall through
+          }
+        }
+
         return NextResponse.redirect(new URL("/", request.url))
       } catch (error) {
         console.error("Auth callback error:", error)
@@ -119,6 +146,22 @@ async function handleSupabaseAuth(request: NextRequest) {
     const authCheck = requiresAuth(pathname)
 
     if (!authCheck.required) {
+      // If user opens /auth/login while already authenticated, route them smartly
+      if (pathname === "/auth/login" && session) {
+        try {
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("role")
+            .eq("id", session.user.id)
+            .single()
+          if (profile?.role === "admin") {
+            return NextResponse.redirect(new URL("/admin", request.url))
+          }
+        } catch {
+          // ignore and fall through
+        }
+        return NextResponse.redirect(new URL("/", request.url))
+      }
       return supabaseResponse
     }
 
