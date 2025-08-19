@@ -2,6 +2,8 @@ import { NextResponse } from "next/server"
 import { USE_SUPABASE } from "@/lib/runtime"
 import { logger } from "@/lib/logger"
 
+export const dynamic = 'force-dynamic'
+
 export async function GET() {
   try {
     if (!USE_SUPABASE) {
@@ -28,18 +30,33 @@ export async function GET() {
 
     const { data: sessions, error } = await supabase
       .from("user_sessions")
-      .select("user_id, created_at")
+      .select("user_id, created_at, last_activity")
       .gte("last_activity", oneHourAgo)
 
     if (error) {
+      // If PostgREST reports missing table (PGRST205), fallback to mock data
+      const msg = (error as any)?.message || ""
+      if (msg.includes("PGRST205") || msg.includes("Could not find the table")) {
+        logger.warn("active-users: user_sessions table missing, returning fallback data")
+        const activeUsers = 0
+        return NextResponse.json({
+          activeUsers,
+          hourlyData: [],
+          timestamp: new Date().toISOString(),
+          source: "fallback",
+        })
+      }
       logger.error("Error fetching active users:", error)
       throw error
     }
 
-    const activeUsers = new Set(sessions?.map((s) => s.user_id)).size || 0
+    const activeUsers = new Set(sessions?.map((s: any) => s.user_id)).size || 0
 
-    // Get hourly breakdown
+    // Get hourly breakdown (if RPC missing, continue with empty)
     const { data: hourlyData, error: hourlyError } = await supabase.rpc("get_hourly_active_users")
+    if (hourlyError) {
+      logger.warn("active-users: RPC get_hourly_active_users missing, continuing with empty hourlyData")
+    }
 
     return NextResponse.json({
       activeUsers,

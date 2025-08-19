@@ -4,19 +4,21 @@ import { type NextRequest } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { requireAdmin } from "@/lib/auth/requireAdmin"
 
+export const dynamic = 'force-dynamic'
+
 export async function GET(request: NextRequest) {
   await requireAdmin(request)
   try {
     const supabase = createClient()
     const { data, error } = await supabase
       .from("orders")
-      .select("id, customer_name, total, created_at")
+      .select("id, total, created_at")
 
     if (error) {
       throw error
     }
 
-    const header = ["id", "customer_name", "total", "created_at"]
+    const header = ["id", "total", "created_at"]
     const escapeField = (v: any) => {
       const value = v === null || v === undefined ? "" : String(v)
       const escaped = value.replace(/"/g, '""').replace(/\r?\n/g, "\\n")
