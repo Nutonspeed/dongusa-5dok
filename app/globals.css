@@ -4,41 +4,41 @@
 
 @layer base {
   :root {
-    --background: 241 245 249; /* #f1f5f9 - Light background for readability */
-    --foreground: 31 41 55; /* #1f2937 - Dark text for high contrast */
-    --card: 255 255 255; /* #ffffff - Card background for data visuals */
-    --card-foreground: 31 41 55; /* #1f2937 - Dark text for card content */
+    --background: 253 242 248; /* #fdf2f8 - ชมพูอ่อนมาก */
+    --foreground: 113 15 46; /* #710f2e - แดงเบอร์กันดีเข้ม */
+    --card: 255 255 255; /* #ffffff - Card background */
+    --card-foreground: 113 15 46; /* #710f2e - แดงเบอร์กันดีเข้ม */
     --popover: 255 255 255; /* #ffffff - Background for alerts and popovers */
-    --popover-foreground: 31 41 55; /* #1f2937 - Dark text for popover content */
-    --primary: 31 41 55; /* #1f2937 - Used for call-to-action buttons */
+    --popover-foreground: 113 15 46; /* #710f2e - แดงเบอร์กันดีเข้ม */
+    --primary: 136 19 55; /* #881337 - แดงเบอร์กันดี */
     --primary-foreground: 255 255 255; /* #ffffff - White text on primary buttons */
-    --secondary: 139 92 246; /* #8b5cf6 - Accent for highlights and secondary actions */
-    --secondary-foreground: 255 255 255; /* #ffffff - White text on secondary buttons */
-    --muted: 107 114 128; /* #6b7280 - Muted text for secondary information */
-    --muted-foreground: 255 255 255; /* #ffffff - White text on muted backgrounds */
-    --accent: 139 92 246; /* #8b5cf6 - Used for charts and interactive elements */
+    --secondary: 251 207 232; /* #fbcfe8 - ชมพูมิลเลนเนียล */
+    --secondary-foreground: 113 15 46; /* #710f2e - แดงเบอร์กันดีเข้ม */
+    --muted: 251 207 232; /* #fbcfe8 - ชมพูมิลเลนเนียล */
+    --muted-foreground: 113 15 46; /* #710f2e - แดงเบอร์กันดีเข้ม */
+    --accent: 217 119 6; /* #d97706 - ทอง */
     --accent-foreground: 255 255 255; /* #ffffff - White text on accent backgrounds */
     --destructive: 190 18 60; /* #be123c - Color for error messages and alerts */
     --destructive-foreground: 255 255 255; /* #ffffff - White text on destructive elements */
-    --border: 229 231 235; /* #e5e7eb - Light border for cards and sections */
+    --border: 251 207 232; /* #fbcfe8 - ชมพูมิลเลนเนียลสำหรับ border */
     --input: 255 255 255; /* #ffffff - Input fields background */
-    --ring: 139 92 246 / 0.5; /* Ring color for focus states */
+    --ring: 136 19 55 / 0.5; /* แดงเบอร์กันดีสำหรับ focus states */
     --radius: 0.5rem;
     --sidebar: 255 255 255; /* #ffffff - Sidebar background */
-    --sidebar-foreground: 31 41 55; /* #1f2937 - Sidebar text */
-    --sidebar-primary: 249 250 251; /* #f9fafb - Primary sidebar background */
-    --sidebar-primary-foreground: 31 41 55; /* #1f2937 - Primary sidebar text */
-    --sidebar-accent: 139 92 246; /* #8b5cf6 - Sidebar accent color */
+    --sidebar-foreground: 113 15 46; /* #710f2e - Sidebar text */
+    --sidebar-primary: 253 242 248; /* #fdf2f8 - Primary sidebar background */
+    --sidebar-primary-foreground: 113 15 46; /* #710f2e - Primary sidebar text */
+    --sidebar-accent: 217 119 6; /* #d97706 - ทองสำหรับ sidebar accent */
     --sidebar-accent-foreground: 255 255 255; /* #ffffff - White text on sidebar accent */
-    --sidebar-border: 229 231 235; /* #e5e7eb - Border for sidebar */
-    --sidebar-ring: 139 92 246 / 0.5; /* Ring color for sidebar focus states */
-    --chart-1: 99 102 241; /* #6366f1 - Chart color 1 */
-    --chart-2: 236 72 153; /* #ec4899 - Chart color 2 */
-    --chart-3: 251 191 36; /* #fbbf24 - Chart color 3 */
-    --chart-4: 52 211 153; /* #34d399 - Chart color 4 */
-    --chart-5: 96 165 250; /* #60a5fa - Chart color 5 */
+    --sidebar-border: 251 207 232; /* #fbcfe8 - Border for sidebar */
+    --sidebar-ring: 136 19 55 / 0.5; /* Ring color for sidebar focus states */
+    --chart-1: 136 19 55; /* #881337 - แดงเบอร์กันดี */
+    --chart-2: 217 119 6; /* #d97706 - ทอง */
+    --chart-3: 30 58 138; /* #1e3a8a - น้ำเงินกรมท่า */
+    --chart-4: 251 207 232; /* #fbcfe8 - ชมพูมิลเลนเนียล */
+    --chart-5: 245 158 11; /* #f59e0b - ทองอ่อน */
 
-    /* เพิ่มตัวแปรสีใหม่สำหรับธีมแดงเบอร์กันดี */
+    /* ตัวแปรสีใหม่สำหรับธีมแดงเบอร์กันดี */
     --burgundy: 136 19 55; /* #881337 */
     --burgundy-light: 190 24 93; /* #be185d */
     --burgundy-dark: 113 15 46; /* #710f2e */
@@ -51,33 +51,33 @@
   }
 
   .dark {
-    --background: 220 13% 9%;
-    --foreground: 220 14% 95%;
-    --card: 220 13% 12%;
-    --card-foreground: 220 14% 95%;
-    --popover: 220 13% 12%;
-    --popover-foreground: 220 14% 95%;
-    --primary: 139 92 246;
-    --primary-foreground: 220 13% 9%;
-    --secondary: 31 41 55;
-    --secondary-foreground: 220 13% 9%;
-    --muted: 220 13% 15%;
-    --muted-foreground: 220 14% 65%;
-    --accent: 139 92 246;
-    --accent-foreground: 220 13% 9%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 220 13% 18%;
-    --input: 220 13% 18%;
-    --ring: 139 92 246;
-    --sidebar: 220 13% 12%;
-    --sidebar-foreground: 220 14% 95%;
-    --sidebar-primary: 139 92 246;
-    --sidebar-primary-foreground: 220 13% 9%;
-    --sidebar-accent: 31 41 55;
-    --sidebar-accent-foreground: 220 13% 9%;
-    --sidebar-border: 220 13% 18%;
-    --sidebar-ring: 139 92 246;
+    --background: 113 15 46; /* #710f2e - แดงเบอร์กันดีเข้ม */
+    --foreground: 253 242 248; /* #fdf2f8 - ชมพูอ่อน */
+    --card: 136 19 55; /* #881337 - แดงเบอร์กันดี */
+    --card-foreground: 253 242 248; /* #fdf2f8 - ชมพูอ่อน */
+    --popover: 136 19 55; /* #881337 - แดงเบอร์กันดี */
+    --popover-foreground: 253 242 248; /* #fdf2f8 - ชมพูอ่อน */
+    --primary: 217 119 6; /* #d97706 - ทอง */
+    --primary-foreground: 113 15 46; /* #710f2e - แดงเบอร์กันดีเข้ม */
+    --secondary: 30 58 138; /* #1e3a8a - น้ำเงินกรมท่า */
+    --secondary-foreground: 253 242 248; /* #fdf2f8 - ชมพูอ่อน */
+    --muted: 190 24 93; /* #be185d - แดงเบอร์กันดีกลาง */
+    --muted-foreground: 251 207 232; /* #fbcfe8 - ชมพูมิลเลนเนียล */
+    --accent: 245 158 11; /* #f59e0b - ทองอ่อน */
+    --accent-foreground: 113 15 46; /* #710f2e - แดงเบอร์กันดีเข้ม */
+    --destructive: 239 68 68; /* #ef4444 - สีแดงสำหรับ error */
+    --destructive-foreground: 253 242 248; /* #fdf2f8 - ชมพูอ่อน */
+    --border: 190 24 93; /* #be185d - แดงเบอร์กันดีกลาง */
+    --input: 136 19 55; /* #881337 - แดงเบอร์กันดี */
+    --ring: 217 119 6; /* #d97706 - ทอง */
+    --sidebar: 113 15 46; /* #710f2e - แดงเบอร์กันดีเข้ม */
+    --sidebar-foreground: 253 242 248; /* #fdf2f8 - ชมพูอ่อน */
+    --sidebar-primary: 217 119 6; /* #d97706 - ทอง */
+    --sidebar-primary-foreground: 113 15 46; /* #710f2e - แดงเบอร์กันดีเข้ม */
+    --sidebar-accent: 30 58 138; /* #1e3a8a - น้ำเงินกรมท่า */
+    --sidebar-accent-foreground: 253 242 248; /* #fdf2f8 - ชมพูอ่อน */
+    --sidebar-border: 190 24 93; /* #be185d - แดงเบอร์กันดีกลาง */
+    --sidebar-ring: 217 119 6; /* #d97706 - ทอง */
   }
 }
 
