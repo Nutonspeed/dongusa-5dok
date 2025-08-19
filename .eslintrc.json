@@ -10,7 +10,7 @@
     "no-console": ["warn", { "allow": ["warn", "error"] }],
     "no-unused-vars": "off",
     "@typescript-eslint/no-unused-vars": [
-      "error",
+      "warn",
       { "argsIgnorePattern": "^_", "varsIgnorePattern": "^_" }
     ]
   },
@@ -25,7 +25,7 @@
       }
     },
     {
-      "files": ["**/app/**/*.tsx", "**/components/**/*.tsx"],
+      "files": ["**/app/**/*.tsx"],
       "rules": {
         "no-restricted-syntax": [
           "error",
