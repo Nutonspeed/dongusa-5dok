@@ -4,6 +4,9 @@
   "extends": ["next/core-web-vitals", "eslint:recommended"],
   "parser": "@typescript-eslint/parser",
   "plugins": ["@typescript-eslint", "react-hooks"],
+  "globals": {
+    "React": "readonly"
+  },
   "rules": {
     "react-hooks/rules-of-hooks": "error",
     "react-hooks/exhaustive-deps": "warn",
@@ -12,7 +15,9 @@
     "@typescript-eslint/no-unused-vars": [
       "warn",
       { "argsIgnorePattern": "^_", "varsIgnorePattern": "^_" }
-    ]
+    ],
+    "react/no-unescaped-entities": "warn",
+    "no-redeclare": "warn"
   },
   "overrides": [
     {
