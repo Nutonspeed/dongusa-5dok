@@ -1,6 +1,8 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { sessionManager } from "@/lib/session-management"
 
+export const dynamic = 'force-dynamic'
+
 export async function GET(request: NextRequest) {
   try {
     const sessionId = request.cookies.get("session_id")?.value

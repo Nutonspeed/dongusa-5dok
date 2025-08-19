@@ -26,7 +26,8 @@ export default function RootLayout({
     <html lang="th">
       <head>
         <link rel="icon" href="/favicon.ico" sizes="any" />
-        <meta name="theme-color" content="#0891b2" />
+        {/* Match address bar color to burgundy primary */}
+        <meta name="theme-color" content="#7f1d2d" />
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
       </head>
       <body className={`${inter.className} antialiased`}>
