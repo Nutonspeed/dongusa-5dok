@@ -41,6 +41,8 @@ export default function FeaturedProducts() {
   useEffect(() => {
     const fetchFeaturedProducts = async () => {
       try {
+        console.log("[v0] Fetching featured products...")
+
         const { data: productsData, error } = await supabase
           .from("products")
           .select(`
@@ -60,9 +62,13 @@ export default function FeaturedProducts() {
           .limit(4)
           .order("created_at", { ascending: false })
 
-        if (error) throw error
+        if (error) {
+          console.log("[v0] Supabase error, using fallback data:", error)
+          throw error
+        }
 
-        if (productsData) {
+        if (productsData && productsData.length > 0) {
+          console.log("[v0] Successfully fetched products from Supabase:", productsData.length)
           const formattedProducts = productsData.map((product: any) => ({
             id: product.id,
             name: product.name,
@@ -70,38 +76,43 @@ export default function FeaturedProducts() {
             price: product.price,
             compare_at_price: product.compare_at_price,
             images: product.images || [],
-            rating: 4.5, // Mock rating
-            reviews: Math.floor(Math.random() * 50) + 10, // Mock reviews
+            rating: 4.5 + Math.random() * 0.4, // Random rating between 4.5-4.9
+            reviews: Math.floor(Math.random() * 100) + 50, // Random reviews 50-150
             category: product.categories,
             is_featured: true,
-            is_new: Math.random() > 0.7, // Random new badge
-            colors: ["#8B1538", "#2D4A22", "#1E3A8A", "#92400E"], // Mock colors
+            is_new: Math.random() > 0.6, // 40% chance of being new
+            colors: ["#881337", "#fbcfe8", "#d97706", "#1e3a8a"], // Brand colors
           }))
           setProducts(formattedProducts)
+        } else {
+          console.log("[v0] No products from Supabase, using fallback data")
+          throw new Error("No products found")
         }
       } catch (error) {
+        console.log("[v0] Using fallback product data due to error:", error)
         logger.error("Error fetching featured products:", error)
+
         setProducts([
           {
             id: "1",
             name: "ผ้าคลุมโซฟากำมะหยี่พรีเมียม",
-            description: "ผ้าคลุมโซฟาคุณภาพสูง ทำจากกำมะหยี่นุ่ม กันน้ำ กันคราบ",
+            description: "ผ้าคลุมโซฟาคุณภาพสูง ทำจากกำมะหยี่นุ่ม กันน้ำ กันคราบ เหมาะสำหรับโซฟา 2-3 ที่นั่ง",
             price: 2890,
             compare_at_price: 3490,
-            images: ["/placeholder-lxdvw.png"],
+            images: ["/premium-velvet-burgundy-sofa-cover.png"],
             rating: 4.8,
             reviews: 127,
             category: { name: "ผ้าคลุมโซฟา", slug: "sofa-covers" },
             is_featured: true,
             is_new: true,
-            colors: ["#8B1538", "#2D4A22", "#1E3A8A"],
+            colors: ["#881337", "#1e3a8a", "#d97706"],
           },
           {
             id: "2",
             name: "ผ้าคลุมโซฟากันน้ำ",
-            description: "ผ้าคลุมโซฟากันน้ำ 100% เหมาะสำหรับครอบครัวที่มีเด็กเล็ก",
+            description: "ผ้าคลุมโซฟากันน้ำ 100% เหมาะสำหรับครอบครัวที่มีเด็กเล็ก ทำความสะอาดง่าย",
             price: 1950,
-            images: ["/placeholder-is3lc.png"],
+            images: ["/waterproof-charcoal-sofa-cover.png"],
             rating: 4.6,
             reviews: 89,
             category: { name: "ผ้าคลุมโซฟา", slug: "sofa-covers" },
@@ -111,27 +122,27 @@ export default function FeaturedProducts() {
           {
             id: "3",
             name: "หมอนอิงลายเดียวกัน",
-            description: "หมอนอิงที่เข้าชุดกับผ้าคลุมโซฟา ขนาด 45x45 ซม.",
+            description: "หมอนอิงที่เข้าชุดกับผ้าคลุมโซฟา ขนาด 45x45 ซม. ผ้าคุณภาพเดียวกัน",
             price: 350,
-            images: ["/placeholder-jnqsq.png"],
+            images: ["/burgundy-throw-pillows.png"],
             rating: 4.4,
             reviews: 156,
             category: { name: "หมอนอิง", slug: "pillows" },
             is_featured: true,
-            colors: ["#8B1538", "#2D4A22"],
+            colors: ["#881337", "#fbcfe8"],
           },
           {
             id: "4",
             name: "ผ้าคลุมโซฟาเซ็กชั่นแนล",
-            description: "ผ้าคลุมโซฟาสำหรับโซฟาเซ็กชั่นแนล ขนาดใหญ่ ครอบคลุมได้ดี",
+            description: "ผ้าคลุมโซฟาสำหรับโซฟาเซ็กชั่นแนล ขนาดใหญ่ ครอบคลุมได้ดี มีสายรัดกันเลื่อน",
             price: 4200,
             compare_at_price: 4890,
-            images: ["/placeholder-4x94x.png"],
+            images: ["/sectional-navy-sofa-cover.png"],
             rating: 4.7,
             reviews: 73,
             category: { name: "ผ้าคลุมโซฟา", slug: "sofa-covers" },
             is_featured: true,
-            colors: ["#1F2937", "#374151", "#6B7280"],
+            colors: ["#1e3a8a", "#374151", "#6B7280"],
           },
         ])
       } finally {

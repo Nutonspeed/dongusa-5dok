@@ -57,7 +57,7 @@
     --card-foreground: 253 242 248; /* #fdf2f8 - ชมพูอ่อน */
     --popover: 136 19 55; /* #881337 - แดงเบอร์กันดี */
     --popover-foreground: 253 242 248; /* #fdf2f8 - ชมพูอ่อน */
-    --primary: 217 119 6; /* #d97706 - ทอง */
+    --primary: 136 19 55; /* #881337 - ใช้ Burgundy เป็น primary ใน Dark ให้คงเอกลักษณ์แบรนด์ */
     --primary-foreground: 113 15 46; /* #710f2e - แดงเบอร์กันดีเข้ม */
     --secondary: 30 58 138; /* #1e3a8a - น้ำเงินกรมท่า */
     --secondary-foreground: 253 242 248; /* #fdf2f8 - ชมพูอ่อน */
@@ -640,6 +640,31 @@
 
   .gold-glow {
     box-shadow: 0 0 20px hsl(var(--gold) / 0.4);
+  }
+
+  /* เพิ่ม utility classes สำหรับสีทอง */
+  .text-gold {
+    color: hsl(var(--gold));
+  }
+
+  .fill-gold {
+    fill: hsl(var(--gold));
+  }
+
+  .bg-gold {
+    background-color: hsl(var(--gold));
+  }
+
+  .border-gold {
+    border-color: hsl(var(--gold));
+  }
+
+  .text-gold-light {
+    color: hsl(var(--gold-light));
+  }
+
+  .fill-gold-light {
+    fill: hsl(var(--gold-light));
   }
 
   .preview-enabled {
