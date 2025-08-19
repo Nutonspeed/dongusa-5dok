@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
-import { USE_SUPABASE } from "@/lib/runtime"
 
 export const config = {
   matcher: [
@@ -43,71 +42,6 @@ function requiresAuth(pathname: string): { required: boolean; role?: string } {
   }
 
   return { required: false }
-}
-
-async function handleSessionAuth(request: NextRequest) {
-  const { pathname } = request.nextUrl
-  const authCheck = requiresAuth(pathname)
-
-  if (!authCheck.required) {
-    return NextResponse.next()
-  }
-
-  try {
-    const { sessionManager } = await import("@/lib/session-management").catch(() => ({ sessionManager: null }))
-
-    if (!sessionManager) {
-      console.warn("Session manager not available, falling back to basic auth")
-      const loginUrl = new URL("/auth/login", request.url)
-      loginUrl.searchParams.set("redirect", pathname)
-      return NextResponse.redirect(loginUrl)
-    }
-
-    const sessionId = request.cookies.get("session_id")?.value
-    const clientIP = getClientIP(request)
-    const userAgent = request.headers.get("user-agent") || ""
-
-    if (!sessionId) {
-      const loginUrl = new URL("/auth/login", request.url)
-      loginUrl.searchParams.set("redirect", pathname)
-      return NextResponse.redirect(loginUrl)
-    }
-
-    const validation = await sessionManager.validateSession(sessionId, clientIP, userAgent)
-
-    if (!validation.isValid) {
-      const response = NextResponse.redirect(new URL("/auth/login", request.url))
-      response.cookies.delete("session_id")
-      return response
-    }
-
-    // Check role-based access
-    if (authCheck.role === "admin" && validation.session?.role !== "admin") {
-      return NextResponse.redirect(new URL("/", request.url))
-    }
-
-    // Handle session refresh
-    if (validation.shouldRefresh) {
-      await sessionManager.refreshSession(sessionId)
-    }
-
-    // Add security warnings to response headers for client-side handling
-    const response = NextResponse.next()
-    if (validation.securityWarnings.length > 0) {
-      response.headers.set("X-Security-Warnings", JSON.stringify(validation.securityWarnings))
-    }
-
-    if (validation.requiresReauth) {
-      response.headers.set("X-Requires-Reauth", "true")
-    }
-
-    return response
-  } catch (error) {
-    console.error("Session validation error:", error)
-    const response = NextResponse.redirect(new URL("/auth/login", request.url))
-    response.cookies.delete("session_id")
-    return response
-  }
 }
 
 async function handleSupabaseAuth(request: NextRequest) {
@@ -264,20 +198,8 @@ export default async function middleware(request: NextRequest) {
       return NextResponse.next()
     }
 
-    let useSupabase = false
-    try {
-      useSupabase = USE_SUPABASE
-    } catch (error) {
-      console.warn("Runtime configuration not available, defaulting to Supabase auth")
-      useSupabase = true
-    }
-
-    // Route to appropriate auth handler
-    if (useSupabase) {
-      return await handleSupabaseAuth(request)
-    } else {
-      return await handleSessionAuth(request)
-    }
+    // Always use Supabase auth on Edge to avoid Node APIs
+    return await handleSupabaseAuth(request)
   } catch (error) {
     console.error("Critical middleware error:", error)
     return NextResponse.next()

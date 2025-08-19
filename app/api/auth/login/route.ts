@@ -1,3 +1,5 @@
+export const runtime = "nodejs"
+
 import { type NextRequest, NextResponse } from "next/server"
 import { bruteForceProtection } from "@/lib/brute-force-protection"
 import { securityService } from "@/lib/security-service"

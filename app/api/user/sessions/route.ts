@@ -2,6 +2,7 @@ import { type NextRequest, NextResponse } from "next/server"
 import { sessionManager } from "@/lib/session-management"
 
 export const dynamic = 'force-dynamic'
+export const runtime = "nodejs"
 
 export async function GET(request: NextRequest) {
   try {

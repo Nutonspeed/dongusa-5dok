@@ -1,6 +1,8 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { sessionManager } from "@/lib/session-management"
 
+export const runtime = "nodejs"
+
 export async function POST(request: NextRequest) {
   try {
     const currentSessionId = request.cookies.get("session_id")?.value
