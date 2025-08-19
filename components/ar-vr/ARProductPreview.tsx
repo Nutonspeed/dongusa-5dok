@@ -23,6 +23,7 @@ import {
   Zap,
 } from "lucide-react"
 import { arvrEngine, type ARSession, type ARPlacementResult } from "@/lib/ar-vr-engine"
+import { FEATURE_FLAGS } from "@/lib/runtime"
 
 interface ARProductPreviewProps {
   productId: string
@@ -40,12 +41,14 @@ export default function ARProductPreview({ productId, productName, onPlacementCo
   const [productPosition, setProductPosition] = useState({ x: 0, y: 0, z: -2 })
   const [productRotation, setProductRotation] = useState({ x: 0, y: 0, z: 0 })
   const [productScale, setProductScale] = useState({ x: 1, y: 1, z: 1 })
+  const [isARPreviewEnabled, setIsARPreviewEnabled] = useState(true)
 
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
   useEffect(() => {
     checkARSupport()
+    checkARPreviewFeatureFlag()
   }, [])
 
   useEffect(() => {
@@ -68,6 +71,20 @@ export default function ARProductPreview({ productId, productName, onPlacementCo
     const hasDeviceOrientation = "DeviceOrientationEvent" in window
 
     setIsSupported(hasWebRTC && hasWebGL && hasDeviceOrientation)
+  }
+
+  const checkARPreviewFeatureFlag = async () => {
+    try {
+      const response = await fetch("/api/admin/feature-flags")
+      if (response.ok) {
+        const flags = await response.json()
+        setIsARPreviewEnabled(flags.arPreview && flags.previewMode)
+      }
+    } catch (error) {
+      console.error("Error checking AR preview feature flag:", error)
+      // Default to enabled if can't check
+      setIsARPreviewEnabled(FEATURE_FLAGS.arPreview && FEATURE_FLAGS.previewMode)
+    }
   }
 
   const startARSession = async () => {
@@ -159,6 +176,17 @@ export default function ARProductPreview({ productId, productName, onPlacementCo
       default:
         return "text-gray-600 bg-gray-50 border-gray-200"
     }
+  }
+
+  if (!isARPreviewEnabled) {
+    return (
+      <Alert className="border-blue-200 bg-blue-50">
+        <Eye className="h-4 w-4 text-blue-600" />
+        <AlertDescription className="text-blue-800">
+          <strong>ฟีเจอร์ AR Preview ถูกปิดใช้งาน</strong> กรุณาติดต่อผู้ดูแลระบบเพื่อเปิดใช้งานฟีเจอร์นี้
+        </AlertDescription>
+      </Alert>
+    )
   }
 
   if (!isSupported) {

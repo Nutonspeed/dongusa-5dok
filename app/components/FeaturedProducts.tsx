@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge"
 import { useLanguage } from "../contexts/LanguageContext"
 import { useCart } from "../contexts/CartContext"
 import { supabase } from "@/lib/supabase/client"
+import { FEATURE_FLAGS } from "@/lib/runtime"
 
 interface Product {
   id: string
@@ -36,6 +37,7 @@ export default function FeaturedProducts() {
   const [favorites, setFavorites] = useState<string[]>([])
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
+  const [isPreviewEnabled, setIsPreviewEnabled] = useState(true)
 
   useEffect(() => {
     const fetchFeaturedProducts = async () => {
@@ -138,7 +140,21 @@ export default function FeaturedProducts() {
       }
     }
 
+    const checkPreviewFeature = async () => {
+      try {
+        const response = await fetch("/api/admin/feature-flags")
+        if (response.ok) {
+          const flags = await response.json()
+          setIsPreviewEnabled(flags.productPreview && flags.previewMode && flags.eyeIconPreview)
+        }
+      } catch (error) {
+        console.error("Error checking preview feature flag:", error)
+        setIsPreviewEnabled(FEATURE_FLAGS.productPreview && FEATURE_FLAGS.previewMode && FEATURE_FLAGS.eyeIconPreview)
+      }
+    }
+
     fetchFeaturedProducts()
+    checkPreviewFeature()
   }, [])
 
   const toggleFavorite = (productId: string) => {
@@ -250,11 +266,13 @@ export default function FeaturedProducts() {
                     />
                   </Button>
 
-                  <Link href={`/products/${product.id}`}>
-                    <Button size="sm" variant="secondary" className="w-10 h-10 p-0 bg-white/90 hover:bg-white">
-                      <Eye className="w-4 h-4 text-gray-600" />
-                    </Button>
-                  </Link>
+                  {isPreviewEnabled && (
+                    <Link href={`/products/${product.id}`}>
+                      <Button size="sm" variant="secondary" className="w-10 h-10 p-0 bg-white/90 hover:bg-white">
+                        <Eye className="w-4 h-4 text-gray-600" />
+                      </Button>
+                    </Link>
+                  )}
                 </div>
 
                 {/* Quick Add to Cart */}

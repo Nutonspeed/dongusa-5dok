@@ -13,6 +13,9 @@ export async function GET() {
       advancedAnalytics: process.env.ENABLE_ADVANCED_ANALYTICS !== "false",
       bulkOperations: process.env.ENABLE_BULK_OPERATIONS !== "false",
       exportFeatures: process.env.ENABLE_EXPORT_FEATURES !== "false",
+      previewMode: process.env.ENABLE_PREVIEW_MODE !== "false",
+      arPreview: process.env.ENABLE_AR_PREVIEW !== "false",
+      productPreview: process.env.ENABLE_PRODUCT_PREVIEW !== "false",
     }
 
     return NextResponse.json(featureFlags)
