@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -10,8 +10,11 @@ import { Textarea } from "@/components/ui/textarea"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { FileText, Plus, Search, Eye, Copy, Send, Printer, Calendar, DollarSign } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
-import { calculateSubtotal, formatCurrency, type MoneyLineItem } from "@/lib/money"
-import { FEATURE_FLAGS } from "@/lib/runtime"
+import {
+  calculateSubtotal,
+  formatCurrency,
+  type MoneyLineItem,
+} from "@/lib/money"
 
 interface Bill {
   id: string
@@ -86,29 +89,12 @@ export default function BillsManagement() {
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedStatus, setSelectedStatus] = useState<string>("all")
   const [showCreateBill, setShowCreateBill] = useState(false)
-  const [isPreviewEnabled, setIsPreviewEnabled] = useState(true)
   const [newBill, setNewBill] = useState({
     customerName: "",
     customerPhone: "",
     items: [{ productName: "", fabricPattern: "", quantity: 1, unitPrice: 0 }],
     notes: "",
   })
-
-  useEffect(() => {
-    const checkPreviewFeature = async () => {
-      try {
-        const response = await fetch("/api/admin/feature-flags")
-        if (response.ok) {
-          const flags = await response.json()
-          setIsPreviewEnabled(flags.previewMode && flags.eyeIconPreview)
-        }
-      } catch (error) {
-        console.error("Error checking preview feature flag:", error)
-        setIsPreviewEnabled(FEATURE_FLAGS.previewMode && FEATURE_FLAGS.eyeIconPreview)
-      }
-    }
-    checkPreviewFeature()
-  }, [])
 
   const filteredBills = bills.filter((bill) => {
     const matchesSearch =
@@ -151,7 +137,9 @@ export default function BillsManagement() {
       items: newBill.items.map((item, index) => ({
         id: String(index + 1),
         ...item,
-        totalPrice: calculateSubtotal([{ quantity: item.quantity ?? 0, price: item.unitPrice ?? 0 }]),
+        totalPrice: calculateSubtotal([
+          { quantity: item.quantity ?? 0, price: item.unitPrice ?? 0 },
+        ]),
       })),
       totalAmount,
       status: "draft",
@@ -449,11 +437,9 @@ export default function BillsManagement() {
                         <Button variant="ghost" size="sm" onClick={() => sendBillMessage(bill)}>
                           <Send className="w-4 h-4" />
                         </Button>
-                        {isPreviewEnabled && (
-                          <Button variant="ghost" size="sm">
-                            <Eye className="w-4 h-4" />
-                          </Button>
-                        )}
+                        <Button variant="ghost" size="sm">
+                          <Eye className="w-4 h-4" />
+                        </Button>
                         <Button variant="ghost" size="sm">
                           <Printer className="w-4 h-4" />
                         </Button>

@@ -660,28 +660,16 @@ export default function ProductsPage() {
             {/* No Results */}
             {filteredAndSortedProducts.length === 0 && (
               <div className="text-center py-16">
-                <div className="w-24 h-24 mx-auto mb-6 bg-gray-100 rounded-full flex items-center justify-center">
-                  <Search className="w-12 h-12 text-gray-400" />
-                </div>
+                <div className="text-gray-400 text-6xl mb-4">🔍</div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">
                   {language === "th" ? "ไม่พบสินค้า" : "No products found"}
                 </h3>
-                <p className="text-gray-600 mb-6 max-w-md mx-auto">
-                  {language === "th"
-                    ? "ลองเปลี่ยนคำค้นหาหรือตัวกรองดู หรือดูสินค้าทั้งหมดของเรา"
-                    : "Try changing your search terms or filters, or browse all our products"}
+                <p className="text-gray-600 mb-6">
+                  {language === "th" ? "ลองเปลี่ยนคำค้นหาหรือตัวกรองดู" : "Try changing your search terms or filters"}
                 </p>
-                <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                  <Button onClick={clearFilters} variant="outline" className="bg-transparent">
-                    <X className="w-4 h-4 mr-2" />
-                    {language === "th" ? "ล้างตัวกรอง" : "Clear Filters"}
-                  </Button>
-                  <Link href="/fabric-gallery">
-                    <Button className="bg-primary hover:bg-primary/90 text-white">
-                      {language === "th" ? "ดูแกลเลอรี่ผ้า" : "Browse Fabric Gallery"}
-                    </Button>
-                  </Link>
-                </div>
+                <Button onClick={clearFilters} variant="outline">
+                  {language === "th" ? "ล้างตัวกรอง" : "Clear Filters"}
+                </Button>
               </div>
             )}
           </div>

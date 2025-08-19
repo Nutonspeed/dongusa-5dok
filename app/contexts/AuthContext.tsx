@@ -4,7 +4,7 @@ import { logger } from "@/lib/logger"
 
 import type React from "react"
 import { createContext, useContext, useState, useEffect } from "react"
-import { createClient } from "@/lib/supabase/client"
+import { supabase } from "@/lib/supabase/client"
 import { USE_SUPABASE } from "@/lib/runtime"
 import type { AppUser } from "@/types/user"
 import type { Database } from "@/lib/supabase/types"
@@ -61,8 +61,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isMounted, setIsMounted] = useState(false)
   const QA_BYPASS_AUTH = process.env.QA_BYPASS_AUTH === "1"
 
-  const supabase = createClient()
-
   const getClientInfo = () => {
     if (typeof window === "undefined") return { ip: "unknown", userAgent: "unknown" }
 
@@ -86,21 +84,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       try {
         if (USE_SUPABASE && !QA_BYPASS_AUTH) {
-          console.log("[v0] Initializing Supabase auth...")
-
           const {
             data: { session },
             error,
           } = await supabase.auth.getSession()
 
           if (error) {
-            console.log("[v0] Error getting session:", error)
             logger.error("Error getting session:", error)
             setIsLoading(false)
             return
           }
-
-          console.log("[v0] Session retrieved:", session ? "Found" : "None")
 
           const mappedUser: AppUser | null = session?.user
             ? { ...session.user, full_name: session.user.user_metadata?.full_name }
@@ -108,7 +101,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setUser(mappedUser)
 
           if (mappedUser) {
-            console.log("[v0] Fetching profile for user:", mappedUser.id)
             await fetchProfile(mappedUser.id)
           }
         } else {
@@ -134,7 +126,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
         }
       } catch (error) {
-        console.log("[v0] Error initializing auth:", error)
         logger.error("Error initializing auth:", error)
       } finally {
         setIsLoading(false)
@@ -147,8 +138,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const {
         data: { subscription },
       } = supabase.auth.onAuthStateChange(async (event: any, session: any) => {
-        console.log("[v0] Auth state changed:", event)
-
         const mappedUser: AppUser | null = session?.user
           ? { ...session.user, full_name: session.user.user_metadata?.full_name }
           : null
@@ -170,22 +159,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const fetchProfile = async (userId: string) => {
     try {
       if (USE_SUPABASE && !QA_BYPASS_AUTH) {
-        console.log("[v0] Fetching profile for user ID:", userId)
-
         const { data, error } = await supabase.from("profiles").select("*").eq("id", userId).single()
 
         if (error && error.code !== "PGRST116") {
-          console.log("[v0] Error fetching profile:", error)
           logger.error("Error fetching profile:", error)
           return
         }
 
         if (data) {
-          console.log("[v0] Profile found:", data)
           setProfile(data as ProfileRow)
         } else {
-          console.log("[v0] No profile found, creating new profile...")
-
           const { data: newProfile, error: createError } = await supabase
             .from("profiles")
             .insert({
@@ -193,23 +176,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               email: user?.email || "",
               full_name: user?.full_name || null,
               role: "customer", // Default role
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString(),
             })
             .select()
             .single()
 
-          if (createError) {
-            console.log("[v0] Error creating profile:", createError)
-            logger.error("Error creating profile:", createError)
-          } else if (newProfile) {
-            console.log("[v0] Profile created successfully:", newProfile)
+          if (!createError && newProfile) {
             setProfile(newProfile as ProfileRow)
           }
         }
       }
     } catch (error) {
-      console.log("[v0] Exception in fetchProfile:", error)
       logger.error("Error fetching profile:", error)
     }
   }
@@ -348,9 +324,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   ): Promise<{ success: boolean; error?: string }> => {
     try {
       if (USE_SUPABASE && !QA_BYPASS_AUTH) {
-        console.log("[v0] Context signUp called for:", email)
-
-        const { data, error } = await supabase.auth.signUp({
+        const { error } = await supabase.auth.signUp({
           email,
           password,
           options: {
@@ -364,11 +338,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         })
 
         if (error) {
-          console.log("[v0] Context signUp error:", error)
           return { success: false, error: error.message }
         }
 
-        console.log("[v0] Context signUp successful")
         return { success: true }
       } else {
         const mockUser: AppUser = {
@@ -407,7 +379,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return { success: true }
       }
     } catch (error) {
-      console.log("[v0] Context signUp exception:", error)
       return { success: false, error: "An unexpected error occurred" }
     }
   }

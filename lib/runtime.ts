@@ -8,7 +8,8 @@ export const MAINTENANCE_MODE = process.env.MAINTENANCE === "1"
 
 // Supabase configuration with validation
 const pubUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL
-const pubAnon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY
+const pubAnon =
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY
 
 const looksLikeUrl = (u?: string) => !!u && /^https?:\/\/.+/i.test(u)
 const looksLikeKey = (k?: string) => !!k && k.length > 20
@@ -33,14 +34,14 @@ export function supabaseEnvInfo() {
 
 // QA Bypass with strict production check
 export const QA_BYPASS_AUTH = (() => {
-  const bypass = process.env.QA_BYPASS_AUTH === "1"
+  const bypass = process.env.QA_BYPASS_AUTH === "1";
 
   if (IS_PRODUCTION && bypass) {
-    logger.warn("⚠️ QA_BYPASS_AUTH active in production mode")
+    logger.warn("⚠️ QA_BYPASS_AUTH active in production mode");
   }
 
-  return bypass
-})()
+  return bypass;
+})();
 
 // Database configuration
 export const DATABASE_CONFIG = {
@@ -163,10 +164,6 @@ export const FEATURE_FLAGS = {
   advancedAnalytics: process.env.ENABLE_ADVANCED_ANALYTICS !== "false", // Default true
   bulkOperations: process.env.ENABLE_BULK_OPERATIONS !== "false", // Default true
   exportFeatures: process.env.ENABLE_EXPORT_FEATURES !== "false", // Default true
-  previewMode: process.env.ENABLE_PREVIEW_MODE !== "false", // Default enabled
-  arPreview: process.env.ENABLE_AR_PREVIEW !== "false", // Default enabled
-  productPreview: process.env.ENABLE_PRODUCT_PREVIEW !== "false", // Default enabled
-  eyeIconPreview: process.env.ENABLE_EYE_ICON_PREVIEW !== "false", // Default enabled
 }
 
 // Localization configuration
