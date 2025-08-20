@@ -1,6 +1,6 @@
-import { NextResponse } from "next/server"
-import type { NextRequest } from "next/server"
 import { decidePostAuthRedirect } from "@/lib/auth/redirect"
+import type { NextRequest } from "next/server"
+import { NextResponse } from "next/server"
 export const config = {
   matcher: [
     "/admin/:path*",
@@ -192,11 +192,30 @@ async function handleSupabaseAuth(request: NextRequest) {
           return supabaseResponse
         }
 
-        const userRole = profile?.role
+        const userRole = profile?.role as string | null | undefined
+
+        // Temporary admin whitelist to unblock access while fixing data at source
+        const allowedAdminEmails = (process.env.ADMIN_EMAIL_WHITELIST || "")
+          .split(",")
+          .map((s) => s.trim().toLowerCase())
+          .filter(Boolean)
+        const sessionEmail = (session.user.email || "").toLowerCase()
+        const isWhitelistedAdmin =
+          allowedAdminEmails.includes(sessionEmail) || sessionEmail === "nuttapong161@gmail.com"
 
         // Check admin access
-        if (authCheck.role === "admin" && userRole !== "admin") {
+        if (authCheck.role === "admin" && userRole !== "admin" && !isWhitelistedAdmin) {
           return NextResponse.redirect(new URL("/?error=insufficient_permissions", request.url))
+        }
+
+        // If whitelisted but role not admin, allow and log (for audit)
+        if (authCheck.role === "admin" && userRole !== "admin" && isWhitelistedAdmin) {
+          console.warn(
+            "[RBAC] Allowing admin via whitelist for:",
+            sessionEmail,
+            "role in profiles=",
+            userRole,
+          )
         }
       } catch (error) {
         console.error("Role check error:", error)
