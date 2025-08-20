@@ -194,28 +194,9 @@ async function handleSupabaseAuth(request: NextRequest) {
 
         const userRole = profile?.role as string | null | undefined
 
-        // Temporary admin whitelist to unblock access while fixing data at source
-        const allowedAdminEmails = (process.env.ADMIN_EMAIL_WHITELIST || "")
-          .split(",")
-          .map((s) => s.trim().toLowerCase())
-          .filter(Boolean)
-        const sessionEmail = (session.user.email || "").toLowerCase()
-        const isWhitelistedAdmin =
-          allowedAdminEmails.includes(sessionEmail) || sessionEmail === "nuttapong161@gmail.com"
-
-        // Check admin access
-        if (authCheck.role === "admin" && userRole !== "admin" && !isWhitelistedAdmin) {
+        // Check admin access strictly based on role from profiles
+        if (authCheck.role === "admin" && userRole !== "admin") {
           return NextResponse.redirect(new URL("/?error=insufficient_permissions", request.url))
-        }
-
-        // If whitelisted but role not admin, allow and log (for audit)
-        if (authCheck.role === "admin" && userRole !== "admin" && isWhitelistedAdmin) {
-          console.warn(
-            "[RBAC] Allowing admin via whitelist for:",
-            sessionEmail,
-            "role in profiles=",
-            userRole,
-          )
         }
       } catch (error) {
         console.error("Role check error:", error)
