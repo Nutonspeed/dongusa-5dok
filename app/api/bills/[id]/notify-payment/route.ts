@@ -1,63 +1,48 @@
 import { logger } from '@/lib/logger';
 import { type NextRequest, NextResponse } from "next/server"
-
-// Mock bill database
-const mockBills = new Map()
-
-// Mock email service
-const mockEmailService = {
-  async sendEmail(options: { to: string; subject: string; html: string }) {
-    logger.info("Mock email sent:", options)
-    return { success: true }
-  },
-}
+import { enhancedBillDatabase } from "@/lib/enhanced-bill-database"
+import { notifications } from "@/lib/notifications"
 
 export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const { id } = params
     const { paymentAmount, paymentMethod } = await request.json()
 
-    // Mock bill data
-    const bill = {
-      id,
-      billNumber: `BILL-${id}`,
-      customerEmail: "customer@example.com",
-      amount: paymentAmount,
-      status: "pending",
+    if (typeof paymentAmount !== "number" || paymentAmount <= 0) {
+      return NextResponse.json({ error: "invalid_payment_amount" }, { status: 400 })
     }
 
+    const bill = await enhancedBillDatabase.getBill(id)
     if (!bill) {
       return NextResponse.json({ error: "Bill not found" }, { status: 404 })
     }
 
-    // Update bill with payment information
-    const updatedBill = {
-      ...bill,
+    const updatedBill = await enhancedBillDatabase.updateBill(id, {
       status: "paid",
       paidAmount: paymentAmount,
       paymentMethod,
       paidAt: new Date().toISOString(),
+    })
+
+    if (!updatedBill) {
+      return NextResponse.json({ error: "bill_update_failed" }, { status: 500 })
     }
 
-    // Store updated bill
-    mockBills.set(id, updatedBill)
-
-    // Send payment confirmation email
-    await mockEmailService.sendEmail({
-      to: bill.customerEmail,
-      subject: `Payment Confirmation - Bill #${bill.billNumber}`,
-      html: `
-        <h2>Payment Received</h2>
-        <p>Thank you for your payment of $${paymentAmount} for Bill #${bill.billNumber}.</p>
-        <p>Payment Method: ${paymentMethod}</p>
-        <p>Your order is now being processed.</p>
-      `,
-    })
+    try {
+      await notifications.notifyPaymentConfirmed({
+        email: updatedBill.customerEmail,
+        phone: updatedBill.customerPhone,
+        orderId: updatedBill.billNumber || updatedBill.id,
+        amount: paymentAmount,
+      })
+    } catch (notifyErr) {
+      logger.warn("Payment updated but notifications failed:", notifyErr)
+    }
 
     return NextResponse.json({
       success: true,
       bill: updatedBill,
-      message: "Payment notification sent successfully",
+      message: "Payment notification processed",
     })
   } catch (error) {
     logger.error("Error processing payment notification:", error)

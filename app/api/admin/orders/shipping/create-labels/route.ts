@@ -3,6 +3,7 @@ import { USE_SUPABASE } from "@/lib/runtime"
 import { createClient } from "@/lib/supabase/client"
 import { logger } from "@/lib/logger"
 import { requireAdmin } from "@/lib/auth/requireAdmin"
+import { notifications } from "@/lib/notifications"
 
 function generateTrackingNumber(): string {
   return `TH${Math.random().toString(36).substr(2, 9).toUpperCase()}`
@@ -58,6 +59,39 @@ export async function POST(request: NextRequest) {
           .in("id", orderIds)
 
         logger.info(`Created ${orderIds.length} shipping labels`)
+
+        // Map orderId -> tracking number from inserted labels
+        const labels = (data || labelRecords).reduce<Record<string, string>>((acc: any, rec: any) => {
+          acc[rec.order_id || rec.orderId] = rec.tracking_number || rec.trackingNumber
+          return acc
+        }, {})
+
+        // Try fetch minimal contact info for notifications (optional fields)
+        const { data: ordersForContact } = await supabase
+          .from("orders")
+          .select("id, order_number, customer_email, customer_phone")
+          .in("id", orderIds)
+
+        // Fire notifications per order if contact info is present
+        if (ordersForContact && ordersForContact.length) {
+          await Promise.all(
+            ordersForContact.map(async (ord: any) => {
+              const tracking = labels[ord.id]
+              if (!tracking) return
+              try {
+                await notifications.notifyOrderStatus({
+                  email: ord.customer_email || undefined,
+                  phone: ord.customer_phone || undefined,
+                  orderId: ord.order_number || ord.id,
+                  status: "กำลังจัดส่ง",
+                  tracking,
+                })
+              } catch (e) {
+                logger.warn(`notifyOrderStatus shipment failed for order ${ord.id}:`, e)
+              }
+            }),
+          )
+        }
 
         return NextResponse.json({
           success: true,

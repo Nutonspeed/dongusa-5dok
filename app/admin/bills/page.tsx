@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -8,27 +8,9 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { FileText, Plus, Search, Eye, Copy, Send, Printer, Calendar, DollarSign } from "lucide-react"
+import { FileText, Plus, Search, Eye, Copy, Send, Printer, Calendar, DollarSign, Loader2 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
-import {
-  calculateSubtotal,
-  formatCurrency,
-  type MoneyLineItem,
-} from "@/lib/money"
-
-interface Bill {
-  id: string
-  customerId: string
-  customerName: string
-  customerPhone: string
-  items: BillItem[]
-  totalAmount: number
-  status: "draft" | "sent" | "paid" | "overdue"
-  createdAt: Date
-  dueDate: Date
-  paidAt?: Date
-  notes?: string
-}
+import { calculateSubtotal, formatCurrency, type MoneyLineItem } from "@/lib/money"
 
 interface BillItem {
   id: string
@@ -39,56 +21,32 @@ interface BillItem {
   totalPrice: number
 }
 
-const mockBills: Bill[] = [
-  {
-    id: "BILL-001",
-    customerId: "CUST-001",
-    customerName: "สมชาย ใจดี",
-    customerPhone: "081-234-5678",
-    items: [
-      {
-        id: "1",
-        productName: "ผ้าคลุมโซฟา 3 ที่นั่ง",
-        fabricPattern: "ลายดอกไม้สีฟ้า",
-        quantity: 1,
-        unitPrice: 2500,
-        totalPrice: 2500,
-      },
-    ],
-    totalAmount: 2500,
-    status: "paid",
-    createdAt: new Date("2024-01-15"),
-    dueDate: new Date("2024-01-22"),
-    paidAt: new Date("2024-01-16"),
-  },
-  {
-    id: "BILL-002",
-    customerId: "CUST-002",
-    customerName: "สมหญิง รักสวย",
-    customerPhone: "082-345-6789",
-    items: [
-      {
-        id: "2",
-        productName: "ผ้าคลุมโซฟา L-Shape",
-        fabricPattern: "ลายทางสีเทา",
-        quantity: 1,
-        unitPrice: 3500,
-        totalPrice: 3500,
-      },
-    ],
-    totalAmount: 3500,
-    status: "sent",
-    createdAt: new Date("2024-01-14"),
-    dueDate: new Date("2024-01-21"),
-  },
-]
+interface Bill {
+  id: string
+  billNumber?: string
+  customerId?: string
+  customerName: string
+  customerEmail?: string
+  customerPhone?: string
+  items: BillItem[]
+  totalAmount: number
+  amount?: number
+  status: "draft" | "sent" | "paid" | "overdue" | "pending"
+  createdAt: string | Date
+  dueDate: string | Date
+  paidAt?: string | Date
+  notes?: string
+}
 
 export default function BillsManagement() {
   const { toast } = useToast()
-  const [bills, setBills] = useState<Bill[]>(mockBills)
+  const [bills, setBills] = useState<Bill[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedStatus, setSelectedStatus] = useState<string>("all")
   const [showCreateBill, setShowCreateBill] = useState(false)
+  const [creating, setCreating] = useState(false)
   const [newBill, setNewBill] = useState({
     customerName: "",
     customerPhone: "",
@@ -96,14 +54,62 @@ export default function BillsManagement() {
     notes: "",
   })
 
-  const filteredBills = bills.filter((bill) => {
-    const matchesSearch =
-      bill.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      bill.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      bill.customerPhone.includes(searchTerm)
-    const matchesStatus = selectedStatus === "all" || bill.status === selectedStatus
-    return matchesSearch && matchesStatus
-  })
+  // Fetch bills from API
+  useEffect(() => {
+    let mounted = true
+    const load = async () => {
+      setLoading(true)
+      setError(null)
+      try {
+        const params = new URLSearchParams()
+        if (selectedStatus !== "all") params.set("status", selectedStatus)
+        const res = await fetch(`/api/bills?${params.toString()}`, { cache: "no-store" })
+        if (!res.ok) throw new Error(`โหลดข้อมูลบิลล้มเหลว (${res.status})`)
+        const data = await res.json()
+        const normalized: Bill[] = (data.bills || []).map((b: any) => ({
+          id: b.id,
+          billNumber: b.billNumber,
+          customerName: b.customerName,
+          customerPhone: b.customerPhone,
+          totalAmount: b.totalAmount ?? b.amount ?? 0,
+          amount: b.amount,
+          status: (b.status as Bill["status"]) || "draft",
+          createdAt: b.createdAt || b.created_at || new Date().toISOString(),
+          dueDate: b.dueDate || b.due_date || new Date().toISOString(),
+          notes: b.notes,
+          items: (b.items || []).map((it: any, idx: number) => ({
+            id: it.id || String(idx + 1),
+            productName: it.productName || it.name || it.description || "",
+            fabricPattern: it.fabricPattern || it.pattern || "",
+            quantity: it.quantity ?? 1,
+            unitPrice: it.unitPrice ?? it.price ?? 0,
+            totalPrice: it.totalPrice ?? (it.quantity ?? 1) * (it.unitPrice ?? it.price ?? 0),
+          })),
+        }))
+        if (mounted) setBills(normalized)
+      } catch (e: any) {
+        if (mounted) setError(e?.message || "เกิดข้อผิดพลาดในการโหลดข้อมูล")
+      } finally {
+        if (mounted) setLoading(false)
+      }
+    }
+    load()
+    return () => {
+      mounted = false
+    }
+  }, [selectedStatus])
+
+  const filteredBills = useMemo(() => {
+    return bills.filter((bill) => {
+      const matchesSearch =
+        (bill.id || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (bill.billNumber || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (bill.customerName || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (bill.customerPhone || "").includes(searchTerm)
+      const matchesStatus = selectedStatus === "all" || bill.status === selectedStatus
+      return matchesSearch && matchesStatus
+    })
+  }, [bills, searchTerm, selectedStatus])
 
   const getStatusBadge = (status: string) => {
     const colors = {
@@ -111,110 +117,113 @@ export default function BillsManagement() {
       sent: "bg-blue-100 text-blue-800",
       paid: "bg-green-100 text-green-800",
       overdue: "bg-red-100 text-red-800",
+      pending: "bg-amber-100 text-amber-800",
     }
     const labels = {
       draft: "ร่าง",
       sent: "ส่งแล้ว",
       paid: "ชำระแล้ว",
       overdue: "เกินกำหนด",
-    }
-    return <Badge className={colors[status as keyof typeof colors]}>{labels[status as keyof typeof labels]}</Badge>
+      pending: "รอชำระ",
+    } as Record<string, string>
+    const cls = colors[status as keyof typeof colors] || colors.draft
+    const label = labels[status] || status
+    return <Badge className={cls}>{label}</Badge>
   }
 
-  const createQuickBill = () => {
-    const billId = `BILL-${String(bills.length + 1).padStart(3, "0")}`
-    const lineItems: MoneyLineItem[] = newBill.items.map((item) => ({
-      quantity: item.quantity ?? 0,
-      price: item.unitPrice ?? 0,
-    }))
-    const totalAmount = calculateSubtotal(lineItems)
+  const createQuickBill = async () => {
+    try {
+      setCreating(true)
+      const lineItems: MoneyLineItem[] = newBill.items.map((item) => ({
+        quantity: item.quantity ?? 0,
+        price: item.unitPrice ?? 0,
+      }))
+      const totalAmount = calculateSubtotal(lineItems)
 
-    const bill: Bill = {
-      id: billId,
-      customerId: `CUST-${Date.now()}`,
-      customerName: newBill.customerName,
-      customerPhone: newBill.customerPhone,
-      items: newBill.items.map((item, index) => ({
-        id: String(index + 1),
-        ...item,
-        totalPrice: calculateSubtotal([
-          { quantity: item.quantity ?? 0, price: item.unitPrice ?? 0 },
-        ]),
-      })),
-      totalAmount,
-      status: "draft",
-      createdAt: new Date(),
-      dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
-      notes: newBill.notes,
+      const payload = {
+        billNumber: `BILL-${Date.now()}`,
+        customerName: newBill.customerName,
+        customerPhone: newBill.customerPhone,
+        items: newBill.items.map((it) => ({
+          name: it.productName,
+          quantity: it.quantity,
+          price: it.unitPrice,
+          total: (it.quantity ?? 0) * (it.unitPrice ?? 0),
+        })),
+        amount: totalAmount,
+        subtotal: totalAmount,
+        status: "draft",
+        notes: newBill.notes,
+      }
+
+      const res = await fetch("/api/bills", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      })
+      if (!res.ok) throw new Error("สร้างบิลไม่สำเร็จ")
+      const created = await res.json()
+
+      setShowCreateBill(false)
+      setNewBill({ customerName: "", customerPhone: "", items: [{ productName: "", fabricPattern: "", quantity: 1, unitPrice: 0 }], notes: "" })
+
+      // Refresh list
+      setBills((prev) => [
+        {
+          id: created.id,
+          billNumber: created.billNumber,
+          customerName: created.customerName,
+          customerPhone: created.customerPhone,
+          totalAmount: created.amount ?? created.totalAmount ?? 0,
+          amount: created.amount,
+          status: created.status || "draft",
+          createdAt: created.createdAt || created.created_at || new Date().toISOString(),
+          dueDate: created.dueDate || created.due_date || new Date().toISOString(),
+          notes: created.notes,
+          items: (created.items || []).map((it: any, idx: number) => ({
+            id: it.id || String(idx + 1),
+            productName: it.name || it.productName || "",
+            fabricPattern: it.pattern || it.fabricPattern || "",
+            quantity: it.quantity ?? 1,
+            unitPrice: it.price ?? it.unitPrice ?? 0,
+            totalPrice: it.total ?? it.totalPrice ?? 0,
+          })),
+        },
+        ...prev,
+      ])
+
+      toast({ title: "สร้างบิลสำเร็จ", description: `บิล ${payload.billNumber} ถูกสร้างแล้ว` })
+    } catch (e: any) {
+      toast({ title: "เกิดข้อผิดพลาด", description: e?.message || "ไม่สามารถสร้างบิลได้", variant: "destructive" })
+    } finally {
+      setCreating(false)
     }
-
-    setBills([...bills, bill])
-    setShowCreateBill(false)
-    setNewBill({
-      customerName: "",
-      customerPhone: "",
-      items: [{ productName: "", fabricPattern: "", quantity: 1, unitPrice: 0 }],
-      notes: "",
-    })
-
-    toast({
-      title: "สร้างบิลสำเร็จ",
-      description: `บิล ${billId} ถูกสร้างแล้ว`,
-    })
   }
 
   const copyBillLink = (billId: string) => {
     const link = `${window.location.origin}/bill/view/${billId}`
     navigator.clipboard.writeText(link)
-    toast({
-      title: "คัดลอกลิงก์สำเร็จ",
-      description: "ลิงก์บิลถูกคัดลอกไปยังคลิปบอร์ดแล้ว",
-    })
+    toast({ title: "คัดลอกลิงก์สำเร็จ", description: "ลิงก์บิลถูกคัดลอกไปยังคลิปบอร์ดแล้ว" })
   }
 
   const sendBillMessage = (bill: Bill) => {
-    const message = `สวัสดีครับ/ค่ะ คุณ${bill.customerName}
-
-ขอส่งบิลสำหรับการสั่งซื้อ
-บิลเลขที่: ${bill.id}
-ยอดรวม: ${formatCurrency(bill.totalAmount)}
-
-ดูรายละเอียดบิล: ${window.location.origin}/bill/view/${bill.id}
-
-กรุณาชำระเงินภายในกำหนด
-ขอบคุณครับ/ค่ะ`
-
+    const message = `สวัสดีครับ/ค่ะ คุณ${bill.customerName}\n\nขอส่งบิลสำหรับการสั่งซื้อ\nบิลเลขที่: ${bill.billNumber || bill.id}\nยอดรวม: ${formatCurrency(bill.totalAmount)}\n\nดูรายละเอียดบิล: ${window.location.origin}/bill/view/${bill.id}\n\nกรุณาชำระเงินภายในกำหนด\nขอบคุณครับ/ค่ะ`
     navigator.clipboard.writeText(message)
-    toast({
-      title: "คัดลอกข้อความสำเร็จ",
-      description: "ข้อความส่งบิลถูกคัดลอกแล้ว",
-    })
-  }
-
-  const addBillItem = () => {
-    setNewBill({
-      ...newBill,
-      items: [...newBill.items, { productName: "", fabricPattern: "", quantity: 1, unitPrice: 0 }],
-    })
-  }
-
-  const updateBillItem = (index: number, field: string, value: any) => {
-    const updatedItems = newBill.items.map((item, i) => (i === index ? { ...item, [field]: value } : item))
-    setNewBill({ ...newBill, items: updatedItems })
+    toast({ title: "คัดลอกข้อความสำเร็จ", description: "ข้อความส่งบิลถูกคัดลอกแล้ว" })
   }
 
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
         <div>
           <h1 className="text-3xl font-bold text-burgundy-800">จัดการบิล/ใบเสร็จ</h1>
           <p className="text-gray-600 mt-1">สร้างและจัดการบิลอย่างรวดเร็ว</p>
         </div>
         <Dialog open={showCreateBill} onOpenChange={setShowCreateBill}>
           <DialogTrigger asChild>
-            <Button className="bg-burgundy-600 hover:bg-burgundy-700">
-              <Plus className="w-4 h-4 mr-2" />
+            <Button className="bg-burgundy-600 hover:bg-burgundy-700" disabled={creating}>
+              {creating ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Plus className="w-4 h-4 mr-2" />}
               สร้างบิลใหม่
             </Button>
           </DialogTrigger>
@@ -224,24 +233,14 @@ export default function BillsManagement() {
             </DialogHeader>
             <div className="space-y-4">
               {/* Customer Info */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="customerName">ชื่อลูกค้า</Label>
-                  <Input
-                    id="customerName"
-                    value={newBill.customerName}
-                    onChange={(e) => setNewBill({ ...newBill, customerName: e.target.value })}
-                    placeholder="ชื่อลูกค้า"
-                  />
+                  <Input id="customerName" value={newBill.customerName} onChange={(e) => setNewBill({ ...newBill, customerName: e.target.value })} placeholder="ชื่อลูกค้า" />
                 </div>
                 <div>
                   <Label htmlFor="customerPhone">เบอร์โทร</Label>
-                  <Input
-                    id="customerPhone"
-                    value={newBill.customerPhone}
-                    onChange={(e) => setNewBill({ ...newBill, customerPhone: e.target.value })}
-                    placeholder="เบอร์โทรศัพท์"
-                  />
+                  <Input id="customerPhone" value={newBill.customerPhone} onChange={(e) => setNewBill({ ...newBill, customerPhone: e.target.value })} placeholder="เบอร์โทรศัพท์" />
                 </div>
               </div>
 
@@ -249,32 +248,14 @@ export default function BillsManagement() {
               <div>
                 <Label>รายการสินค้า</Label>
                 {newBill.items.map((item, index) => (
-                  <div key={index} className="grid grid-cols-4 gap-2 mt-2">
-                    <Input
-                      placeholder="ชื่อสินค้า"
-                      value={item.productName}
-                      onChange={(e) => updateBillItem(index, "productName", e.target.value)}
-                    />
-                    <Input
-                      placeholder="ลายผ้า"
-                      value={item.fabricPattern}
-                      onChange={(e) => updateBillItem(index, "fabricPattern", e.target.value)}
-                    />
-                    <Input
-                      type="number"
-                      placeholder="จำนวน"
-                      value={item.quantity}
-                      onChange={(e) => updateBillItem(index, "quantity", Number.parseInt(e.target.value) || 1)}
-                    />
-                    <Input
-                      type="number"
-                      placeholder="ราคา"
-                      value={item.unitPrice}
-                      onChange={(e) => updateBillItem(index, "unitPrice", Number.parseFloat(e.target.value) || 0)}
-                    />
+                  <div key={index} className="grid grid-cols-1 sm:grid-cols-4 gap-2 mt-2">
+                    <Input placeholder="ชื่อสินค้า" value={item.productName} onChange={(e) => setNewBill({ ...newBill, items: newBill.items.map((it, i) => (i === index ? { ...it, productName: e.target.value } : it)) })} />
+                    <Input placeholder="ลายผ้า" value={item.fabricPattern} onChange={(e) => setNewBill({ ...newBill, items: newBill.items.map((it, i) => (i === index ? { ...it, fabricPattern: e.target.value } : it)) })} />
+                    <Input type="number" placeholder="จำนวน" value={item.quantity} onChange={(e) => setNewBill({ ...newBill, items: newBill.items.map((it, i) => (i === index ? { ...it, quantity: Number.parseInt(e.target.value) || 1 } : it)) })} />
+                    <Input type="number" placeholder="ราคา" value={item.unitPrice} onChange={(e) => setNewBill({ ...newBill, items: newBill.items.map((it, i) => (i === index ? { ...it, unitPrice: Number.parseFloat(e.target.value) || 0 } : it)) })} />
                   </div>
                 ))}
-                <Button type="button" variant="outline" onClick={addBillItem} className="mt-2 bg-transparent">
+                <Button type="button" variant="outline" onClick={() => setNewBill({ ...newBill, items: [...newBill.items, { productName: "", fabricPattern: "", quantity: 1, unitPrice: 0 }] })} className="mt-2 bg-transparent">
                   เพิ่มรายการ
                 </Button>
               </div>
@@ -282,27 +263,22 @@ export default function BillsManagement() {
               {/* Total */}
               <div className="text-right">
                 <p className="text-lg font-bold text-burgundy-600">
-                  ยอดรวม:{" "}
-                  {newBill.items.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0).toLocaleString()} บาท
+                  ยอดรวม: {newBill.items.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0).toLocaleString()} บาท
                 </p>
               </div>
 
               {/* Notes */}
               <div>
                 <Label htmlFor="notes">หมายเหตุ</Label>
-                <Textarea
-                  id="notes"
-                  value={newBill.notes}
-                  onChange={(e) => setNewBill({ ...newBill, notes: e.target.value })}
-                  placeholder="หมายเหตุเพิ่มเติม"
-                />
+                <Textarea id="notes" value={newBill.notes} onChange={(e) => setNewBill({ ...newBill, notes: e.target.value })} placeholder="หมายเหตุเพิ่มเติม" />
               </div>
 
               <div className="flex justify-end gap-2">
                 <Button variant="outline" onClick={() => setShowCreateBill(false)}>
                   ยกเลิก
                 </Button>
-                <Button onClick={createQuickBill} className="bg-burgundy-600 hover:bg-burgundy-700">
+                <Button onClick={createQuickBill} className="bg-burgundy-600 hover:bg-burgundy-700" disabled={creating}>
+                  {creating ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
                   สร้างบิล
                 </Button>
               </div>
@@ -329,7 +305,7 @@ export default function BillsManagement() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">รอชำระ</p>
-                <p className="text-2xl font-bold text-blue-600">{bills.filter((b) => b.status === "sent").length}</p>
+                <p className="text-2xl font-bold text-blue-600">{bills.filter((b) => b.status === "sent" || b.status === "pending").length}</p>
               </div>
               <Calendar className="w-8 h-8 text-blue-600" />
             </div>
@@ -381,6 +357,7 @@ export default function BillsManagement() {
               <option value="all">ทุกสถานะ</option>
               <option value="draft">ร่าง</option>
               <option value="sent">ส่งแล้ว</option>
+              <option value="pending">รอชำระ</option>
               <option value="paid">ชำระแล้ว</option>
               <option value="overdue">เกินกำหนด</option>
             </select>
@@ -390,8 +367,13 @@ export default function BillsManagement() {
 
       {/* Bills Table */}
       <Card>
-        <CardHeader>
+        <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
           <CardTitle>รายการบิล</CardTitle>
+          {loading ? (
+            <div className="inline-flex items-center text-sm text-gray-500"><Loader2 className="w-4 h-4 mr-2 animate-spin" /> กำลังโหลด</div>
+          ) : error ? (
+            <div className="text-sm text-red-600">{error}</div>
+          ) : null}
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
@@ -411,12 +393,12 @@ export default function BillsManagement() {
                 {filteredBills.map((bill) => (
                   <tr key={bill.id} className="border-b border-gray-100 hover:bg-gray-50">
                     <td className="py-4 px-4">
-                      <span className="font-semibold text-gray-900">{bill.id}</span>
+                      <span className="font-semibold text-gray-900">{bill.billNumber || bill.id}</span>
                     </td>
                     <td className="py-4 px-4">
                       <div>
                         <h4 className="font-semibold text-gray-900">{bill.customerName}</h4>
-                        <p className="text-sm text-gray-500">{bill.customerPhone}</p>
+                        {bill.customerPhone ? <p className="text-sm text-gray-500">{bill.customerPhone}</p> : null}
                       </div>
                     </td>
                     <td className="py-4 px-4">
@@ -424,10 +406,10 @@ export default function BillsManagement() {
                     </td>
                     <td className="py-4 px-4">{getStatusBadge(bill.status)}</td>
                     <td className="py-4 px-4">
-                      <span className="text-sm text-gray-600">{bill.createdAt.toLocaleDateString("th-TH")}</span>
+                      <span className="text-sm text-gray-600">{new Date(bill.createdAt).toLocaleDateString("th-TH")}</span>
                     </td>
                     <td className="py-4 px-4">
-                      <span className="text-sm text-gray-600">{bill.dueDate.toLocaleDateString("th-TH")}</span>
+                      <span className="text-sm text-gray-600">{new Date(bill.dueDate).toLocaleDateString("th-TH")}</span>
                     </td>
                     <td className="py-4 px-4">
                       <div className="flex items-center space-x-2">
@@ -447,6 +429,12 @@ export default function BillsManagement() {
                     </td>
                   </tr>
                 ))}
+
+                {!loading && filteredBills.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="py-8 text-center text-gray-500">ไม่พบบิลที่ตรงกับการค้นหา</td>
+                  </tr>
+                ) : null}
               </tbody>
             </table>
           </div>

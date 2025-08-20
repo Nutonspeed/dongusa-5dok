@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { USE_SUPABASE } from "@/lib/runtime"
 import { logger } from "@/lib/logger"
+import { notifications } from "@/lib/notifications"
 
 export const runtime = "nodejs"
 
@@ -39,6 +40,20 @@ export async function POST(req: Request) {
       }
 
       logger.info("📄 [MOCK] Bill created:", { id, amount: mockBill.amount })
+
+      // Fire notification (order created)
+      try {
+        await notifications.notifyOrderStatus({
+          email: mockBill.customerEmail,
+          phone: mockBill.customerPhone,
+          orderId: mockBill.billNumber || mockBill.id,
+          status: "สั่งซื้อแล้ว",
+          note: "สร้างบิลสำเร็จ",
+        })
+      } catch (e) {
+        logger.warn("notifyOrderStatus (mock bill) failed:", e)
+      }
+
       return NextResponse.json(mockBill, { status: 201 })
     }
 
@@ -63,6 +78,19 @@ export async function POST(req: Request) {
 
     const bill = await enhancedBillDatabase.createBill(billData)
     logger.info("📄 Bill created:", { id: bill.id, amount: bill.amount })
+
+    // Fire notification (order created)
+    try {
+      await notifications.notifyOrderStatus({
+        email: bill.customerEmail,
+        phone: bill.customerPhone,
+        orderId: bill.billNumber || bill.id,
+        status: "สั่งซื้อแล้ว",
+        note: "สร้างบิลสำเร็จ",
+      })
+    } catch (e) {
+      logger.warn("notifyOrderStatus (bill created) failed:", e)
+    }
 
     return NextResponse.json(bill, { status: 201 })
   } catch (error) {

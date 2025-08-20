@@ -4,18 +4,29 @@ import nodemailer from "nodemailer"
 
 export function createTransporter() {
   if (!process.env.SMTP_HOST) {
-    return { sendMail: async () => ({ messageId: "mock" }) }
+    return { sendMail: async () => ({ messageId: "mock" }), verify: async () => true } as any
   }
+  const port = Number(process.env.SMTP_PORT ?? 587)
+  const secureEnv = (process.env.SMTP_SECURE || "").toLowerCase()
+  // If port=465 default to secure true, otherwise use env or false
+  const secure = secureEnv === "true" || secureEnv === "1" || port === 465
   return nodemailer.createTransport({
     host: process.env.SMTP_HOST,
-    port: Number(process.env.SMTP_PORT ?? 587),
-    secure: false,
+    port,
+    secure,
     auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
   })
 }
 
 // Email configuration
 const transporter = createTransporter()
+
+// Helper for from header
+function buildFrom(nameFallback: string) {
+  const fromName = process.env.SMTP_FROM_NAME || nameFallback
+  const fromEmail = process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER || "no-reply@example.com"
+  return `"${fromName}" <${fromEmail}>`
+}
 
 // Email templates
 export const emailTemplates = {
@@ -343,7 +354,7 @@ export const emailService = {
       const template = emailTemplates.newOrder
 
       await transporter.sendMail({
-        from: `"ร้านผ้าคลุมโซฟาพรีเมียม" <${process.env.SMTP_USER}>`,
+        from: buildFrom("ร้านผ้าคลุมโซฟาพรีเมียม"),
         to: process.env.ADMIN_EMAIL || "admin@sofacover.com",
         subject: template.subject(order.id),
         html: template.html(order),
@@ -361,7 +372,7 @@ export const emailService = {
       const template = emailTemplates.lowStock
 
       await transporter.sendMail({
-        from: `"ระบบแจ้งเตือนสต็อก" <${process.env.SMTP_USER}>`,
+        from: buildFrom("ระบบแจ้งเตือนสต็อก"),
         to: process.env.ADMIN_EMAIL || "admin@sofacover.com",
         subject: template.subject(product.name),
         html: template.html(product),
@@ -379,7 +390,7 @@ export const emailService = {
       const template = emailTemplates.customerMessage
 
       await transporter.sendMail({
-        from: `"ข้อความจากลูกค้า" <${process.env.SMTP_USER}>`,
+        from: buildFrom("ข้อความจากลูกค้า"),
         to: process.env.ADMIN_EMAIL || "admin@sofacover.com",
         subject: template.subject(message.name),
         html: template.html(message),
@@ -397,7 +408,7 @@ export const emailService = {
       const template = emailTemplates.orderStatusUpdate
 
       await transporter.sendMail({
-        from: `"ร้านผ้าคลุมโซฟาพรีเมียม" <${process.env.SMTP_USER}>`,
+        from: buildFrom("ร้านผ้าคลุมโซฟาพรีเมียม"),
         to: customerEmail,
         subject: template.subject(order.id, order.status),
         html: template.html(order),
@@ -414,7 +425,7 @@ export const emailService = {
     try {
       const promises = recipients.map((email) =>
         transporter.sendMail({
-          from: `"ร้านผ้าคลุมโซฟาพรีเมียม" <${process.env.SMTP_USER}>`,
+          from: buildFrom("ร้านผ้าคลุมโซฟาพรีเมียม"),
           to: email,
           subject,
           html: htmlContent,
@@ -432,7 +443,7 @@ export const emailService = {
   // Test email connection
   async testConnection() {
     try {
-      if ("verify" in transporter && typeof transporter.verify === "function") {
+      if ("verify" in transporter && typeof (transporter as any).verify === "function") {
         await (transporter as any).verify()
         logger.info("Email service connection verified successfully")
         return true
