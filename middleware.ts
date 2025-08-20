@@ -1,4 +1,5 @@
 import { decidePostAuthRedirect } from "@/lib/auth/redirect"
+import { featureFlags } from "@/utils/featureFlags"
 import type { NextRequest } from "next/server"
 import { NextResponse } from "next/server"
 export const config = {
@@ -63,7 +64,16 @@ async function handleSupabaseAuth(request: NextRequest) {
       if (authCheck.required) {
         const loginUrl = new URL("/auth/login", request.url)
         loginUrl.searchParams.set("redirect", pathname)
-        return NextResponse.redirect(loginUrl)
+        const res = NextResponse.redirect(loginUrl)
+        res.headers.set("Cache-Control", "no-store")
+        return res
+      }
+      // For non-protected routes, optionally rewrite to a friendly offline page if features are disabled or DB not configured
+      if (featureFlags.DISABLE_UNREADY_FEATURES || !featureFlags.IS_SUPABASE_CONFIGURED) {
+        const offlineUrl = new URL("/offline", request.url)
+        const res = NextResponse.rewrite(offlineUrl)
+        res.headers.set("Cache-Control", "no-store")
+        return res
       }
       return NextResponse.next()
     }
@@ -225,7 +235,7 @@ export default async function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl
 
     // Handle maintenance mode
-    if (process.env.MAINTENANCE === "1") {
+    if (featureFlags.MAINTENANCE) {
       return NextResponse.rewrite(new URL("/maintenance", request.url))
     }
 
@@ -240,7 +250,7 @@ export default async function middleware(request: NextRequest) {
     }
 
     // QA bypass mode - skip all authentication
-    if (process.env.QA_BYPASS_AUTH === "1") {
+    if (featureFlags.QA_BYPASS_AUTH) {
       return NextResponse.next()
     }
 

@@ -4,19 +4,14 @@ import Link from "next/link";
 import { useEffect } from "react";
 
 /**
- * Global Error Boundary (App Router)
- * - ป้องกันหน้า crash ด้วยข้อความที่ผู้ใช้เข้าใจได้
- * - มีปุ่มลองใหม่ (reset) และลิงก์กลับหน้าหลัก
- * - เหมาะกับกรณีบริการภายนอกล่ม/ENV ไม่ครบ/ฟีเจอร์ยังไม่พร้อม
- *
- * Note:
- * - Error boundary นี้จะถูกเรียกเมื่อเกิดข้อผิดพลาดใน Client Components
- * - สำหรับฝั่งเซิร์ฟเวอร์ ให้ตอบ JSON ที่ควบคุมได้ใน API (ใช้ safe wrapper)
+ * Admin Error Boundary
+ * - ป้องกันหน้าแดชบอร์ดแอดมิน crash ด้วยข้อความที่เข้าใจง่าย
+ * - มีปุ่มลองใหม่ (reset) และปุ่มกลับแดชบอร์ด/หน้าแรก
  */
-export default function Error({ error, reset }: { error: any; reset: () => void }) {
+export default function AdminError({ error, reset }: { error: any; reset: () => void }) {
   useEffect(() => {
-    // สามารถส่ง error ไปยังระบบติดตาม (เช่น Sentry) ได้ที่นี่
-    // console.error("[GlobalErrorBoundary]", error)
+    // จุดต่อเข้าระบบติดตาม (เช่น Sentry) ได้
+    // console.error("[AdminErrorBoundary]", error)
   }, [error])
 
   return (
@@ -26,11 +21,11 @@ export default function Error({ error, reset }: { error: any; reset: () => void 
           <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-red-100 text-red-700">
             ❗
           </span>
-          <h1 className="text-xl font-semibold text-gray-900">เกิดข้อผิดพลาด</h1>
+          <h1 className="text-xl font-semibold text-gray-900">แดชบอร์ดผู้ดูแลระบบมีข้อผิดพลาด</h1>
         </div>
 
         <p className="mt-2 text-sm text-gray-600">
-          ระบบขัดข้องชั่วคราว ฟีเจอร์บางส่วนอาจยังไม่พร้อมใช้งาน แต่ข้อมูลของคุณปลอดภัย
+          ฟีเจอร์บางส่วนยังไม่พร้อมหรือบริการภายนอกไม่ตอบสนอง ระบบได้จำกัดการทำงานเพื่อกันล่มชั่วคราว
         </p>
 
         {process.env.NODE_ENV !== "production" ? (
@@ -49,22 +44,22 @@ export default function Error({ error, reset }: { error: any; reset: () => void 
           </button>
 
           <Link
-            href="/"
+            href="/admin"
             className="inline-flex items-center rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-900 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-300"
           >
-            กลับหน้าแรก
+            กลับแดชบอร์ด
           </Link>
 
           <Link
-            href="/offline"
+            href="/"
             className="inline-flex items-center rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-900 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-300"
           >
-            โหมดออฟไลน์
+            หน้าแรก
           </Link>
         </div>
 
         <p className="mt-4 text-xs text-gray-500">
-          ถ้ายังพบปัญหา ให้แจ้งผู้ดูแลระบบ พร้อมเวลาที่เกิดเหตุและสิ่งที่พยายามทำ
+          หากเป็นปัญหาซ้ำๆ โปรดแจ้งผู้ดูแลระบบ พร้อมเวลาที่เกิดเหตุและฟังก์ชันที่ใช้งาน
         </p>
       </div>
     </main>

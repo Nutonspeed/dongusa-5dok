@@ -30,3 +30,29 @@ next-env.d.ts
 # QA snapshots
 docs/snapshots/*
 !docs/snapshots/README.md
+# Environment files
+.env.local
+.env.production
+.env*.local
+# Development files
+.vscode/settings.json
+.idea/
+*.log
+logs/
+# Database
+*.db
+*.sqlite
+# Uploads
+/uploads
+/temp
+/public/uploads
+# Cache
+.cache/
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
