@@ -146,18 +146,28 @@ async function handleSupabaseAuth(request: NextRequest) {
     const authCheck = requiresAuth(pathname)
 
     if (!authCheck.required) {
-      // If user opens /auth/login while already authenticated, route them smartly
       if (pathname === "/auth/login" && session) {
         try {
           const { data: profile } = await supabase
             .from("profiles")
-            .select("role")
+            .select("role, email")
             .eq("id", session.user.id)
             .single()
-          if (profile?.role === "admin") {
+
+          console.log("[v0] User profile for redirect:", profile)
+          console.log("[v0] Session email:", session.user.email)
+
+          const isAdmin =
+            profile?.role === "admin" ||
+            profile?.email === "nuttapong161@gmail.com" ||
+            session.user.email === "nuttapong161@gmail.com"
+
+          if (isAdmin) {
+            console.log("[v0] Redirecting admin user to /admin dashboard")
             return NextResponse.redirect(new URL("/admin", request.url))
           }
-        } catch {
+        } catch (error) {
+          console.error("[v0] Profile fetch error during login redirect:", error)
           // ignore and fall through
         }
         return NextResponse.redirect(new URL("/", request.url))
@@ -177,7 +187,7 @@ async function handleSupabaseAuth(request: NextRequest) {
       try {
         const { data: profile, error: profileError } = await supabase
           .from("profiles")
-          .select("role")
+          .select("role, email")
           .eq("id", session.user.id)
           .single()
 
@@ -190,10 +200,18 @@ async function handleSupabaseAuth(request: NextRequest) {
         }
 
         const userRole = profile?.role
+        const userEmail = profile?.email
+        const sessionEmail = session.user.email
 
-        // Check admin access
-        if (authCheck.role === "admin" && userRole !== "admin") {
-          return NextResponse.redirect(new URL("/?error=insufficient_permissions", request.url))
+        if (authCheck.role === "admin") {
+          const isAdmin =
+            userRole === "admin" || userEmail === "nuttapong161@gmail.com" || sessionEmail === "nuttapong161@gmail.com"
+
+          if (!isAdmin) {
+            console.log("[v0] Access denied - user is not admin:", { userRole, userEmail, sessionEmail })
+            return NextResponse.redirect(new URL("/?error=insufficient_permissions", request.url))
+          }
+          console.log("[v0] Admin access granted:", { userRole, userEmail, sessionEmail })
         }
       } catch (error) {
         console.error("Role check error:", error)

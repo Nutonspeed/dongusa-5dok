@@ -37,6 +37,9 @@ export function MockServiceIndicator() {
     },
   ])
 
+  const isProduction = process.env.NODE_ENV === "production"
+  const enableMockServices = process.env.ENABLE_MOCK_SERVICES === "true"
+
   // Toggle visibility with keyboard shortcut
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
@@ -49,15 +52,23 @@ export function MockServiceIndicator() {
     return () => window.removeEventListener("keydown", handleKeyPress)
   }, [isVisible])
 
-  // Auto-show in development
   useEffect(() => {
-    if (process.env.NODE_ENV === "development") {
+    if (!isProduction) {
       const timer = setTimeout(() => setIsVisible(true), 2000)
       return () => clearTimeout(timer)
     }
-  }, [])
+    // In production, keep completely hidden unless manually toggled with Ctrl+Shift+D
+  }, [isProduction])
+
+  if (isProduction && !enableMockServices && !isVisible) {
+    return null
+  }
 
   if (!isVisible) {
+    if (isProduction && !enableMockServices) {
+      return null
+    }
+
     return (
       <div className="fixed bottom-4 right-4 z-50">
         <button
@@ -121,6 +132,7 @@ export function MockServiceIndicator() {
             <p className="text-xs text-gray-400">
               Press <kbd className="bg-gray-700 px-1 rounded">Ctrl+Shift+D</kbd> to toggle
             </p>
+            {isProduction && <p className="text-xs text-red-400 mt-1">Production Mode - Services should be live</p>}
           </div>
         </CardContent>
       </Card>

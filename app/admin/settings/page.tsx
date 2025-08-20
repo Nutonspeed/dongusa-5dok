@@ -15,6 +15,7 @@ import {
   Upload,
   Eye,
   EyeOff,
+  Settings,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -93,18 +94,115 @@ export default function SettingsPage() {
     },
   })
 
-  const tabs = [
-    { id: "store", name: "ข้อมูลร้าน", icon: Store },
-    { id: "payment", name: "การชำระเงิน", icon: CreditCard },
-    { id: "shipping", name: "การจัดส่ง", icon: Truck },
-    { id: "notifications", name: "การแจ้งเตือน", icon: Bell },
-    { id: "users", name: "ผู้ใช้งาน", icon: Users },
-    { id: "security", name: "ความปลอดภัย", icon: Shield },
-  ]
+  const [serviceSettings, setServiceSettings] = useState({
+    email: {
+      enabled: false,
+      provider: "smtp", // smtp, sendgrid, mock
+      config: {
+        host: "",
+        port: 587,
+        secure: false,
+        user: "",
+        pass: "",
+      },
+    },
+    payment: {
+      promptpay: {
+        enabled: false,
+        id: "",
+        merchantName: "",
+      },
+      bankTransfer: {
+        enabled: false,
+        bankName: "",
+        accountNumber: "",
+        accountName: "",
+      },
+      cod: {
+        enabled: false,
+        fee: 30,
+      },
+      stripe: {
+        enabled: false,
+        testMode: true,
+      },
+    },
+    shipping: {
+      thailandPost: {
+        enabled: false,
+        customerCode: "",
+        apiKey: "",
+      },
+      kerry: {
+        enabled: false,
+        apiKey: "",
+        apiSecret: "",
+      },
+      flash: {
+        enabled: false,
+        merchantId: "",
+        apiKey: "",
+      },
+    },
+    storage: {
+      enabled: false,
+      provider: "vercel_blob", // vercel_blob, aws_s3, local
+      maxFileSize: 10 * 1024 * 1024, // 10MB
+    },
+  })
+
+  const serviceCosts = {
+    email: {
+      smtp: { monthly: 0, perEmail: 0 },
+      sendgrid: { monthly: 0, perEmail: 0.0006 },
+      mock: { monthly: 0, perEmail: 0 },
+    },
+    payment: {
+      stripe: { monthly: 0, percentage: 2.9, fixed: 10 },
+      promptpay: { monthly: 0, percentage: 0, fixed: 0 },
+      bankTransfer: { monthly: 0, percentage: 0, fixed: 0 },
+      cod: { monthly: 0, percentage: 0, fixed: 30 },
+    },
+    shipping: {
+      thailandPost: { monthly: 0, perShipment: "variable" },
+      kerry: { monthly: 0, perShipment: "variable" },
+      flash: { monthly: 0, perShipment: "variable" },
+    },
+    storage: {
+      vercel_blob: { monthly: 0, perGB: 0.15 },
+      aws_s3: { monthly: 0, perGB: 0.023 },
+      local: { monthly: 0, perGB: 0 },
+    },
+  }
+
+  const saveSettingsToDatabase = async () => {
+    try {
+      const response = await fetch("/api/admin/settings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          store: settings.store,
+          services: serviceSettings,
+          payment: settings.payment,
+          shipping: settings.shipping,
+          notifications: settings.notifications,
+          security: settings.security,
+        }),
+      })
+
+      if (response.ok) {
+        alert("บันทึกการตั้งค่าเรียบร้อยแล้ว")
+      } else {
+        throw new Error("Failed to save settings")
+      }
+    } catch (error) {
+      console.error("Error saving settings:", error)
+      alert("เกิดข้อผิดพลาดในการบันทึก")
+    }
+  }
 
   const handleSave = () => {
-    // Save settings logic here
-    alert("บันทึกการตั้งค่าเรียบร้อยแล้ว")
+    saveSettingsToDatabase()
   }
 
   const handleInputChange = (section: string, field: string, value: any) => {
@@ -126,6 +224,16 @@ export default function SettingsPage() {
       minute: "2-digit",
     })
   }
+
+  const tabs = [
+    { id: "store", name: "ข้อมูลร้าน", icon: Store },
+    { id: "payment", name: "การชำระเงิน", icon: CreditCard },
+    { id: "shipping", name: "การจัดส่ง", icon: Truck },
+    { id: "notifications", name: "การแจ้งเตือน", icon: Bell },
+    { id: "users", name: "ผู้ใช้งาน", icon: Users },
+    { id: "security", name: "ความปลอดภัย", icon: Shield },
+    { id: "services", name: "จัดการบริการ", icon: Settings },
+  ]
 
   return (
     <div className="space-y-6">
@@ -913,6 +1021,165 @@ export default function SettingsPage() {
                     <Button className="bg-gradient-to-r from-pink-500 to-rose-600 hover:from-pink-600 hover:to-rose-700">
                       เปลี่ยนรหัสผ่าน
                     </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {activeTab === "services" && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Settings className="w-5 h-5 mr-2" />
+                  จัดการบริการ
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Email Service */}
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">บริการอีเมล</h3>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+                      <div>
+                        <h4 className="font-semibold text-gray-900">บริการส่งอีเมล</h4>
+                        <p className="text-sm text-gray-600">
+                          ค่าใช้จ่าย:{" "}
+                          {serviceSettings.email.provider === "mock"
+                            ? "ฟรี (Mock)"
+                            : serviceSettings.email.provider === "smtp"
+                              ? "ฟรี (SMTP)"
+                              : "SendGrid: $0.0006/อีเมล"}
+                        </p>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <select
+                          value={serviceSettings.email.provider}
+                          onChange={(e) =>
+                            setServiceSettings((prev) => ({
+                              ...prev,
+                              email: { ...prev.email, provider: e.target.value as any },
+                            }))
+                          }
+                          className="px-3 py-1 border border-gray-300 rounded"
+                        >
+                          <option value="mock">Mock (ทดสอบ)</option>
+                          <option value="smtp">SMTP (ฟรี)</option>
+                          <option value="sendgrid">SendGrid (เสียค่าใช้จ่าย)</option>
+                        </select>
+                        <input
+                          type="checkbox"
+                          checked={serviceSettings.email.enabled}
+                          onChange={(e) =>
+                            setServiceSettings((prev) => ({
+                              ...prev,
+                              email: { ...prev.email, enabled: e.target.checked },
+                            }))
+                          }
+                          className="w-4 h-4 text-pink-600 border-gray-300 rounded focus:ring-pink-500"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Payment Services */}
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">บริการชำระเงิน</h3>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+                      <div>
+                        <h4 className="font-semibold text-gray-900">พร้อมเพย์ (PromptPay)</h4>
+                        <p className="text-sm text-gray-600">ค่าใช้จ่าย: ฟรี</p>
+                      </div>
+                      <input
+                        type="checkbox"
+                        checked={serviceSettings.payment.promptpay.enabled}
+                        onChange={(e) =>
+                          setServiceSettings((prev) => ({
+                            ...prev,
+                            payment: {
+                              ...prev.payment,
+                              promptpay: { ...prev.payment.promptpay, enabled: e.target.checked },
+                            },
+                          }))
+                        }
+                        className="w-4 h-4 text-pink-600 border-gray-300 rounded focus:ring-pink-500"
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+                      <div>
+                        <h4 className="font-semibold text-gray-900">Stripe (บัตรเครดิต)</h4>
+                        <p className="text-sm text-gray-600">ค่าใช้จ่าย: 2.9% + 10 บาท/รายการ</p>
+                      </div>
+                      <input
+                        type="checkbox"
+                        checked={serviceSettings.payment.stripe.enabled}
+                        onChange={(e) =>
+                          setServiceSettings((prev) => ({
+                            ...prev,
+                            payment: {
+                              ...prev.payment,
+                              stripe: { ...prev.payment.stripe, enabled: e.target.checked },
+                            },
+                          }))
+                        }
+                        className="w-4 h-4 text-pink-600 border-gray-300 rounded focus:ring-pink-500"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Shipping Services */}
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">บริการจัดส่ง</h3>
+                  <div className="space-y-4">
+                    {["thailandPost", "kerry", "flash"].map((service) => (
+                      <div
+                        key={service}
+                        className="flex items-center justify-between p-4 border border-gray-200 rounded-lg"
+                      >
+                        <div>
+                          <h4 className="font-semibold text-gray-900">
+                            {service === "thailandPost"
+                              ? "ไปรษณีย์ไทย"
+                              : service === "kerry"
+                                ? "Kerry Express"
+                                : "Flash Express"}
+                          </h4>
+                          <p className="text-sm text-gray-600">ค่าใช้จ่าย: ตามอัตราจริง</p>
+                        </div>
+                        <input
+                          type="checkbox"
+                          checked={serviceSettings.shipping[service as keyof typeof serviceSettings.shipping].enabled}
+                          onChange={(e) =>
+                            setServiceSettings((prev) => ({
+                              ...prev,
+                              shipping: {
+                                ...prev.shipping,
+                                [service]: {
+                                  ...prev.shipping[service as keyof typeof prev.shipping],
+                                  enabled: e.target.checked,
+                                },
+                              },
+                            }))
+                          }
+                          className="w-4 h-4 text-pink-600 border-gray-300 rounded focus:ring-pink-500"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Cost Summary */}
+                <div className="bg-blue-50 p-4 rounded-lg">
+                  <h3 className="text-lg font-semibold text-blue-900 mb-2">สรุปค่าใช้จ่ายรายเดือน</h3>
+                  <div className="text-sm text-blue-800">
+                    <p>• อีเมล: {serviceSettings.email.provider === "mock" ? "ฟรี" : "ตามการใช้งาน"}</p>
+                    <p>• การชำระเงิน: {serviceSettings.payment.stripe.enabled ? "2.9% + 10 บาท/รายการ" : "ฟรี"}</p>
+                    <p>• การจัดส่ง: ตามอัตราจริงของแต่ละบริษัท</p>
+                    <p>• จัดเก็บไฟล์: {serviceSettings.storage.enabled ? "$0.15/GB" : "ฟรี (Local)"}</p>
                   </div>
                 </div>
               </CardContent>

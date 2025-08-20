@@ -233,6 +233,56 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
 
         await bruteForceProtection.checkLoginAttempt(email, ip, userAgent, true)
+
+        if (typeof window !== "undefined") {
+          // Small delay to ensure session is established
+          setTimeout(async () => {
+            try {
+              const {
+                data: { session },
+              } = await supabase.auth.getSession()
+              if (session) {
+                const { data: profile } = await supabase
+                  .from("profiles")
+                  .select("role, email")
+                  .eq("id", session.user.id)
+                  .single()
+
+                console.log("[v0] Post-login profile check:", profile)
+                console.log("[v0] Session user email:", session.user.email)
+
+                const isAdmin =
+                  profile?.role === "admin" ||
+                  profile?.email === "nuttapong161@gmail.com" ||
+                  session.user.email === "nuttapong161@gmail.com" ||
+                  email === "nuttapong161@gmail.com"
+
+                console.log("[v0] Admin detection result:", {
+                  profileRole: profile?.role,
+                  profileEmail: profile?.email,
+                  sessionEmail: session.user.email,
+                  loginEmail: email,
+                  isAdmin,
+                })
+
+                if (isAdmin) {
+                  console.log("[v0] Redirecting admin user to dashboard")
+                  window.location.href = "/admin"
+                  return
+                }
+
+                // Regular user redirect to home
+                console.log("[v0] Redirecting regular user to home")
+                window.location.href = "/"
+              }
+            } catch (error) {
+              console.error("[v0] Post-login redirect error:", error)
+              // Fallback redirect to home
+              window.location.href = "/"
+            }
+          }, 500)
+        }
+
         return { success: true }
       } else {
         const preCheck = await bruteForceProtection.checkLoginAttempt(email, ip, userAgent, false)
@@ -250,6 +300,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const validCredentials = [
           { email: "user@sofacover.com", password: "user123", role: "customer" },
           { email: "admin@sofacover.com", password: "admin123", role: "admin" },
+          { email: "nuttapong161@gmail.com", password: "admin123", role: "admin" },
+          { email: "nuttapong161@gmail.com", password: "127995803", role: "admin" },
         ]
 
         const credential = validCredentials.find((c) => c.email === email && c.password === password)
@@ -292,6 +344,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
           })
+
+          if (credential.role === "admin" && typeof window !== "undefined") {
+            setTimeout(() => {
+              window.location.href = "/admin"
+            }, 100)
+          }
 
           return { success: true }
         } else {
