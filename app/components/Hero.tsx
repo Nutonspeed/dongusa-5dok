@@ -1,11 +1,11 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import Link from "next/link"
-import Image from "next/image"
-import { ArrowRight, Star, Shield, Truck, Award } from "lucide-react"
-import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { ArrowRight, Award, Shield, Star, Truck } from "lucide-react"
+import Image from "next/image"
+import Link from "next/link"
+import { useEffect, useState } from "react"
 import { useLanguage } from "../contexts/LanguageContext"
 
 const heroImages = [
@@ -45,7 +45,7 @@ export default function Hero() {
   }, [])
 
   return (
-    <section className="relative bg-gradient-to-br from-accent via-white to-secondary overflow-hidden">
+    <section className="relative bg-gradient-to-br from-accent via-background to-secondary overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-20">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           {/* Left Content */}
@@ -59,7 +59,7 @@ export default function Hero() {
                 {[...Array(5)].map((_, i) => (
                   <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
                 ))}
-                <span className="text-sm text-gray-600 ml-2">
+                <span className="text-sm text-muted-foreground ml-2">
                   {language === "en" ? "4.9/5 from 2,500+ reviews" : "4.9/5 จาก 2,500+ รีวิว"}
                 </span>
               </div>
@@ -67,7 +67,7 @@ export default function Hero() {
 
             {/* Main Heading */}
             <div className="space-y-4">
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 leading-tight">
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground leading-tight">
                 {language === "en" ? (
                   <>
                     Transform Your
@@ -81,7 +81,7 @@ export default function Hero() {
                 )}
               </h1>
 
-              <p className="text-xl text-gray-600 leading-relaxed max-w-lg">
+              <p className="text-xl text-muted-foreground leading-relaxed max-w-lg">
                 {language === "en"
                   ? "Premium sofa covers that protect and beautify your furniture. Custom-made with precision, delivered with care."
                   : "ผ้าคลุมโซฟาพรีเมียมที่ปกป้องและเพิ่มความสวยงามให้เฟอร์นิเจอร์ของคุณ ทำตามสั่งด้วยความแม่นยำ จัดส่งด้วยความใส่ใจ"}
@@ -95,8 +95,8 @@ export default function Hero() {
                   <div className="w-12 h-12 bg-accent rounded-full flex items-center justify-center mx-auto mb-2">
                     <feature.icon className="w-6 h-6 text-primary" />
                   </div>
-                  <h3 className="font-semibold text-gray-900 text-sm">{feature.title[language]}</h3>
-                  <p className="text-xs text-gray-600">{feature.description[language]}</p>
+                  <h3 className="font-semibold text-foreground text-sm">{feature.title[language]}</h3>
+                  <p className="text-xs text-muted-foreground">{feature.description[language]}</p>
                 </div>
               ))}
             </div>
@@ -125,9 +125,9 @@ export default function Hero() {
             </div>
 
             {/* Trust Indicators */}
-            <div className="flex items-center space-x-6 text-sm text-gray-600">
+            <div className="flex items-center space-x-6 text-sm text-muted-foreground">
               <div className="flex items-center space-x-2">
-                <Shield className="w-4 h-4 text-green-600" />
+                <Shield className="w-4 h-4 text-primary" />
                 <span>{language === "en" ? "2-Year Warranty" : "รับประกัน 2 ปี"}</span>
               </div>
               <div className="flex items-center space-x-2">
@@ -152,19 +152,19 @@ export default function Hero() {
 
               {/* Overlay with stats */}
               <div className="absolute bottom-6 left-6 right-6">
-                <div className="bg-white/90 backdrop-blur-sm rounded-xl p-4">
+                <div className="bg-card/90 backdrop-blur-sm rounded-xl p-4">
                   <div className="grid grid-cols-3 gap-4 text-center">
                     <div>
-                      <div className="text-2xl font-bold text-gray-900">10K+</div>
-                      <div className="text-sm text-gray-600">{language === "en" ? "Happy Customers" : "ลูกค้าพอใจ"}</div>
+                      <div className="text-2xl font-bold text-foreground">10K+</div>
+                      <div className="text-sm text-muted-foreground">{language === "en" ? "Happy Customers" : "ลูกค้าพอใจ"}</div>
                     </div>
                     <div>
-                      <div className="text-2xl font-bold text-gray-900">500+</div>
-                      <div className="text-sm text-gray-600">{language === "en" ? "Fabric Options" : "ตัวเลือกผ้า"}</div>
+                      <div className="text-2xl font-bold text-foreground">500+</div>
+                      <div className="text-sm text-muted-foreground">{language === "en" ? "Fabric Options" : "ตัวเลือกผ้า"}</div>
                     </div>
                     <div>
-                      <div className="text-2xl font-bold text-gray-900">24/7</div>
-                      <div className="text-sm text-gray-600">{language === "en" ? "Support" : "ช่วยเหลือ"}</div>
+                      <div className="text-2xl font-bold text-foreground">24/7</div>
+                      <div className="text-sm text-muted-foreground">{language === "en" ? "Support" : "ช่วยเหลือ"}</div>
                     </div>
                   </div>
                 </div>
@@ -177,9 +177,8 @@ export default function Hero() {
                 <button
                   key={index}
                   onClick={() => setCurrentImageIndex(index)}
-                  className={`w-3 h-3 rounded-full transition-colors ${
-                    index === currentImageIndex ? "bg-primary" : "bg-gray-300"
-                  }`}
+                  className={`w-3 h-3 rounded-full transition-colors ${index === currentImageIndex ? "bg-primary" : "bg-muted"
+                    }`}
                 />
               ))}
             </div>

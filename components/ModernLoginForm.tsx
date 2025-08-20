@@ -1,32 +1,32 @@
 "use client"
 
-import type React from "react"
-import { useState, useEffect } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardHeader } from "@/components/ui/card"
+import { useAuth } from "@/app/contexts/AuthContext"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { useToast } from "@/hooks/use-toast"
+import { IS_PRODUCTION } from "@/lib/runtime"
 import {
-  Loader2,
+  AlertTriangle,
+  Apple,
+  CheckCircle,
+  Chrome,
+  Clock,
   Eye,
   EyeOff,
-  Mail,
-  Lock,
-  Shield,
-  Clock,
-  Chrome,
   Facebook,
-  Apple,
   Fingerprint,
+  Loader2,
+  Lock,
+  Mail,
+  Shield,
   Smartphone,
-  CheckCircle,
-  AlertTriangle,
 } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { useAuth } from "@/app/contexts/AuthContext"
-import { useToast } from "@/hooks/use-toast"
-import { IS_PRODUCTION } from "@/lib/runtime"
+import type React from "react"
+import { useEffect, useState } from "react"
 
 export default function ModernLoginForm() {
   const router = useRouter()
@@ -149,14 +149,12 @@ export default function ModernLoginForm() {
       )}
       <div className="flex items-center">
         <Shield
-          className={`w-3 h-3 mr-1 ${
-            securityLevel === "high" ? "text-green-600" : securityLevel === "medium" ? "text-amber-600" : "text-red-600"
-          }`}
+          className={`w-3 h-3 mr-1 ${securityLevel === "high" ? "text-green-600" : securityLevel === "medium" ? "text-amber-600" : "text-red-600"
+            }`}
         />
         <span
-          className={`capitalize ${
-            securityLevel === "high" ? "text-green-600" : securityLevel === "medium" ? "text-amber-600" : "text-red-600"
-          }`}
+          className={`capitalize ${securityLevel === "high" ? "text-green-600" : securityLevel === "medium" ? "text-amber-600" : "text-red-600"
+            }`}
         >
           {securityLevel} Security
         </span>
@@ -168,10 +166,10 @@ export default function ModernLoginForm() {
     <div className="w-full max-w-md mx-auto">
       {/* Header */}
       <div className="text-center mb-8">
-        <div className="w-20 h-20 bg-gradient-to-br from-cyan-600 to-blue-700 rounded-full flex items-center justify-center mx-auto mb-4 shadow-2xl animate-pulse">
-          <div className="text-2xl font-bold text-white">ELF</div>
+        <div className="w-20 h-20 bg-primary rounded-full flex items-center justify-center mx-auto mb-4 shadow-2xl animate-pulse">
+          <div className="text-2xl font-bold text-primary-foreground">ELF</div>
         </div>
-        <h1 className="text-3xl font-bold bg-gradient-to-r from-cyan-600 to-blue-700 bg-clip-text text-transparent mb-2">
+        <h1 className="text-3xl font-bold text-foreground mb-2">
           Welcome Back
         </h1>
         <p className="text-muted-foreground">Sign in to your ELF SofaCover Pro account</p>
@@ -189,23 +187,23 @@ export default function ModernLoginForm() {
               <Button
                 variant="outline"
                 onClick={() => handleSocialLogin("Google")}
-                className="hover:bg-blue-50 hover:border-blue-300 transition-all duration-300 transform hover:scale-105"
+                className="hover:bg-primary/10 hover:border-primary/30 transition-all duration-300 transform hover:scale-105"
               >
-                <Chrome className="w-4 h-4 text-blue-600" />
+                <Chrome className="w-4 h-4 text-primary" />
               </Button>
               <Button
                 variant="outline"
                 onClick={() => handleSocialLogin("Facebook")}
-                className="hover:bg-blue-50 hover:border-blue-300 transition-all duration-300 transform hover:scale-105"
+                className="hover:bg-primary/10 hover:border-primary/30 transition-all duration-300 transform hover:scale-105"
               >
-                <Facebook className="w-4 h-4 text-blue-700" />
+                <Facebook className="w-4 h-4 text-primary" />
               </Button>
               <Button
                 variant="outline"
                 onClick={() => handleSocialLogin("Apple")}
-                className="hover:bg-gray-50 hover:border-gray-300 transition-all duration-300 bg-transparent"
+                className="hover:bg-muted/50 hover:border-muted transition-all duration-300 bg-transparent"
               >
-                <Apple className="w-4 h-4 text-gray-800" />
+                <Apple className="w-4 h-4 text-foreground" />
               </Button>
             </div>
 
@@ -213,9 +211,9 @@ export default function ModernLoginForm() {
               <Button
                 variant="outline"
                 onClick={handleBiometricLogin}
-                className="w-full hover:bg-green-50 hover:border-green-300 transition-all duration-300 bg-transparent"
+                className="w-full hover:bg-primary/10 hover:border-primary/30 transition-all duration-300 bg-transparent"
               >
-                <Fingerprint className="w-4 h-4 mr-2 text-green-600" />
+                <Fingerprint className="w-4 h-4 mr-2 text-primary" />
                 Use Biometric Authentication
               </Button>
             )}
@@ -283,7 +281,7 @@ export default function ModernLoginForm() {
                   onChange={(e) => setEmail(e.target.value)}
                   required
                   disabled={isLocked}
-                  className="pl-10 bg-input border-border focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-all duration-300"
+                  className="pl-10 bg-input border-border focus:ring-2 focus:ring-ring focus:border-ring transition-all duration-300"
                 />
               </div>
             </div>
@@ -302,7 +300,7 @@ export default function ModernLoginForm() {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   disabled={isLocked}
-                  className="pl-10 pr-10 bg-input border-border focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-all duration-300"
+                  className="pl-10 pr-10 bg-input border-border focus:ring-2 focus:ring-ring focus:border-ring transition-all duration-300"
                 />
                 <button
                   type="button"
@@ -315,22 +313,20 @@ export default function ModernLoginForm() {
               {password && (
                 <div className="flex items-center space-x-2 mt-1">
                   <div
-                    className={`h-1 flex-1 rounded ${
-                      securityLevel === "high"
+                    className={`h-1 flex-1 rounded ${securityLevel === "high"
                         ? "bg-green-500"
                         : securityLevel === "medium"
                           ? "bg-amber-500"
                           : "bg-red-500"
-                    }`}
+                      }`}
                   />
                   <span
-                    className={`text-xs ${
-                      securityLevel === "high"
+                    className={`text-xs ${securityLevel === "high"
                         ? "text-green-600"
                         : securityLevel === "medium"
                           ? "text-amber-600"
                           : "text-red-600"
-                    }`}
+                      }`}
                   >
                     {securityLevel === "high" ? "Strong" : securityLevel === "medium" ? "Medium" : "Weak"}
                   </span>
@@ -344,7 +340,7 @@ export default function ModernLoginForm() {
                   id="remember"
                   name="remember"
                   type="checkbox"
-                  className="h-4 w-4 text-cyan-600 focus:ring-cyan-500 border-border rounded"
+                  className="h-4 w-4 text-primary focus:ring-ring border-border rounded"
                 />
                 <label htmlFor="remember" className="text-sm text-muted-foreground">
                   Remember me
@@ -352,7 +348,7 @@ export default function ModernLoginForm() {
               </div>
               <Link
                 href="/auth/forgot-password"
-                className="text-sm text-cyan-600 hover:text-cyan-700 transition-colors duration-200"
+                className="text-sm text-primary hover:text-primary/90 transition-colors duration-200"
               >
                 Forgot password?
               </Link>
@@ -361,7 +357,7 @@ export default function ModernLoginForm() {
             <Button
               type="submit"
               disabled={isLoading || isLocked}
-              className="w-full bg-gradient-to-r from-cyan-600 to-blue-700 hover:from-cyan-700 hover:to-blue-800 text-white font-medium py-6 text-base shadow-lg transition-all duration-300 transform hover:scale-[1.02] hover:shadow-xl"
+              className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium py-6 text-base shadow-lg transition-all duration-300 transform hover:scale-[1.02] hover:shadow-xl"
             >
               {isLoading ? (
                 <>
@@ -388,7 +384,7 @@ export default function ModernLoginForm() {
               Don't have an account?{" "}
               <Link
                 href="/auth/sign-up"
-                className="text-cyan-600 hover:text-cyan-700 font-medium transition-colors duration-200"
+                className="text-primary hover:text-primary/90 font-medium transition-colors duration-200"
               >
                 Create account
               </Link>
@@ -399,9 +395,9 @@ export default function ModernLoginForm() {
 
       {!IS_PRODUCTION && (
         <div className="mt-6 space-y-3">
-          <div className="p-4 bg-gradient-to-r from-cyan-50 to-blue-50 border border-cyan-200 rounded-lg">
+          <div className="p-4 bg-accent/50 border border-accent/40 rounded-lg">
             <h4 className="font-semibold text-foreground mb-2 flex items-center">
-              <Shield className="w-4 h-4 mr-2 text-cyan-600" />
+              <Shield className="w-4 h-4 mr-2 text-primary" />
               Demo Credentials - ELF SofaCover Pro
             </h4>
             <div className="space-y-2 text-sm">
@@ -422,15 +418,15 @@ export default function ModernLoginForm() {
 
           <div className="flex items-center justify-center space-x-4 text-xs text-muted-foreground">
             <div className="flex items-center">
-              <Shield className="w-3 h-3 mr-1 text-green-600" />
+              <Shield className="w-3 h-3 mr-1 text-primary" />
               <span>256-bit SSL</span>
             </div>
             <div className="flex items-center">
-              <Smartphone className="w-3 h-3 mr-1 text-blue-600" />
+              <Smartphone className="w-3 h-3 mr-1 text-primary" />
               <span>Mobile Ready</span>
             </div>
             <div className="flex items-center">
-              <CheckCircle className="w-3 h-3 mr-1 text-cyan-600" />
+              <CheckCircle className="w-3 h-3 mr-1 text-primary" />
               <span>GDPR Compliant</span>
             </div>
           </div>
