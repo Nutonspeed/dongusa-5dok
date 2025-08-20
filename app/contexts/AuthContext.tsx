@@ -81,10 +81,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!isMounted) return
 
     const initializeAuth = async () => {
-      await new Promise((resolve) => setTimeout(resolve, 100))
+      console.log("[v0] Initializing auth, USE_SUPABASE:", USE_SUPABASE, "QA_BYPASS_AUTH:", QA_BYPASS_AUTH)
 
       try {
         if (USE_SUPABASE && !QA_BYPASS_AUTH) {
+          console.log("[v0] Using Supabase auth")
           const {
             data: { session },
             error,
@@ -92,6 +93,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
           if (error) {
             logger.error("Error getting session:", error)
+            console.log("[v0] Supabase session error, setting loading to false")
             setIsLoading(false)
             return
           }
@@ -100,17 +102,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             ? { ...session.user, full_name: session.user.user_metadata?.full_name }
             : null
           setUser(mappedUser)
+          console.log("[v0] Supabase user set:", mappedUser ? "logged in" : "not logged in")
 
           if (mappedUser) {
             await fetchProfile(mappedUser.id)
           }
         } else {
+          console.log("[v0] Using fallback auth (localStorage)")
           const storedUser = typeof window !== "undefined" ? localStorage.getItem("user_data") : null
           const adminToken = typeof window !== "undefined" ? localStorage.getItem("admin_token") : null
 
           if (storedUser) {
             const parsedUser = JSON.parse(storedUser)
             setUser(parsedUser)
+            console.log("[v0] Restored user from localStorage:", parsedUser.email)
 
             // Set appropriate profile based on stored data
             const isAdminUser = adminToken === "demo_token" || parsedUser.email === "admin@sofacover.com"
@@ -124,11 +129,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               created_at: new Date().toISOString(),
               updated_at: new Date().toISOString(),
             })
+          } else {
+            console.log("[v0] No stored user found")
           }
         }
       } catch (error) {
         logger.error("Error initializing auth:", error)
+        console.log("[v0] Auth initialization error:", error)
       } finally {
+        console.log("[v0] Auth initialization complete, setting loading to false")
         setIsLoading(false)
       }
     }
@@ -139,6 +148,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const {
         data: { subscription },
       } = supabase.auth.onAuthStateChange(async (event: any, session: any) => {
+        console.log("[v0] Auth state change:", event, session ? "has session" : "no session")
         const mappedUser: AppUser | null = session?.user
           ? { ...session.user, full_name: session.user.user_metadata?.full_name }
           : null
@@ -236,7 +246,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         await bruteForceProtection.checkLoginAttempt(email, ip, userAgent, true)
 
         if (typeof window !== "undefined") {
-          // Small delay to ensure session cookies are established
           setTimeout(async () => {
             try {
               const {
@@ -353,10 +362,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  const checkAccountStatus = async (email: string) => {
-    return await bruteForceProtection.getAccountStatus(email)
-  }
-
   const signUp = async (
     email: string,
     password: string,
@@ -454,7 +459,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signUp,
     signOut,
     refreshProfile,
-    checkAccountStatus,
+    checkAccountStatus: async (email: string) => {
+      return await bruteForceProtection.getAccountStatus(email)
+    },
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
