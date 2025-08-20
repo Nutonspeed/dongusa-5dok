@@ -85,11 +85,14 @@
     "workflow:test": "tsx lib/comprehensive-workflow-automation.ts"
   },
   "lint-staged": {
-    "*.{js,jsx,ts,tsx}": [
+    "*.{json,md,yml,yaml}": [
+      "prettier --write"
+    ],
+    "{app,components,lib,utils,scripts,types}/**/*.{js,jsx,ts,tsx}": [
       "eslint --fix",
       "prettier --write"
     ],
-    "*.{json,md,yml,yaml}": [
+    "mobile-app/**/*.{js,jsx,ts,tsx}": [
       "prettier --write"
     ]
   },
