@@ -4,10 +4,15 @@ import { createClient } from "@/lib/supabase/server"
 import { USE_SUPABASE } from "@/lib/runtime"
 import { redirect } from "next/navigation"
 import ModernLoginForm from "@/components/ModernLoginForm"
+import { decidePostAuthRedirect } from "@/lib/auth/redirect"
 
 export const runtime = "nodejs"
 
-export default async function LoginPage() {
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams?: { redirect?: string }
+}) {
   if (USE_SUPABASE) {
     const supabase = createClient()
     const {
@@ -15,7 +20,19 @@ export default async function LoginPage() {
     } = await supabase.auth.getSession()
 
     if (session) {
-      redirect("/")
+      let role: "admin" | "customer" | "staff" | null | undefined = null
+      try {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("role")
+          .eq("id", session.user.id)
+          .single()
+        role = (profile?.role as any) || null
+      } catch {
+        // ignore and fallback to default
+      }
+      const dest = decidePostAuthRedirect(role, searchParams?.redirect)
+      redirect(dest)
     }
   }
 
