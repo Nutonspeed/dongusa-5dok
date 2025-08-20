@@ -15,13 +15,14 @@ import { useLanguage } from "../contexts/LanguageContext"
 import { useAuth } from "../contexts/AuthContext"
 import Header from "../components/Header"
 import Footer from "../components/Footer"
+import { decidePostAuthRedirect } from "@/lib/auth/redirect"
 
 export const dynamic = "force-dynamic"
 
 export default function LoginPage() {
   const router = useRouter()
   const { language } = useLanguage()
-  const { signIn, isAuthenticated, user, isAdmin } = useAuth()
+  const { signIn, isAuthenticated, user, isAdmin, refreshProfile } = useAuth()
   const { toast } = useToast()
   const [formData, setFormData] = useState({
     email: "",
@@ -33,12 +34,10 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (isAuthenticated) {
-      const redirect = new URLSearchParams(window.location.search).get("redirect")
-      if (isAdmin && !redirect) {
-        router.push("/admin")
-      } else {
-        router.push(redirect || "/")
-      }
+      const redirectParam = new URLSearchParams(window.location.search).get("redirect")
+      const role = isAdmin ? "admin" : "customer"
+      const dest = decidePostAuthRedirect(role, redirectParam || undefined)
+      router.push(dest)
     }
   }, [isAuthenticated, isAdmin, router])
 
@@ -50,23 +49,14 @@ export default function LoginPage() {
     const result = await signIn(formData.email, formData.password)
 
     if (result.success) {
-      const redirect = new URLSearchParams(window.location.search).get("redirect")
-      if (redirect) {
-        router.push(redirect)
-      } else {
-        // Check if user is admin after successful login
-        const userData = localStorage.getItem("user_data")
-        if (userData) {
-          const parsedUser = JSON.parse(userData)
-          if (parsedUser.role === "admin") {
-            router.push("/admin")
-          } else {
-            router.push("/")
-          }
-        } else {
-          router.push("/")
-        }
-      }
+      const redirectParam = new URLSearchParams(window.location.search).get("redirect") || undefined
+      // Ensure profile is up-to-date to avoid stale role
+      try {
+        await refreshProfile()
+      } catch {}
+      const role = isAdmin ? "admin" : "customer"
+      const dest = decidePostAuthRedirect(role, redirectParam)
+      router.push(dest)
     } else {
       const message =
         result.error?.toLowerCase().includes("email not confirmed")

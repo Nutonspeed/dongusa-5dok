@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
-
+import { decidePostAuthRedirect } from "@/lib/auth/redirect"
 export const config = {
   matcher: [
     "/admin/:path*",
@@ -8,6 +8,8 @@ export const config = {
     "/orders/:path*",
     "/checkout",
     "/auth/callback",
+    "/auth/login",
+    "/login",
     "/api/admin/:path*",
     "/api/user/:path*",
   ],
@@ -16,7 +18,7 @@ export const config = {
 const PROTECTED_ROUTES = {
   admin: ["/admin", "/api/admin"],
   user: ["/profile", "/orders", "/checkout", "/api/user"],
-  public: ["/auth/callback"],
+  public: ["/auth/callback", "/auth/login", "/login"],
 }
 
 function getClientIP(request: NextRequest): string {
@@ -99,17 +101,13 @@ async function handleSupabaseAuth(request: NextRequest) {
     if (code && pathname === "/auth/callback") {
       try {
         await supabase.auth.exchangeCodeForSession(code)
-        // Determine where to go next: redirect param > role-based > home
         const redirectParam = request.nextUrl.searchParams.get("redirect")
-        if (redirectParam) {
-          return NextResponse.redirect(new URL(redirectParam, request.url))
-        }
-
-        // Fetch session and role to decide default landing
+        // Fetch session and role to decide landing deterministically
         const {
           data: { session: postSession },
         } = await supabase.auth.getSession()
 
+        let role: "admin" | "customer" | "staff" | null | undefined = null
         if (postSession) {
           try {
             const { data: profile } = await supabase
@@ -117,19 +115,21 @@ async function handleSupabaseAuth(request: NextRequest) {
               .select("role")
               .eq("id", postSession.user.id)
               .single()
-
-            if (profile?.role === "admin") {
-              return NextResponse.redirect(new URL("/admin", request.url))
-            }
+            role = (profile?.role as any) || null
           } catch {
-            // ignore role fetch error and fall through
+            // ignore role fetch error; role remains null
           }
         }
 
-        return NextResponse.redirect(new URL("/", request.url))
+        const dest = decidePostAuthRedirect(role, redirectParam || undefined)
+        const res = NextResponse.redirect(new URL(dest, request.url))
+        res.headers.set("Cache-Control", "no-store")
+        return res
       } catch (error) {
         console.error("Auth callback error:", error)
-        return NextResponse.redirect(new URL("/auth/login?error=callback_failed", request.url))
+        const res = NextResponse.redirect(new URL("/auth/login?error=callback_failed", request.url))
+        res.headers.set("Cache-Control", "no-store")
+        return res
       }
     }
 
@@ -146,31 +146,24 @@ async function handleSupabaseAuth(request: NextRequest) {
     const authCheck = requiresAuth(pathname)
 
     if (!authCheck.required) {
+      // If user opens /auth/login while already authenticated, route them smartly (role-first with safe returnUrl)
       if (pathname === "/auth/login" && session) {
+        const redirectParam = request.nextUrl.searchParams.get("redirect")
+        let role: "admin" | "customer" | "staff" | null | undefined = null
         try {
           const { data: profile } = await supabase
             .from("profiles")
-            .select("role, email")
+            .select("role")
             .eq("id", session.user.id)
             .single()
-
-          console.log("[v0] User profile for redirect:", profile)
-          console.log("[v0] Session email:", session.user.email)
-
-          const isAdmin =
-            profile?.role === "admin" ||
-            profile?.email === "nuttapong161@gmail.com" ||
-            session.user.email === "nuttapong161@gmail.com"
-
-          if (isAdmin) {
-            console.log("[v0] Redirecting admin user to /admin dashboard")
-            return NextResponse.redirect(new URL("/admin", request.url))
-          }
-        } catch (error) {
-          console.error("[v0] Profile fetch error during login redirect:", error)
+          role = (profile?.role as any) || null
+        } catch {
           // ignore and fall through
         }
-        return NextResponse.redirect(new URL("/", request.url))
+        const dest = decidePostAuthRedirect(role, redirectParam || undefined)
+        const res = NextResponse.redirect(new URL(dest, request.url))
+        res.headers.set("Cache-Control", "no-store")
+        return res
       }
       return supabaseResponse
     }
@@ -187,7 +180,7 @@ async function handleSupabaseAuth(request: NextRequest) {
       try {
         const { data: profile, error: profileError } = await supabase
           .from("profiles")
-          .select("role, email")
+          .select("role")
           .eq("id", session.user.id)
           .single()
 
@@ -200,18 +193,10 @@ async function handleSupabaseAuth(request: NextRequest) {
         }
 
         const userRole = profile?.role
-        const userEmail = profile?.email
-        const sessionEmail = session.user.email
 
-        if (authCheck.role === "admin") {
-          const isAdmin =
-            userRole === "admin" || userEmail === "nuttapong161@gmail.com" || sessionEmail === "nuttapong161@gmail.com"
-
-          if (!isAdmin) {
-            console.log("[v0] Access denied - user is not admin:", { userRole, userEmail, sessionEmail })
-            return NextResponse.redirect(new URL("/?error=insufficient_permissions", request.url))
-          }
-          console.log("[v0] Admin access granted:", { userRole, userEmail, sessionEmail })
+        // Check admin access
+        if (authCheck.role === "admin" && userRole !== "admin") {
+          return NextResponse.redirect(new URL("/?error=insufficient_permissions", request.url))
         }
       } catch (error) {
         console.error("Role check error:", error)
