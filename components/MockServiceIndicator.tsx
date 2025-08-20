@@ -39,11 +39,9 @@ export function MockServiceIndicator() {
 
   const enableMockServices = process.env.ENABLE_MOCK_SERVICES === "true"
 
-  // If mock services are not explicitly enabled, never render anything
-  if (!enableMockServices) return null
-
   // Toggle visibility with keyboard shortcut when enabled
   useEffect(() => {
+    if (!enableMockServices) return
     const handleKeyPress = (e: KeyboardEvent) => {
       if (e.ctrlKey && e.shiftKey && e.key === "D") {
         setIsVisible((v) => !v)
@@ -52,7 +50,10 @@ export function MockServiceIndicator() {
 
     window.addEventListener("keydown", handleKeyPress)
     return () => window.removeEventListener("keydown", handleKeyPress)
-  }, [])
+  }, [enableMockServices])
+
+  // If mock services are not explicitly enabled, never render anything
+  if (!enableMockServices) return null
 
   if (!isVisible) {
     return (
