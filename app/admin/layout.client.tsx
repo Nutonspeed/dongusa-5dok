@@ -92,11 +92,11 @@ function AdminLayoutClient({
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-accent flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">Loading...</h2>
-          <p className="text-gray-600">Checking authentication status...</p>
+          <h2 className="text-xl font-serif font-semibold text-foreground mb-2">Loading...</h2>
+          <p className="text-muted-foreground font-sans">Checking authentication status...</p>
         </div>
       </div>
     )
@@ -105,18 +105,18 @@ function AdminLayoutClient({
   // Show loading or redirect if not authenticated/authorized
   if (!isAuthenticated || !isAdmin) {
     return (
-      <div className="min-h-screen bg-accent flex items-center justify-center">
-        <div className="text-center">
-          <Shield className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <div className="text-center max-w-md">
+          <Shield className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+          <h2 className="text-xl font-serif font-semibold text-foreground mb-2">
             {!isAuthenticated ? "Authentication Required" : "Access Denied"}
           </h2>
-          <p className="text-gray-600 mb-4">
+          <p className="text-muted-foreground mb-4 font-sans">
             {!isAuthenticated
               ? "Please log in to access the admin dashboard."
               : "You don't have permission to access this area."}
           </p>
-          <Button onClick={() => router.push("/auth/login")} className="bg-primary">
+          <Button onClick={() => router.push("/auth/login")} className="bg-primary font-serif">
             Go to Login
           </Button>
         </div>
@@ -125,41 +125,48 @@ function AdminLayoutClient({
   }
 
   return (
-    <div className="min-h-screen bg-accent">
-      <Alert className="m-4 border-primary bg-primary/5">
+    <div className="min-h-screen bg-background">
+      <Alert className="m-2 sm:m-4 border-primary bg-primary/5">
         <Shield className="h-4 w-4 text-primary" />
-        <AlertDescription className="text-primary">
-          Admin Mode: You are logged in as {user?.full_name || profile?.full_name || user?.email} with administrative
-          privileges.
+        <AlertDescription className="text-primary font-sans text-sm sm:text-base">
+          <span className="block sm:inline">Admin Mode: You are logged in as </span>
+          <span className="font-medium">{user?.full_name || profile?.full_name || user?.email}</span>
+          <span className="block sm:inline"> with administrative privileges.</span>
         </AlertDescription>
       </Alert>
 
       {/* Mobile sidebar */}
       <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
         <SheetTrigger asChild>
-          <Button variant="outline" size="icon" className="fixed top-20 left-4 z-40 md:hidden bg-transparent">
+          <Button
+            variant="outline"
+            size="icon"
+            className="fixed top-20 left-2 sm:left-4 z-40 lg:hidden bg-card border-border primary-shadow"
+          >
             <Menu className="h-4 w-4" />
           </Button>
         </SheetTrigger>
-        <SheetContent side="left" className="w-64 p-0">
+        <SheetContent side="left" className="w-64 p-0 bg-card">
           <div className="flex h-full flex-col">
             <div className="flex h-16 items-center px-6 border-b bg-primary">
-              <h1 className="text-xl font-semibold text-white">Admin Panel</h1>
+              <h1 className="text-xl font-serif font-semibold text-primary-foreground">Admin Panel</h1>
             </div>
-            <nav className="flex-1 space-y-1 px-3 py-4">
+            <nav className="flex-1 space-y-1 px-3 py-4 overflow-y-auto">
               {filteredNavigation.map((item: NavItem) => {
                 const isActive = pathname === item.href
                 return (
                   <Link
                     key={item.name}
                     href={item.href}
-                    className={`flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${
-                      isActive ? "bg-accent text-primary" : "text-gray-600 hover:bg-accent hover:text-primary"
+                    className={`flex items-center px-3 py-3 text-sm font-medium font-sans rounded-md transition-colors ${
+                      isActive
+                        ? "bg-accent text-accent-foreground"
+                        : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
                     }`}
                     onClick={() => setSidebarOpen(false)}
                   >
-                    <item.icon className="mr-3 h-5 w-5" />
-                    {item.name}
+                    <item.icon className="mr-3 h-5 w-5 flex-shrink-0" />
+                    <span className="truncate">{item.name}</span>
                   </Link>
                 )
               })}
@@ -167,7 +174,7 @@ function AdminLayoutClient({
             <div className="border-t p-4">
               <Button
                 variant="outline"
-                className="w-full justify-start bg-transparent border-primary text-primary hover:bg-accent"
+                className="w-full justify-start bg-transparent border-primary text-primary hover:bg-accent font-serif"
                 onClick={handleLogout}
               >
                 <LogOut className="mr-2 h-4 w-4" />
@@ -179,24 +186,26 @@ function AdminLayoutClient({
       </Sheet>
 
       {/* Desktop sidebar */}
-      <div className="hidden md:fixed md:inset-y-0 md:flex md:w-64 md:flex-col md:top-16">
-        <div className="flex flex-col flex-grow bg-white border-r border-gray-200 burgundy-shadow">
+      <div className="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-64 lg:flex-col lg:top-16">
+        <div className="flex flex-col flex-grow bg-card border-r border-border primary-shadow">
           <div className="flex h-16 items-center px-6 border-b bg-primary">
-            <h1 className="text-xl font-semibold text-white">Admin Panel</h1>
+            <h1 className="text-xl font-serif font-semibold text-primary-foreground">Admin Panel</h1>
           </div>
-          <nav className="flex-1 space-y-1 px-3 py-4">
+          <nav className="flex-1 space-y-1 px-3 py-4 overflow-y-auto">
             {filteredNavigation.map((item: NavItem) => {
               const isActive = pathname === item.href
               return (
                 <Link
                   key={item.name}
                   href={item.href}
-                  className={`flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${
-                    isActive ? "bg-accent text-primary" : "text-gray-600 hover:bg-accent hover:text-primary"
+                  className={`flex items-center px-3 py-2 text-sm font-medium font-sans rounded-md transition-colors ${
+                    isActive
+                      ? "bg-accent text-accent-foreground"
+                      : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
                   }`}
                 >
-                  <item.icon className="mr-3 h-5 w-5" />
-                  {item.name}
+                  <item.icon className="mr-3 h-5 w-5 flex-shrink-0" />
+                  <span className="truncate">{item.name}</span>
                 </Link>
               )
             })}
@@ -204,7 +213,7 @@ function AdminLayoutClient({
           <div className="border-t p-4">
             <Button
               variant="outline"
-              className="w-full justify-start bg-transparent border-primary text-primary hover:bg-accent"
+              className="w-full justify-start bg-transparent border-primary text-primary hover:bg-accent font-serif"
               onClick={handleLogout}
             >
               <LogOut className="mr-2 h-4 w-4" />
@@ -215,9 +224,9 @@ function AdminLayoutClient({
       </div>
 
       {/* Main content */}
-      <div className="md:pl-64 pt-16">
-        <main className="py-6">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 md:px-8">{children}</div>
+      <div className="lg:pl-64 pt-16">
+        <main className="py-4 sm:py-6">
+          <div className="mx-auto max-w-7xl px-2 sm:px-4 md:px-6 lg:px-8">{children}</div>
         </main>
       </div>
     </div>

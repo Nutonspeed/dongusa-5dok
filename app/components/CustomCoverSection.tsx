@@ -129,17 +129,17 @@ I'd like to consult further and see fabric samples.`
   }
 
   return (
-    <section className="py-16 bg-gradient-to-br from-accent via-white to-secondary">
+    <section className="py-16 bg-gradient-to-br from-background via-card to-muted">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="text-center mb-12">
-          <Badge className="bg-accent text-primary border-primary/20 mb-4">
+        <div className="text-center mb-12 animate-fade-in">
+          <Badge className="bg-accent text-accent-foreground border-accent/20 mb-4 font-serif font-semibold">
             {language === "en" ? "🎯 Custom Made" : "🎯 ทำตามสั่ง"}
           </Badge>
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+          <h2 className="text-3xl md:text-4xl font-serif font-bold text-foreground mb-4">
             {language === "en" ? "Get Your Perfect Custom Cover" : "รับผ้าคลุมตามสั่งที่สมบูรณ์แบบ"}
           </h2>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+          <p className="text-xl text-muted-foreground max-w-3xl mx-auto font-sans">
             {language === "en"
               ? "Follow our simple 3-step process to get a custom sofa cover that fits perfectly and matches your style."
               : "ทำตามขั้นตอนง่ายๆ 3 ขั้นตอนของเราเพื่อรับผ้าคลุมโซฟาตามสั่งที่พอดีสมบูรณ์แบบและเข้ากับสไตล์ของคุณ"}
@@ -149,17 +149,15 @@ I'd like to consult further and see fabric samples.`
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
           {/* Left Side - Process Steps */}
           <div className="space-y-6">
-            <h3 className="text-2xl font-bold text-gray-900 mb-6">
+            <h3 className="text-2xl font-serif font-bold text-foreground mb-6">
               {language === "en" ? "How It Works" : "วิธีการทำงาน"}
             </h3>
 
             {measurementSteps.map((step, index) => (
               <Card
                 key={step.id}
-                className={`cursor-pointer transition-all duration-300 ${
-                  activeStep === index
-                    ? "border-primary shadow-lg bg-accent"
-                    : "border-gray-200 hover:border-primary/50 hover:shadow-md"
+                className={`cursor-pointer card-interactive ${
+                  activeStep === index ? "border-primary bg-accent" : "border-border hover:border-primary/50"
                 }`}
                 onClick={() => setActiveStep(index)}
               >
@@ -167,7 +165,7 @@ I'd like to consult further and see fabric samples.`
                   <div className="flex items-start space-x-4">
                     <div
                       className={`w-12 h-12 rounded-full flex items-center justify-center ${
-                        activeStep === index ? "bg-primary text-white" : "bg-gray-100 text-gray-600"
+                        activeStep === index ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
                       }`}
                     >
                       <step.icon className="w-6 h-6" />
@@ -175,15 +173,15 @@ I'd like to consult further and see fabric samples.`
 
                     <div className="flex-1">
                       <div className="flex items-center space-x-2 mb-2">
-                        <h4 className="text-lg font-semibold text-gray-900">{step.title[language]}</h4>
-                        <Badge variant="outline" className="text-xs">
+                        <h4 className="text-lg font-serif font-semibold text-foreground">{step.title[language]}</h4>
+                        <Badge variant="outline" className="text-xs font-sans">
                           {language === "en" ? `Step ${index + 1}` : `ขั้นตอน ${index + 1}`}
                         </Badge>
                       </div>
-                      <p className="text-gray-600">{step.description[language]}</p>
+                      <p className="text-muted-foreground font-sans">{step.description[language]}</p>
                     </div>
 
-                    {step.isCompleted && <CheckCircle className="w-6 h-6 text-green-500 flex-shrink-0" />}
+                    {step.isCompleted && <CheckCircle className="w-6 h-6 text-accent flex-shrink-0" />}
                   </div>
                 </CardContent>
               </Card>
@@ -193,9 +191,9 @@ I'd like to consult further and see fabric samples.`
           {/* Right Side - Interactive Form */}
           <div className="space-y-6">
             {activeStep === 0 && (
-              <Card className="border-0 burgundy-shadow-lg">
-                <CardHeader className="bg-burgundy-gradient text-white rounded-t-lg">
-                  <CardTitle className="flex items-center space-x-2">
+              <Card className="border-0 primary-shadow-lg">
+                <CardHeader className="bg-primary text-primary-foreground rounded-t-lg">
+                  <CardTitle className="flex items-center space-x-2 font-serif">
                     <Ruler className="w-6 h-6" />
                     <span>{language === "en" ? "Sofa Measurements" : "การวัดขนาดโซฟา"}</span>
                   </CardTitle>
@@ -284,13 +282,15 @@ I'd like to consult further and see fabric samples.`
                   {/* Estimated Price */}
                   <div className="bg-accent rounded-lg p-4 mb-6">
                     <div className="flex items-center space-x-2 mb-2">
-                      <Calculator className="w-5 h-5 text-primary" />
-                      <span className="font-semibold text-primary">
+                      <Calculator className="w-5 h-5 text-accent-foreground" />
+                      <span className="font-serif font-semibold text-accent-foreground">
                         {language === "en" ? "Estimated Price" : "ราคาประมาณ"}
                       </span>
                     </div>
-                    <div className="text-2xl font-bold text-primary">฿{calculateEstimatedPrice().toLocaleString()}</div>
-                    <p className="text-sm text-primary/80 mt-1">
+                    <div className="text-2xl font-bold text-accent-foreground font-serif">
+                      ฿{calculateEstimatedPrice().toLocaleString()}
+                    </div>
+                    <p className="text-sm text-accent-foreground/80 mt-1 font-sans">
                       {language === "en"
                         ? "Final price may vary based on fabric selection and additional features"
                         : "ราคาสุดท้ายอาจแตกต่างขึ้นอยู่กับการเลือกผ้าและคุณสมบัติเพิ่มเติม"}
@@ -299,7 +299,7 @@ I'd like to consult further and see fabric samples.`
 
                   <Button
                     onClick={() => setActiveStep(1)}
-                    className="w-full bg-primary hover:bg-primary/90 text-white"
+                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-serif font-semibold btn-enhanced"
                     size="lg"
                   >
                     {language === "en" ? "Next: Choose Fabric" : "ถัดไป: เลือกผ้า"}
@@ -370,7 +370,7 @@ I'd like to consult further and see fabric samples.`
 
                   <Button
                     onClick={() => setActiveStep(2)}
-                    className="w-full bg-primary hover:bg-primary/90 text-white"
+                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-serif font-semibold btn-enhanced"
                     size="lg"
                   >
                     {language === "en" ? "Next: Get Quote" : "ถัดไป: รับใบเสนอราคา"}
@@ -393,7 +393,7 @@ I'd like to consult further and see fabric samples.`
                     <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                       <CheckCircle className="w-8 h-8 text-green-600" />
                     </div>
-                    <h3 className="text-xl font-bold text-gray-900 mb-2">
+                    <h3 className="text-xl font-serif font-semibold text-gray-900 mb-2">
                       {language === "en" ? "Ready for Your Quote!" : "พร้อมรับใบเสนอราคาแล้ว!"}
                     </h3>
                     <p className="text-gray-600">
@@ -425,7 +425,7 @@ I'd like to consult further and see fabric samples.`
 
                   <Button
                     onClick={generateFacebookQuote}
-                    className="w-full bg-primary hover:bg-primary/90 text-white"
+                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-serif font-semibold btn-enhanced"
                     size="lg"
                   >
                     <MessageCircle className="mr-2 w-5 h-5" />
@@ -445,47 +445,40 @@ I'd like to consult further and see fabric samples.`
 
         {/* Bottom Features */}
         <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div className="text-center">
-            <div className="w-12 h-12 bg-accent rounded-full flex items-center justify-center mx-auto mb-4">
-              <Ruler className="w-6 h-6 text-primary" />
+          {[
+            {
+              icon: Ruler,
+              title: language === "en" ? "Perfect Fit Guarantee" : "รับประกันความพอดี",
+              description:
+                language === "en"
+                  ? "Our precision measurement system ensures a perfect fit every time"
+                  : "ระบบการวัดที่แม่นยำของเรารับประกันความพอดีทุกครั้ง",
+            },
+            {
+              icon: CheckCircle,
+              title: language === "en" ? "Quality Materials" : "วัสดุคุณภาพ",
+              description:
+                language === "en"
+                  ? "Premium fabrics that are durable, comfortable, and easy to maintain"
+                  : "ผ้าพรีเมียมที่ทนทาน สะดวกสบาย และดูแลง่าย",
+            },
+            {
+              icon: MessageCircle,
+              title: language === "en" ? "Expert Support" : "การสนับสนุนจากผู้เชี่ยวชาญ",
+              description:
+                language === "en"
+                  ? "Our team provides personalized guidance throughout the entire process"
+                  : "ทีมของเราให้คำแนะนำส่วนบุคคลตลอดกระบวนการทั้งหมด",
+            },
+          ].map((feature, index) => (
+            <div key={index} className="text-center group hover-lift">
+              <div className="w-12 h-12 bg-accent rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-primary transition-colors duration-300">
+                <feature.icon className="w-6 h-6 text-accent-foreground group-hover:text-primary-foreground transition-colors duration-300" />
+              </div>
+              <h3 className="text-lg font-serif font-semibold text-foreground mb-2">{feature.title}</h3>
+              <p className="text-muted-foreground text-sm font-sans">{feature.description}</p>
             </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              {language === "en" ? "Perfect Fit Guarantee" : "รับประกันความพอดี"}
-            </h3>
-            <p className="text-gray-600 text-sm">
-              {language === "en"
-                ? "Our precision measurement system ensures a perfect fit every time"
-                : "ระบบการวัดที่แม่นยำของเรารับประกันความพอดีทุกครั้ง"}
-            </p>
-          </div>
-
-          <div className="text-center">
-            <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <CheckCircle className="w-6 h-6 text-green-600" />
-            </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              {language === "en" ? "Quality Materials" : "วัสดุคุณภาพ"}
-            </h3>
-            <p className="text-gray-600 text-sm">
-              {language === "en"
-                ? "Premium fabrics that are durable, comfortable, and easy to maintain"
-                : "ผ้าพรีเมียมที่ทนทาน สะดวกสบาย และดูแลง่าย"}
-            </p>
-          </div>
-
-          <div className="text-center">
-            <div className="w-12 h-12 bg-accent rounded-full flex items-center justify-center mx-auto mb-4">
-              <MessageCircle className="w-6 h-6 text-primary" />
-            </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              {language === "en" ? "Expert Support" : "การสนับสนุนจากผู้เชี่ยวชาญ"}
-            </h3>
-            <p className="text-gray-600 text-sm">
-              {language === "en"
-                ? "Our team provides personalized guidance throughout the entire process"
-                : "ทีมของเราให้คำแนะนำส่วนบุคคลตลอดกระบวนการทั้งหมด"}
-            </p>
-          </div>
+          ))}
         </div>
       </div>
     </section>

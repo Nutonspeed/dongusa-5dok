@@ -165,20 +165,20 @@ export default function FeaturedProducts() {
 
   if (loading) {
     return (
-      <section className="py-16 bg-white">
+      <section className="py-16 bg-background">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <div className="animate-pulse">
-              <div className="h-8 bg-gray-300 rounded w-64 mx-auto mb-4"></div>
-              <div className="h-4 bg-gray-300 rounded w-96 mx-auto"></div>
+              <div className="h-8 bg-muted rounded w-64 mx-auto mb-4"></div>
+              <div className="h-4 bg-muted rounded w-96 mx-auto"></div>
             </div>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
             {[...Array(4)].map((_, i) => (
               <div key={i} className="animate-pulse">
-                <div className="bg-gray-300 h-64 rounded-lg mb-4"></div>
-                <div className="h-4 bg-gray-300 rounded w-3/4 mb-2"></div>
-                <div className="h-4 bg-gray-300 rounded w-1/2"></div>
+                <div className="bg-muted h-64 rounded-lg mb-4"></div>
+                <div className="h-4 bg-muted rounded w-3/4 mb-2"></div>
+                <div className="h-4 bg-muted rounded w-1/2"></div>
               </div>
             ))}
           </div>
@@ -188,14 +188,14 @@ export default function FeaturedProducts() {
   }
 
   return (
-    <section className="py-16 bg-white">
+    <section className="py-16 bg-background">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+        <div className="text-center mb-12 animate-fade-in">
+          <h2 className="text-3xl md:text-4xl font-serif font-bold text-foreground mb-4">
             {language === "th" ? "สินค้าแนะนำ" : "Featured Products"}
           </h2>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+          <p className="text-xl text-muted-foreground max-w-3xl mx-auto font-sans">
             {language === "th" ? "ผ้าคลุมโซฟาคุณภาพสูงที่ได้รับความนิยมมากที่สุด" : "Our most popular premium sofa covers"}
           </p>
         </div>
@@ -205,7 +205,7 @@ export default function FeaturedProducts() {
           {products.map((product) => (
             <Card
               key={product.id}
-              className="group hover:shadow-xl transition-all duration-300 overflow-hidden burgundy-shadow"
+              className="group card-interactive overflow-hidden primary-shadow border-border bg-card"
             >
               <div className="relative">
                 <Image
@@ -216,20 +216,24 @@ export default function FeaturedProducts() {
                   alt={product.name}
                   width={400}
                   height={256}
-                  className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300"
+                  className="w-full h-64 object-cover fabric-image-zoom"
                   sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
                 />
 
                 {/* Badges */}
                 <div className="absolute top-3 left-3 flex flex-col gap-2">
                   {product.is_new && (
-                    <Badge className="bg-green-500 text-white">{language === "th" ? "ใหม่" : "New"}</Badge>
+                    <Badge className="bg-accent text-accent-foreground font-serif font-semibold">
+                      {language === "th" ? "ใหม่" : "New"}
+                    </Badge>
                   )}
                   {product.is_featured && (
-                    <Badge className="bg-primary text-white">{language === "th" ? "แนะนำ" : "Featured"}</Badge>
+                    <Badge className="bg-primary text-primary-foreground font-serif font-semibold">
+                      {language === "th" ? "แนะนำ" : "Featured"}
+                    </Badge>
                   )}
                   {product.compare_at_price && (
-                    <Badge className="bg-orange-500 text-white">
+                    <Badge className="bg-destructive text-destructive-foreground font-serif font-semibold">
                       {Math.round(((product.compare_at_price - product.price) / product.compare_at_price) * 100)}% OFF
                     </Badge>
                   )}
@@ -240,19 +244,23 @@ export default function FeaturedProducts() {
                   <Button
                     size="sm"
                     variant="secondary"
-                    className="w-10 h-10 p-0 bg-white/90 hover:bg-white"
+                    className="w-10 h-10 p-0 bg-card/90 hover:bg-card border-border"
                     onClick={() => toggleFavorite(product.id)}
                   >
                     <Heart
                       className={`w-4 h-4 ${
-                        favorites.includes(product.id) ? "fill-primary text-primary" : "text-gray-600"
+                        favorites.includes(product.id) ? "fill-primary text-primary" : "text-muted-foreground"
                       }`}
                     />
                   </Button>
 
                   <Link href={`/products/${product.id}`}>
-                    <Button size="sm" variant="secondary" className="w-10 h-10 p-0 bg-white/90 hover:bg-white">
-                      <Eye className="w-4 h-4 text-gray-600" />
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      className="w-10 h-10 p-0 bg-card/90 hover:bg-card border-border"
+                    >
+                      <Eye className="w-4 h-4 text-muted-foreground" />
                     </Button>
                   </Link>
                 </div>
@@ -261,7 +269,7 @@ export default function FeaturedProducts() {
                 <div className="absolute bottom-3 left-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
                   <Button
                     onClick={() => handleAddToCart(product)}
-                    className="w-full bg-primary hover:bg-primary/90 text-white"
+                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-serif font-semibold"
                     size="sm"
                   >
                     <ShoppingCart className="w-4 h-4 mr-2" />
@@ -272,13 +280,15 @@ export default function FeaturedProducts() {
 
               <CardContent className="p-6">
                 {/* Category */}
-                <div className="text-sm text-primary font-medium mb-2">{product.category?.name || "Product"}</div>
+                <div className="text-sm text-primary font-serif font-medium mb-2">
+                  {product.category?.name || "Product"}
+                </div>
 
                 {/* Product Name */}
-                <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-2">{product.name}</h3>
+                <h3 className="text-lg font-serif font-semibold text-foreground mb-2 line-clamp-2">{product.name}</h3>
 
                 {/* Description */}
-                <p className="text-gray-600 text-sm mb-4 line-clamp-2">{product.description}</p>
+                <p className="text-muted-foreground text-sm mb-4 line-clamp-2 font-sans">{product.description}</p>
 
                 {/* Rating */}
                 <div className="flex items-center space-x-2 mb-4">
@@ -287,12 +297,12 @@ export default function FeaturedProducts() {
                       <Star
                         key={i}
                         className={`w-4 h-4 ${
-                          i < Math.floor(product.rating || 0) ? "fill-yellow-400 text-yellow-400" : "text-gray-300"
+                          i < Math.floor(product.rating || 0) ? "fill-accent text-accent" : "text-muted"
                         }`}
                       />
                     ))}
                   </div>
-                  <span className="text-sm text-gray-600">
+                  <span className="text-sm text-muted-foreground font-sans">
                     {product.rating || 0} ({product.reviews || 0})
                   </span>
                 </div>
@@ -300,12 +310,14 @@ export default function FeaturedProducts() {
                 {/* Colors */}
                 {product.colors && (
                   <div className="flex items-center space-x-2 mb-4">
-                    <span className="text-sm text-gray-600">{language === "th" ? "สี:" : "Colors:"}</span>
+                    <span className="text-sm text-muted-foreground font-sans">
+                      {language === "th" ? "สี:" : "Colors:"}
+                    </span>
                     <div className="flex space-x-1">
                       {product.colors.map((color) => (
                         <div
                           key={color}
-                          className="w-4 h-4 rounded-full border border-gray-300"
+                          className="w-4 h-4 rounded-full border border-border"
                           style={{ backgroundColor: color }}
                         />
                       ))}
@@ -316,9 +328,9 @@ export default function FeaturedProducts() {
                 {/* Price */}
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
-                    <span className="text-xl font-bold text-gray-900">{formatPrice(product.price)}</span>
+                    <span className="text-xl font-bold text-foreground font-serif">{formatPrice(product.price)}</span>
                     {product.compare_at_price && (
-                      <span className="text-sm text-gray-500 line-through">
+                      <span className="text-sm text-muted-foreground line-through font-sans">
                         {formatPrice(product.compare_at_price)}
                       </span>
                     )}
@@ -335,7 +347,7 @@ export default function FeaturedProducts() {
             <Button
               size="lg"
               variant="outline"
-              className="px-8 py-4 bg-transparent border-primary text-primary hover:bg-accent"
+              className="px-8 py-4 bg-transparent border-primary text-primary hover:bg-accent hover:text-accent-foreground font-serif font-semibold btn-enhanced"
             >
               {language === "th" ? "ดูสินค้าทั้งหมด" : "View All Products"}
               <ArrowRight className="ml-2 w-5 h-5" />

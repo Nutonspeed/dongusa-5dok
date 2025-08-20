@@ -51,62 +51,64 @@ export default function Footer() {
   }
 
   return (
-    <footer className="bg-gradient-to-br from-gray-900 via-gray-800 to-cyan-900 text-white relative overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-br from-cyan-600/10 to-blue-600/5"></div>
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+    <footer className="bg-gradient-to-br from-primary via-primary/90 to-accent text-primary-foreground relative overflow-hidden">
+      <div className="absolute inset-0 bg-gradient-to-br from-accent/10 to-primary/5"></div>
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
           {/* Company Info */}
-          <div className="lg:col-span-1">
+          <div className="sm:col-span-2 lg:col-span-1">
             <div className="flex items-center space-x-3 mb-4">
-              <div className="w-10 h-10 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
-                <span className="text-white font-bold text-lg tracking-wider">ELF</span>
+              <div className="w-10 h-10 bg-gradient-to-br from-accent to-primary rounded-xl flex items-center justify-center primary-shadow">
+                <span className="text-primary-foreground font-serif font-bold text-lg tracking-wider">ELF</span>
               </div>
-              <span className="text-xl font-bold bg-gradient-to-r from-cyan-300 to-blue-300 bg-clip-text text-transparent">
+              <span className="text-lg sm:text-xl font-serif font-bold bg-gradient-to-r from-accent to-primary-foreground bg-clip-text text-transparent">
                 {language === "en" ? "ELF SofaCover Pro" : "ELF โซฟาคัฟเวอร์ โปร"}
               </span>
             </div>
-            <p className="text-gray-300 mb-6 text-sm leading-relaxed">
+            <p className="text-primary-foreground/90 mb-6 text-sm sm:text-base leading-relaxed font-sans">
               {language === "en"
                 ? "Premium quality sofa covers and custom furniture protection solutions. Transform your living space with our beautiful, durable covers."
                 : "ผ้าคลุมโซฟาคุณภาพพรีเมียมและโซลูชันป้องกันเฟอร์นิเจอร์ตามสั่ง เปลี่ยนพื้นที่นั่งเล่นของคุณด้วยผ้าคลุมที่สวยงามและทนทาน"}
             </p>
 
             {/* Social Media */}
-            <div className="flex space-x-4">
+            <div className="flex space-x-4 sm:space-x-6">
               <a
                 href="https://facebook.com"
-                className="text-gray-400 hover:text-cyan-400 transition-colors transform hover:scale-110 duration-200"
+                className="text-primary-foreground/70 hover:text-accent transition-colors transform hover:scale-110 duration-200 p-2 -m-2"
                 aria-label="Facebook"
               >
-                <Facebook className="w-5 h-5" />
+                <Facebook className="w-5 h-5 sm:w-6 sm:h-6" />
               </a>
               <a
                 href="https://instagram.com"
-                className="text-gray-400 hover:text-cyan-400 transition-colors transform hover:scale-110 duration-200"
+                className="text-primary-foreground/70 hover:text-accent transition-colors transform hover:scale-110 duration-200 p-2 -m-2"
                 aria-label="Instagram"
               >
-                <Instagram className="w-5 h-5" />
+                <Instagram className="w-5 h-5 sm:w-6 sm:h-6" />
               </a>
               <a
                 href="https://twitter.com"
-                className="text-gray-400 hover:text-cyan-400 transition-colors transform hover:scale-110 duration-200"
+                className="text-primary-foreground/70 hover:text-accent transition-colors transform hover:scale-110 duration-200 p-2 -m-2"
                 aria-label="Twitter"
               >
-                <Twitter className="w-5 h-5" />
+                <Twitter className="w-5 h-5 sm:w-6 sm:h-6" />
               </a>
             </div>
           </div>
 
           {/* Footer Links */}
           {Object.entries(footerSections).map(([key, section]) => (
-            <div key={key}>
-              <h3 className="text-lg font-semibold mb-4 text-cyan-300">{section.title[language]}</h3>
-              <ul className="space-y-2">
+            <div key={key} className="min-w-0">
+              <h3 className="text-base sm:text-lg font-serif font-semibold mb-3 sm:mb-4 text-accent">
+                {section.title[language]}
+              </h3>
+              <ul className="space-y-2 sm:space-y-3">
                 {section.links.map((link, index) => (
                   <li key={index}>
                     <Link
                       href={link.href}
-                      className="text-gray-300 hover:text-cyan-300 transition-colors text-sm hover:underline"
+                      className="text-primary-foreground/80 hover:text-accent transition-colors text-sm sm:text-base hover:underline font-sans block py-1"
                     >
                       {link.name[language]}
                     </Link>
@@ -117,60 +119,73 @@ export default function Footer() {
           ))}
 
           {/* Contact Information */}
-          <div>
-            <h3 className="text-lg font-semibold mb-4 text-cyan-300">
+          <div className="sm:col-span-2 lg:col-span-1">
+            <h3 className="text-base sm:text-lg font-serif font-semibold mb-3 sm:mb-4 text-accent">
               {language === "en" ? "Contact Info" : "ข้อมูลติดต่อ"}
             </h3>
-            <div className="space-y-3">
+            <div className="space-y-3 sm:space-y-4">
               <div className="flex items-start space-x-3">
-                <MapPin className="w-4 h-4 text-cyan-400 mt-1 flex-shrink-0" />
-                <span className="text-gray-300 text-sm">{contactInfo.address[language]}</span>
+                <MapPin className="w-4 h-4 sm:w-5 sm:h-5 text-accent mt-1 flex-shrink-0" />
+                <span className="text-primary-foreground/80 text-sm sm:text-base font-sans leading-relaxed">
+                  {contactInfo.address[language]}
+                </span>
               </div>
 
               <div className="flex items-center space-x-3">
-                <Phone className="w-4 h-4 text-cyan-400 flex-shrink-0" />
+                <Phone className="w-4 h-4 sm:w-5 sm:h-5 text-accent flex-shrink-0" />
                 <a
                   href={`tel:${contactInfo.phone}`}
-                  className="text-gray-300 hover:text-cyan-300 text-sm transition-colors"
+                  className="text-primary-foreground/80 hover:text-accent text-sm sm:text-base transition-colors font-sans"
                 >
                   {contactInfo.phone}
                 </a>
               </div>
 
               <div className="flex items-center space-x-3">
-                <Mail className="w-4 h-4 text-cyan-400 flex-shrink-0" />
+                <Mail className="w-4 h-4 sm:w-5 sm:h-5 text-accent flex-shrink-0" />
                 <a
                   href={`mailto:${contactInfo.email}`}
-                  className="text-gray-300 hover:text-cyan-300 text-sm transition-colors"
+                  className="text-primary-foreground/80 hover:text-accent text-sm sm:text-base transition-colors font-sans break-all"
                 >
                   {contactInfo.email}
                 </a>
               </div>
 
               <div className="flex items-start space-x-3">
-                <Clock className="w-4 h-4 text-cyan-400 mt-1 flex-shrink-0" />
-                <span className="text-gray-300 text-sm">{contactInfo.hours[language]}</span>
+                <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-accent mt-1 flex-shrink-0" />
+                <span className="text-primary-foreground/80 text-sm sm:text-base font-sans leading-relaxed">
+                  {contactInfo.hours[language]}
+                </span>
               </div>
             </div>
           </div>
         </div>
 
         {/* Bottom Bar */}
-        <div className="border-t border-gray-700 mt-12 pt-8">
-          <div className="flex flex-col md:flex-row justify-between items-center">
-            <p className="text-gray-400 text-sm">
+        <div className="border-t border-primary-foreground/20 mt-8 sm:mt-12 pt-6 sm:pt-8">
+          <div className="flex flex-col space-y-4 sm:space-y-0 sm:flex-row sm:justify-between sm:items-center">
+            <p className="text-primary-foreground/70 text-sm sm:text-base font-sans text-center sm:text-left">
               © 2024 {language === "en" ? "ELF SofaCover Pro" : "ELF โซฟาคัฟเวอร์ โปร"}.{" "}
               {language === "en" ? "All rights reserved." : "สงวนลิขสิทธิ์"}
             </p>
 
-            <div className="flex space-x-6 mt-4 md:mt-0">
-              <Link href="/privacy" className="text-gray-400 hover:text-cyan-300 text-sm transition-colors">
+            <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-6 text-center sm:text-left">
+              <Link
+                href="/privacy"
+                className="text-primary-foreground/70 hover:text-accent text-sm sm:text-base transition-colors font-sans py-1"
+              >
                 {language === "en" ? "Privacy Policy" : "นโยบายความเป็นส่วนตัว"}
               </Link>
-              <Link href="/terms" className="text-gray-400 hover:text-cyan-300 text-sm transition-colors">
+              <Link
+                href="/terms"
+                className="text-primary-foreground/70 hover:text-accent text-sm sm:text-base transition-colors font-sans py-1"
+              >
                 {language === "en" ? "Terms of Service" : "ข้อกำหนดการใช้งาน"}
               </Link>
-              <Link href="/cookies" className="text-gray-400 hover:text-cyan-300 text-sm transition-colors">
+              <Link
+                href="/cookies"
+                className="text-primary-foreground/70 hover:text-accent text-sm sm:text-base transition-colors font-sans py-1"
+              >
                 {language === "en" ? "Cookie Policy" : "นโยบายคุกกี้"}
               </Link>
             </div>

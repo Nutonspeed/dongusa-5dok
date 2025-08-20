@@ -9,7 +9,7 @@ import WhyChooseUs from "@/app/components/WhyChooseUs"
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-background">
       <Header />
       <main>
         <Hero />

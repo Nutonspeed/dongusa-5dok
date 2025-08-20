@@ -1,4 +1,3 @@
-
 async function getJson(path: string) {
   try {
     const res = await fetch(path, { cache: "no-store" })

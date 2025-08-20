@@ -3,19 +3,19 @@
 ## Quick Start
 
 1. **Setup Environment**
-   ```bash
+   \`\`\`bash
    npm run dev:setup
-   ```
+   \`\`\`
 
 2. **Validate Configuration**
-   ```bash
+   \`\`\`bash
    npm run dev:validate
-   ```
+   \`\`\`
 
 3. **Start Development Server**
-   ```bash
+   \`\`\`bash
    npm run dev
-   ```
+   \`\`\`
 
 ## Available Scripts
 
