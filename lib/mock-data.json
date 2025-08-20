@@ -1,0 +1,23 @@
+{
+  "customers": [
+    {
+      "id": "1",
+      "name": "ลูกค้าทดสอบ",
+      "email": "test@example.com",
+      "phone": "02-123-4567",
+      "created_at": "2025-08-20T13:20:43.770Z"
+    }
+  ],
+  "products": [
+    {
+      "id": "1",
+      "name": "ผ้าคลุมโซฟา 3 ที่นั่ง",
+      "price": 1500,
+      "category": "sofa-covers",
+      "in_stock": true,
+      "stock_quantity": 50
+    }
+  ],
+  "orders": [],
+  "bills": []
+}

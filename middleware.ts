@@ -1,4 +1,5 @@
 import { decidePostAuthRedirect } from "@/lib/auth/redirect"
+import { featureFlags } from "@/utils/featureFlags"
 import type { NextRequest } from "next/server"
 import { NextResponse } from "next/server"
 export const config = {
@@ -63,7 +64,16 @@ async function handleSupabaseAuth(request: NextRequest) {
       if (authCheck.required) {
         const loginUrl = new URL("/auth/login", request.url)
         loginUrl.searchParams.set("redirect", pathname)
-        return NextResponse.redirect(loginUrl)
+        const res = NextResponse.redirect(loginUrl)
+        res.headers.set("Cache-Control", "no-store")
+        return res
+      }
+      // For non-protected routes, optionally rewrite to a friendly offline page if features are disabled or DB not configured
+      if (featureFlags.DISABLE_UNREADY_FEATURES || !featureFlags.IS_SUPABASE_CONFIGURED) {
+        const offlineUrl = new URL("/offline", request.url)
+        const res = NextResponse.rewrite(offlineUrl)
+        res.headers.set("Cache-Control", "no-store")
+        return res
       }
       return NextResponse.next()
     }
@@ -194,28 +204,9 @@ async function handleSupabaseAuth(request: NextRequest) {
 
         const userRole = profile?.role as string | null | undefined
 
-        // Temporary admin whitelist to unblock access while fixing data at source
-        const allowedAdminEmails = (process.env.ADMIN_EMAIL_WHITELIST || "")
-          .split(",")
-          .map((s) => s.trim().toLowerCase())
-          .filter(Boolean)
-        const sessionEmail = (session.user.email || "").toLowerCase()
-        const isWhitelistedAdmin =
-          allowedAdminEmails.includes(sessionEmail) || sessionEmail === "nuttapong161@gmail.com"
-
-        // Check admin access
-        if (authCheck.role === "admin" && userRole !== "admin" && !isWhitelistedAdmin) {
+        // Check admin access strictly based on role from profiles
+        if (authCheck.role === "admin" && userRole !== "admin") {
           return NextResponse.redirect(new URL("/?error=insufficient_permissions", request.url))
-        }
-
-        // If whitelisted but role not admin, allow and log (for audit)
-        if (authCheck.role === "admin" && userRole !== "admin" && isWhitelistedAdmin) {
-          console.warn(
-            "[RBAC] Allowing admin via whitelist for:",
-            sessionEmail,
-            "role in profiles=",
-            userRole,
-          )
         }
       } catch (error) {
         console.error("Role check error:", error)
@@ -244,7 +235,7 @@ export default async function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl
 
     // Handle maintenance mode
-    if (process.env.MAINTENANCE === "1") {
+    if (featureFlags.MAINTENANCE) {
       return NextResponse.rewrite(new URL("/maintenance", request.url))
     }
 
@@ -259,7 +250,7 @@ export default async function middleware(request: NextRequest) {
     }
 
     // QA bypass mode - skip all authentication
-    if (process.env.QA_BYPASS_AUTH === "1") {
+    if (featureFlags.QA_BYPASS_AUTH) {
       return NextResponse.next()
     }
 
