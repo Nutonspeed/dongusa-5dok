@@ -1,7 +1,11 @@
 // NOTE: No UI restructure. Types/boundary only.
 {
   "compilerOptions": {
-    "lib": ["dom", "dom.iterable", "esnext"],
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
     "allowJs": false,
     "target": "ES2020",
     "skipLibCheck": true,
@@ -16,20 +20,35 @@
     "isolatedModules": true,
     "jsx": "preserve",
     "incremental": true,
-    "types": ["node", "react", "react-dom", "vitest/globals"],
-    "plugins": [{ "name": "next" }],
+    "types": [
+      "node",
+      "react",
+      "react-dom",
+      "vitest/globals"
+    ],
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
     "paths": {
-      "@/*": ["./*"],
-      "@": ["./"]
+      "@/*": [
+        "./*"
+      ],
+      "@": [
+        "./"
+      ]
     }
   },
   "include": [
+    "middleware.ts",
     "app/cart/**/*",
     "app/checkout/**/*",
     "app/orders/**/*",
     "app/collections/**/*",
     "app/components/**/*",
     "app/api/promotions/validate/route.ts",
+    "lib/auth/**/*",
     "lib/services/**/*",
     "lib/supabase/**/*",
     "scripts/qa-smoke.ts",
@@ -57,9 +76,7 @@
     "lib/unified-communication-hub.ts",
     "lib/supabase-free-plan-optimizer.ts",
     "lib/task-management-system.ts",
-    "lib/security-service.ts",
     "lib/session-management.ts",
-    "lib/brute-force-protection.ts",
     "lib/comprehensive-security-audit.ts",
     "scripts/security-vulnerability-scan.ts"
   ]
