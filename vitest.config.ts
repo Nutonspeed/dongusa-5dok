@@ -1,31 +1,18 @@
-// NOTE: Boundary fix only. Do NOT restructure or remove existing UI.
-import { defineConfig } from 'vitest/config';
+import path from "path";
+import { defineConfig } from "vitest/config";
+
 export default defineConfig({
   test: {
-    environment: 'node',
+    environment: "jsdom",
+    exclude: ["tests/e2e/**", "node_modules/**"],
     globals: true,
-    setupFiles: ['tests/vitest.setup.ts'],
-    exclude: [
-      '**/*.e2e.{ts,tsx}',
-      '**/e2e/**',
-      '**/playwright/**',
-      '**/node_modules/**',
-      'tests/components/ProductCard.test.tsx',
-      'tests/integration/ecommerce-flow.test.tsx',
-    ],
-    alias: {
-      '@': new URL('./', import.meta.url).pathname,
-      '@/*': new URL('./', import.meta.url).pathname,
-      'zod/v4': 'zod',
-      '@ai-sdk/gateway/v4': '@ai-sdk/gateway',
-    },
   },
   resolve: {
     alias: {
-      '@': '.',
-      '@/*': './*',
-      'zod/v4': 'zod',
-      '@ai-sdk/gateway/v4': '@ai-sdk/gateway',
+      "@": path.resolve(__dirname, "."),
+      "@/app": path.resolve(__dirname, "app"),
+      "@/components": path.resolve(__dirname, "components"),
+      "@/lib": path.resolve(__dirname, "lib"),
     },
   },
 });
