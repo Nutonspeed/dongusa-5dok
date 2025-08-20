@@ -9,6 +9,7 @@ import { USE_SUPABASE } from "@/lib/runtime"
 import type { AppUser } from "@/types/user"
 import type { Database } from "@/lib/supabase/types"
 import { bruteForceProtection } from "@/lib/brute-force-client"
+import { decidePostAuthRedirect, type AppRole } from "@/lib/auth/redirect"
 
 type ProfileRow = Database["public"]["Tables"]["profiles"]["Row"]
 
@@ -235,7 +236,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         await bruteForceProtection.checkLoginAttempt(email, ip, userAgent, true)
 
         if (typeof window !== "undefined") {
-          // Small delay to ensure session is established
+          // Small delay to ensure session cookies are established
           setTimeout(async () => {
             try {
               const {
@@ -244,43 +245,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               if (session) {
                 const { data: profile } = await supabase
                   .from("profiles")
-                  .select("role, email")
+                  .select("role")
                   .eq("id", session.user.id)
                   .single()
 
-                console.log("[v0] Post-login profile check:", profile)
-                console.log("[v0] Session user email:", session.user.email)
-
-                const isAdmin =
-                  profile?.role === "admin" ||
-                  profile?.email === "nuttapong161@gmail.com" ||
-                  session.user.email === "nuttapong161@gmail.com" ||
-                  email === "nuttapong161@gmail.com"
-
-                console.log("[v0] Admin detection result:", {
-                  profileRole: profile?.role,
-                  profileEmail: profile?.email,
-                  sessionEmail: session.user.email,
-                  loginEmail: email,
-                  isAdmin,
-                })
-
-                if (isAdmin) {
-                  console.log("[v0] Redirecting admin user to dashboard")
-                  window.location.href = "/admin"
-                  return
-                }
-
-                // Regular user redirect to home
-                console.log("[v0] Redirecting regular user to home")
-                window.location.href = "/"
+                const role = (profile?.role as AppRole) ?? null
+                const params = new URLSearchParams(window.location.search)
+                const returnUrl = params.get("redirect")
+                const dest = decidePostAuthRedirect(role, returnUrl)
+                window.location.href = dest
               }
             } catch (error) {
-              console.error("[v0] Post-login redirect error:", error)
-              // Fallback redirect to home
+              console.error("[Auth] Post-login redirect error:", error)
               window.location.href = "/"
             }
-          }, 500)
+          }, 300)
         }
 
         return { success: true }
@@ -347,7 +326,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
           if (credential.role === "admin" && typeof window !== "undefined") {
             setTimeout(() => {
-              window.location.href = "/admin"
+              const params = new URLSearchParams(window.location.search)
+              const returnUrl = params.get("redirect")
+              const dest = decidePostAuthRedirect("admin", returnUrl)
+              window.location.href = dest
             }, 100)
           }
 

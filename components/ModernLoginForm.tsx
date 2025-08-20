@@ -90,7 +90,9 @@ export default function ModernLoginForm() {
           description: "Successfully signed in to ELF SofaCover Pro!",
           duration: 3000,
         })
-        router.push("/")
+        // Redirect is handled by AuthContext (setTimeout) and middleware based on role.
+        // Avoid pushing here to prevent conflicting/double redirects.
+        return
       } else {
         setError(result.error || "Login failed")
         setRequiresCaptcha(result.requiresCaptcha || false)
