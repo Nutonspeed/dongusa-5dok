@@ -18,6 +18,8 @@
     "audit:system": "tsx scripts/comprehensive-system-audit.ts",
     "backend:db-health": "curl -s http://localhost:3000/api/health/database | jq",
     "backend:health": "curl -s http://localhost:3000/api/health | jq",
+    "backend:health:node": "node scripts/health-check.mjs",
+    "health:node": "node scripts/health-check.mjs",
     "backend:verify": "tsx scripts/backend-verification.ts",
     "build": "next build",
     "build:analyze": "ANALYZE=true npm run build",
