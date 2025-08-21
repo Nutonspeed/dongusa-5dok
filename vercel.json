@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "buildCommand": "pnpm run lint && pnpm run typecheck && pnpm run build",
+  "buildCommand": "pnpm run lint && pnpm run type-check && pnpm run build",
   "installCommand": "pnpm install --no-frozen-lockfile",
   "outputDirectory": ".next",
   "framework": "nextjs",
