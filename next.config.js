@@ -3,10 +3,14 @@ const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
   images: {
-    domains: ['localhost', 'your-supabase-url.supabase.co'],
-  },
-  experimental: {
-    serverActions: true,
+    domains: [
+      'localhost', 
+      'your-supabase-url.supabase.co',
+      '*.supabase.co',
+      'lh3.googleusercontent.com',
+      'avatars.githubusercontent.com'
+    ],
+    formats: ['image/avif', 'image/webp'],
   },
   async rewrites() {
     return [

@@ -3,7 +3,7 @@ import { logger } from "@/lib/logger"
 
 import type React from "react"
 import { createContext, useContext, useState, useEffect } from "react"
-import { createClient } from "@/lib/supabase/client"
+import { supabase } from "@/lib/supabase/client"
 import { useAuth } from "./AuthContext"
 
 interface CartItem {
@@ -43,7 +43,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true)
   const [isMounted, setIsMounted] = useState(false)
   const { user } = useAuth()
-  const supabase = createClient()
+  // Use the shared supabase instance
 
   useEffect(() => {
     setIsMounted(true)
@@ -185,7 +185,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     }
 
     try {
-      const supabase = createClient()
+      // Use the shared supabase instance
 
       // Check if item is already in favorites
       const { data: existing } = await supabase
