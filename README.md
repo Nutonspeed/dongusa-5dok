@@ -106,19 +106,24 @@ QA_BYPASS_AUTH=1 pnpm start
 pnpm qa:smoke --verbose
 \`\`\`
 
-## Project Structure
+## โครงสร้างโปรเจค
 
-\`\`\`
-├── app/                 # Next.js app directory
-│   ├── admin/          # Admin dashboard
-│   ├── api/            # API routes
-│   ├── auth/           # Authentication pages
-│   └── (shop)/         # Customer-facing pages
-├── components/         # Reusable components
-├── lib/               # Utility functions and services
-├── scripts/           # Database and deployment scripts
-└── public/            # Static assets
-\`\`\`
+```
+.
+├── app/                    # Next.js App Router
+│   ├── api/               # API Routes
+│   ├── (marketing)/       # หน้าเว็บหลัก
+│   └── (dashboard)/       # หน้าจัดการ (ถ้ามี)
+├── components/            # Components ที่ใช้ร่วมกัน
+│   ├── ui/               # UI Components พื้นฐาน
+│   └── fabric/           # Components เกี่ยวกับผ้า
+├── lib/                   # Utilities และ Helpers
+│   ├── supabase/         # Supabase Client
+│   └── utils/            # Utility functions
+├── public/               # Static files
+│   └── fabrics/          # รูปภาพผ้า
+└── styles/               # Global styles
+```
 
 ## Contributing
 

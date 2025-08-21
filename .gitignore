@@ -1,58 +1,73 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
-# dependencies
-/node_modules
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
 
-# next.js
-/.next/
-/out/
+# Testing
+coverage/
 
-# production
-/build
+# Next.js
+.next/
+out/
 
-# debug
+# Production
+build
+
+# Debug
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-.pnpm-debug.log*
 
-# env files
-.env*
-!.env.example
-
-# vercel
-.vercel
-
-# typescript
-*.tsbuildinfo
-next-env.d.ts
-
-# QA snapshots
-docs/snapshots/*
-!docs/snapshots/README.md
-# Environment files
-.env.local
-.env.production
+# Local env files
 .env*.local
-# Development files
-.vscode/settings.json
+.env
+
+# IDE
 .idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+logs
 *.log
-logs/
-# Database
-*.db
-*.sqlite
-# Uploads
-/uploads
-/temp
-/public/uploads
+
+# Build output
+.next/
+out/
+
 # Cache
 .cache/
-# OS generated files
-.DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Thumbs.db
+.temp/
+.turbo/
+
+# Misc
+*.pem
+*.p12
+*.key
+*.crt
+*.cer
+*.p7b
+*.p7c
+*.p7s
+*.p8
+*.p8e
+*.p7m
+*.p10
+*.pfx
+
+# Local development
+.env
+
+# Build output
+.next/
+out/

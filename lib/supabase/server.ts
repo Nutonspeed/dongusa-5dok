@@ -1,17 +1,18 @@
 // NOTE: No UI restructure. Types/boundary only.
 import "server-only"
-import { createClient as createSupabaseClient } from "@supabase/supabase-js"
+import { createServerClient } from '@supabase/ssr'
+import { cookies } from 'next/headers'
 import type { Database } from "@/types/database"
 
 // Check if Supabase environment variables are available
 export const isSupabaseConfigured =
-  typeof process.env.SUPABASE_URL === "string" &&
-  process.env.SUPABASE_URL.length > 0 &&
-  typeof process.env.SUPABASE_SERVICE_ROLE_KEY === "string" &&
-  process.env.SUPABASE_SERVICE_ROLE_KEY.length > 0
+  typeof process.env.NEXT_PUBLIC_SUPABASE_URL === "string" &&
+  process.env.NEXT_PUBLIC_SUPABASE_URL.length > 0 &&
+  typeof process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY === "string" &&
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY.length > 0
 
 // Create a singleton Supabase client for server usage
-let _client: ReturnType<typeof createSupabaseClient<Database>> | any | undefined
+let _client: ReturnType<typeof createServerClient<Database>> | any | undefined
 
 export const createClient = () => {
   if (_client) return _client
@@ -36,9 +37,17 @@ export const createClient = () => {
   }
 
   try {
-    _client = createSupabaseClient<Database>(
-      process.env.SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    const cookieStore = cookies()
+    _client = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          get(name: string) {
+            return cookieStore.get(name)?.value
+          },
+        },
+      }
     )
     return _client
   } catch (error) {
