@@ -1,84 +1,47 @@
-// NOTE: No UI restructure. Types/boundary only.
 {
   "compilerOptions": {
+    "target": "es5",
     "lib": [
       "dom",
       "dom.iterable",
       "esnext"
     ],
-    "allowJs": false,
-    "target": "ES2020",
+    "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
-    "noImplicitAny": true,
-    "noEmit": true,
+    "forceConsistentCasingInFileNames": true,
+    "noEmit": false,
     "esModuleInterop": true,
-    "module": "ESNext",
-    "moduleResolution": "Bundler",
-    "baseUrl": ".",
+    "module": "esnext",
+    "moduleResolution": "node",
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "preserve",
     "incremental": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": [
+        "./*"
+      ]
+    },
     "types": [
       "node",
-      "react",
-      "react-dom",
-      "vitest/globals"
+      "jest",
+      "@testing-library/jest-dom"
     ],
     "plugins": [
       {
         "name": "next"
       }
-    ],
-    "paths": {
-      "@/*": [
-        "./*"
-      ],
-      "@": [
-        "./"
-      ]
-    }
+    ]
   },
   "include": [
-    "middleware.ts",
-    "app/cart/**/*",
-    "app/checkout/**/*",
-    "app/orders/**/*",
-    "app/collections/**/*",
-    "app/components/**/*",
-    "app/api/promotions/validate/route.ts",
-    "lib/auth/**/*",
-    "lib/services/**/*",
-    "lib/supabase/**/*",
-    "scripts/qa-smoke.ts",
-    "scripts/post-launch-monitoring.ts",
-    "tests/**/*",
-    "types/**/*",
     "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
     ".next/types/**/*.ts"
   ],
   "exclude": [
-    "node_modules",
-    ".next",
-    "dist",
-    "app/api/supabase/**",
-    "app/api/**",
-    "app/auth/**",
-    "scripts/capacity-planning.ts",
-    "scripts/launch-analytics.ts",
-    "scripts/performance-validation.ts",
-    "scripts/pre-launch-validation.ts",
-    "scripts/production-environment-setup.ts",
-    "lib/supabase-performance-optimizer.ts",
-    "lib/supabase-usage-monitor.ts",
-    "lib/supabase.ts",
-    "lib/system-health-monitor.ts",
-    "lib/unified-communication-hub.ts",
-    "lib/supabase-free-plan-optimizer.ts",
-    "lib/task-management-system.ts",
-    "lib/session-management.ts",
-    "lib/comprehensive-security-audit.ts",
-    "scripts/security-vulnerability-scan.ts"
+    "node_modules"
   ]
 }
