@@ -165,32 +165,88 @@ export class SystemDataFlowManager {
     return connections
   }
 
-  // ทดสอบการเชื่อมต่อ
+  /**
+   * ทดสอบการเชื่อมต่อกับโมดูลต่างๆ
+   * @param connection ข้อมูลการเชื่อมต่อ
+   * @returns Promise<boolean> สถานะการเชื่อมต่อ
+   */
   private async testConnection(connection: ModuleConnection): Promise<boolean> {
-    switch (connection.target_module) {
-      case "supabase_database":
-        const { error: dbError } = await this.supabase.from("products").select("id").limit(1)
-        if (dbError) throw dbError
-        break
+    try {
+      const startTime = Date.now()
+      let success = false
 
-      case "redis_cache":
-        await this.redis.ping()
-        break
+      switch (connection.target_module) {
+        case "supabase_database":
+          const { error: dbError } = await this.supabase
+            .from("health_check")
+            .select("*")
+            .limit(1)
+            .single()
+          
+          if (dbError) {
+            console.error(`[${connection.target_module}] Connection failed:`, dbError)
+            throw new Error(`Database connection error: ${dbError.message}`)
+          }
+          success = true
+          break
 
-      case "grok_api":
-        // ทดสอบ Grok API
-        const response = await fetch("https://api.x.ai/v1/models", {
-          headers: { Authorization: `Bearer ${process.env.XAI_API_KEY}` },
-        })
-        if (!response.ok) throw new Error("Grok API connection failed")
-        break
+        case "redis_cache":
+          try {
+            await this.redis.ping()
+            success = true
+          } catch (error) {
+            console.error(`[${connection.target_module}] Redis ping failed:`, error)
+            throw new Error(`Redis connection error: ${error instanceof Error ? error.message : 'Unknown error'}`)
+          }
+          break
 
-      default:
-        // สำหรับ internal services ให้ถือว่าเชื่อมต่อได้
-        break
+        case "grok_api":
+          try {
+            if (!process.env.XAI_API_KEY) {
+              throw new Error('XAI API key is not configured')
+            }
+            
+            const controller = new AbortController()
+            const timeoutId = setTimeout(() => controller.abort(), 5000) // 5 second timeout
+            
+            const response = await fetch("https://api.x.ai/v1/models", {
+              headers: { 
+                Authorization: `Bearer ${process.env.XAI_API_KEY}`,
+                'Content-Type': 'application/json'
+              },
+              signal: controller.signal
+            })
+            
+            clearTimeout(timeoutId)
+            
+            if (!response.ok) {
+              const errorData = await response.json().catch(() => ({}))
+              throw new Error(`API request failed with status ${response.status}: ${JSON.stringify(errorData)}`)
+            }
+            
+            success = response.ok
+          } catch (error) {
+            console.error(`[${connection.target_module}] Grok API error:`, error)
+            throw new Error(`Grok API connection failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
+          }
+          break
+
+        default:
+          // สำหรับ internal services ให้ถือว่าเชื่อมต่อได้
+          success = true
+          console.log(`[${connection.target_module}] Internal service connection assumed successful`)
+          break
+      }
+
+      const duration = Date.now() - startTime
+      console.log(`[${connection.target_module}] Connection test ${success ? 'succeeded' : 'failed'} in ${duration}ms`)
+      
+      return success
+      
+    } catch (error) {
+      console.error(`[${connection.target_module}] Connection test failed:`, error)
+      return false
     }
-
-    return true
   }
 
   // วิเคราะห์ประสิทธิภาพการไหลของข้อมูล
