@@ -1,5 +1,3 @@
-import { generateText } from "ai"
-import { xai } from "@ai-sdk/xai"
 import type { NextRequest } from "next/server"
 
 export async function POST(request: NextRequest) {
@@ -10,43 +8,27 @@ export async function POST(request: NextRequest) {
       return new Response("Image URL is required", { status: 400 })
     }
 
-    const prompt = `
-    คุณเป็นผู้เชี่ยวชาญด้านการออกแบบและการตั้งชื่อคอลเลกชันผ้าคลุมโซฟา กรุณาวิเคราะห์ลายผ้าและข้อมูลต่อไปนี้:
+    // Deterministic mock without external AI dependency
+    const thaiBase = style || fabricType || "แรงบันดาลใจจากผ้า"
+    const colorNote = colors ? `โทนสี ${colors}` : "โทนสีที่กลมกลืน"
+    const desc = description || "สะท้อนภาพลักษณ์พรีเมียม เหมาะกับบ้านสมัยใหม่"
 
-    ข้อมูลผ้า:
-    - URL รูปภาพ: ${imageUrl}
-    - ประเภทผ้า: ${fabricType || "ไม่ระบุ"}
-    - สไตล์: ${style || "ไม่ระบุ"}
-    - สีหลัก: ${colors || "ไม่ระบุ"}
-    - คำอธิบาย: ${description || "ไม่ระบุ"}
-
-    กรุณาเสนอชื่อคอลเลกชันที่เหมาะสม 5 ชื่อ โดยแต่ละชื่อควรมี:
-    1. ชื่อภาษาไทยที่สวยงามและดึงดูดใจ
-    2. ชื่อภาษาอังกฤษที่เข้าใจง่าย
-    3. เหตุผลที่เลือกชื่อนี้
-    4. คำอธิบายสั้นๆ เกี่ยวกับความเหมาะสมของชื่อ
-
-    ตัวอย่างรูปแบบการตอบ:
-    1. **ชื่อไทย**: "บลูมมิ่ง การ์เด้น" | **ชื่ออังกฤษ**: "Blooming Garden"
-       **เหตุผล**: ลายดอกไม้ที่บานสะพรั่งเหมือนสวนที่เบิกบาน
-       **คำอธิบาย**: เหมาะสำหรับผู้ที่ชื่นชอบธรรมชาติและความสดใส
-
-    กรุณาสร้างชื่อที่มีความหมายลึกซึ้ง สร้างสรรค์ และสะท้อนถึงคุณภาพพรีเมียมของผลิตภัณฑ์
-    `
-
-    const result = await generateText({
-      model: xai("grok-4", {
-        apiKey: process.env.XAI_API_KEY,
-      }),
-      prompt: prompt,
-      system: `คุณเป็นผู้เชี่ยวชาญด้านการตั้งชื่อคอลเลกชันผ้าและการออกแบบ มีความรู้ลึกซึ้งเกี่ยวกับแฟชั่น สีสัน และการตลาด 
-      คุณสามารถสร้างชื่อที่มีเอกลักษณ์ ดึงดูดใจ และสื่อถึงคุณภาพของผลิตภัณฑ์ได้อย่างยอดเยี่ยม`,
-      maxTokens: 1000,
-      temperature: 0.8,
-    })
+    const items = [
+      { th: `เสน่ห์${thaiBase}`, en: `${(thaiBase || "Inspiration").toString().replace(/\s+/g, " ").trim()} Elegance` },
+      { th: `นิยามแห่ง${thaiBase}`, en: `${(thaiBase || "Design").toString().replace(/\s+/g, " ").trim()} Definition` },
+      { th: `บทกวีแห่ง${thaiBase}`, en: `${(thaiBase || "Fabric").toString().replace(/\s+/g, " ").trim()} Poem` },
+      { th: `ออร่าแห่ง${thaiBase}`, en: `${(thaiBase || "Aura").toString().replace(/\s+/g, " ").trim()} Aura` },
+      { th: `สุนทรียะแห่ง${thaiBase}`, en: `${(thaiBase || "Aesthetic").toString().replace(/\s+/g, " ").trim()} Aesthetic` },
+    ].map((x, i) => ({
+      index: i + 1,
+      thai: x.th,
+      english: x.en,
+      reason: `${colorNote} ผสานความลงตัวของสไตล์ ${style || "ร่วมสมัย"}`,
+      note: desc,
+    }))
 
     return Response.json({
-      suggestions: result.text,
+      suggestions: items,
       metadata: {
         imageUrl,
         fabricType,
@@ -54,6 +36,7 @@ export async function POST(request: NextRequest) {
         colors,
         description,
         generatedAt: new Date().toISOString(),
+        mocked: true,
       },
     })
   } catch (error) {
