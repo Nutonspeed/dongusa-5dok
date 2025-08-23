@@ -1,11 +1,11 @@
 {
-  "timestamp": "2025-08-23T12:29:42.725Z",
+  "timestamp": "2025-08-23T12:36:30.495Z",
   "summary": {
     "totalFiles": 565,
-    "totalIssues": 4433,
+    "totalIssues": 4436,
     "errors": 124,
     "warnings": 99,
-    "info": 4210
+    "info": 4213
   },
   "issues": [
     {
@@ -1118,7 +1118,7 @@
       "file": "scripts/code-review-notification.ts",
       "severity": "error",
       "rule": "complexity",
-      "message": "High cyclomatic complexity: 35",
+      "message": "High cyclomatic complexity: 36",
       "category": "complexity"
     },
     {
@@ -28694,7 +28694,7 @@
       "line": 373,
       "severity": "info",
       "rule": "code-duplication",
-      "message": "Duplicated code block found in 4 locations",
+      "message": "Duplicated code block found in 3 locations",
       "category": "duplication"
     },
     {
@@ -28702,7 +28702,7 @@
       "line": 374,
       "severity": "info",
       "rule": "code-duplication",
-      "message": "Duplicated code block found in 4 locations",
+      "message": "Duplicated code block found in 3 locations",
       "category": "duplication"
     },
     {
@@ -28771,7 +28771,7 @@
     },
     {
       "file": "scripts/code-review-notification.ts",
-      "line": 155,
+      "line": 51,
       "severity": "info",
       "rule": "code-duplication",
       "message": "Duplicated code block found in 2 locations",
@@ -28779,7 +28779,7 @@
     },
     {
       "file": "scripts/code-review-notification.ts",
-      "line": 172,
+      "line": 168,
       "severity": "info",
       "rule": "code-duplication",
       "message": "Duplicated code block found in 2 locations",
@@ -28787,7 +28787,7 @@
     },
     {
       "file": "scripts/code-review-notification.ts",
-      "line": 214,
+      "line": 185,
       "severity": "info",
       "rule": "code-duplication",
       "message": "Duplicated code block found in 2 locations",
@@ -28795,7 +28795,7 @@
     },
     {
       "file": "scripts/code-review-notification.ts",
-      "line": 225,
+      "line": 227,
       "severity": "info",
       "rule": "code-duplication",
       "message": "Duplicated code block found in 2 locations",
@@ -28803,7 +28803,7 @@
     },
     {
       "file": "scripts/code-review-notification.ts",
-      "line": 230,
+      "line": 238,
       "severity": "info",
       "rule": "code-duplication",
       "message": "Duplicated code block found in 2 locations",
@@ -28811,15 +28811,7 @@
     },
     {
       "file": "scripts/code-review-notification.ts",
-      "line": 237,
-      "severity": "info",
-      "rule": "code-duplication",
-      "message": "Duplicated code block found in 2 locations",
-      "category": "duplication"
-    },
-    {
-      "file": "scripts/code-review-notification.ts",
-      "line": 242,
+      "line": 243,
       "severity": "info",
       "rule": "code-duplication",
       "message": "Duplicated code block found in 2 locations",
@@ -28835,7 +28827,7 @@
     },
     {
       "file": "scripts/code-review-notification.ts",
-      "line": 258,
+      "line": 255,
       "severity": "info",
       "rule": "code-duplication",
       "message": "Duplicated code block found in 2 locations",
@@ -28843,7 +28835,7 @@
     },
     {
       "file": "scripts/code-review-notification.ts",
-      "line": 294,
+      "line": 263,
       "severity": "info",
       "rule": "code-duplication",
       "message": "Duplicated code block found in 2 locations",
@@ -28851,7 +28843,7 @@
     },
     {
       "file": "scripts/code-review-notification.ts",
-      "line": 325,
+      "line": 271,
       "severity": "info",
       "rule": "code-duplication",
       "message": "Duplicated code block found in 2 locations",
@@ -28859,7 +28851,7 @@
     },
     {
       "file": "scripts/code-review-notification.ts",
-      "line": 330,
+      "line": 291,
       "severity": "info",
       "rule": "code-duplication",
       "message": "Duplicated code block found in 2 locations",
@@ -28867,7 +28859,39 @@
     },
     {
       "file": "scripts/code-review-notification.ts",
-      "line": 335,
+      "line": 296,
+      "severity": "info",
+      "rule": "code-duplication",
+      "message": "Duplicated code block found in 2 locations",
+      "category": "duplication"
+    },
+    {
+      "file": "scripts/code-review-notification.ts",
+      "line": 313,
+      "severity": "info",
+      "rule": "code-duplication",
+      "message": "Duplicated code block found in 2 locations",
+      "category": "duplication"
+    },
+    {
+      "file": "scripts/code-review-notification.ts",
+      "line": 318,
+      "severity": "info",
+      "rule": "code-duplication",
+      "message": "Duplicated code block found in 2 locations",
+      "category": "duplication"
+    },
+    {
+      "file": "scripts/code-review-notification.ts",
+      "line": 323,
+      "severity": "info",
+      "rule": "code-duplication",
+      "message": "Duplicated code block found in 2 locations",
+      "category": "duplication"
+    },
+    {
+      "file": "scripts/code-review-notification.ts",
+      "line": 328,
       "severity": "info",
       "rule": "code-duplication",
       "message": "Duplicated code block found in 2 locations",
@@ -35252,7 +35276,7 @@
   ],
   "metrics": {
     "codeComplexity": 13,
-    "duplicatedLines": 29510,
+    "duplicatedLines": 29515,
     "unusedExports": 0,
     "circularDependencies": []
   },
