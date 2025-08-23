@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server"
 import { USE_SUPABASE } from "@/lib/runtime"
-import { createClient } from "@/lib/supabase/client"
+import { createClient } from "@/lib/supabase/server"
 import { logger } from "@/lib/logger"
 import { requireAdmin } from "@/lib/auth/requireAdmin"
 import { notifications } from "@/lib/notifications"
@@ -61,10 +61,11 @@ export async function POST(request: NextRequest) {
         logger.info(`Created ${orderIds.length} shipping labels`)
 
         // Map orderId -> tracking number from inserted labels
-        const labels = (data || labelRecords).reduce<Record<string, string>>((acc: any, rec: any) => {
+        const labelsRaw = (data || labelRecords).reduce((acc: any, rec: any) => {
           acc[rec.order_id || rec.orderId] = rec.tracking_number || rec.trackingNumber
           return acc
         }, {})
+        const labels: Record<string, string> = labelsRaw;
 
         // Try fetch minimal contact info for notifications (optional fields)
         const { data: ordersForContact } = await supabase
