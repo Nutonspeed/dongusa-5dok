@@ -20,7 +20,14 @@
     "format": "prettier --write .",
     "type-check": "tsc --noEmit --project tsconfig.build.json",
     "prepare": "husky install",
-    "test": "vitest run"
+    "test": "vitest run",
+    "translations:validate": "node scripts/translation-validator.mjs validate",
+    "translations:export": "node scripts/translation-validator.mjs export",
+    "translations:sync": "node scripts/translation-manager.mjs sync",
+    "translations:upload": "node scripts/translation-manager.mjs upload",
+    "translations:download": "node scripts/translation-manager.mjs download",
+    "translations:report": "node scripts/translation-manager.mjs report",
+    "translations:test": "node scripts/test-localization-workflow.mjs"
   },
   "dependencies": {
     "@radix-ui/react-checkbox": "^1.0.4",

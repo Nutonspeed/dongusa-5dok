@@ -1,0 +1,17 @@
+{
+  "nav.home": "หน้าแรก",
+  "nav.products": "สินค้า",
+  "nav.about": "เกี่ยวกับเรา",
+  "nav.contact": "ติดต่อ",
+  "product.addToCart": "เพิ่มลงตะกร้า",
+  "checkout.total": "ยอดรวม",
+  "order.status.pending": "รอดำเนินการ",
+  "order.status.confirmed": "ยืนยันแล้ว",
+  "order.status.shipped": "จัดส่งแล้ว",
+  "order.status.delivered": "ส่งแล้ว",
+  "payment.methods.promptpay": "พร้อมเพย์",
+  "payment.methods.bank_transfer": "โอนเงินผ่านธนาคาร",
+  "shipping.free": "จัดส่งฟรี",
+  "error.network": "เกิดข้อผิดพลาดในการเชื่อมต่อ",
+  "success.orderPlaced": "สั่งซื้อสำเร็จแล้ว"
+}

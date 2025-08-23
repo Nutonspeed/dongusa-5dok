@@ -1,5 +1,6 @@
 import { analytics } from "./analytics-service"
 import { logger } from "./logger"
+import { translationLoader } from "./translation-loader"
 
 interface CountryConfig {
   code: string
@@ -171,6 +172,45 @@ export class GlobalExpansionService {
   }
 
   private initializeLocalizationData() {
+    // Load translations from files instead of hardcoding
+    try {
+      // Validate translations are available
+      if (!translationLoader.validateTranslations()) {
+        logger.warn("Translation validation failed, falling back to minimal translations")
+      }
+
+      // Build localization data from files
+      this.localizationData = {}
+      const availableLocales = translationLoader.getAvailableLocales()
+      
+      if (availableLocales.length === 0) {
+        logger.error("No translation files found, using fallback translations")
+        this.initializeFallbackTranslations()
+        return
+      }
+
+      // Load translations for each locale
+      const defaultLocale = "th"
+      const defaultTranslations = translationLoader.loadTranslations(defaultLocale)
+      
+      for (const key of Object.keys(defaultTranslations)) {
+        this.localizationData[key] = {}
+        
+        for (const locale of availableLocales) {
+          const translations = translationLoader.loadTranslations(locale)
+          this.localizationData[key][locale] = translations[key] || key
+        }
+      }
+      
+      logger.info(`Loaded translations for ${availableLocales.length} locales with ${Object.keys(defaultTranslations).length} keys`)
+    } catch (error) {
+      logger.error("Failed to load translations from files:", error)
+      this.initializeFallbackTranslations()
+    }
+  }
+
+  private initializeFallbackTranslations() {
+    // Minimal fallback translations for critical functionality
     this.localizationData = {
       "nav.home": {
         th: "หน้าแรก",
@@ -186,96 +226,12 @@ export class GlobalExpansionService {
         zh: "产品",
         es: "Productos",
       },
-      "nav.about": {
-        th: "เกี่ยวกับเรา",
-        en: "About Us",
-        ms: "Tentang Kami",
-        zh: "关于我们",
-        es: "Acerca de",
-      },
-      "nav.contact": {
-        th: "ติดต่อ",
-        en: "Contact",
-        ms: "Hubungi",
-        zh: "联系",
-        es: "Contacto",
-      },
-      "product.addToCart": {
-        th: "เพิ่มลงตะกร้า",
-        en: "Add to Cart",
-        ms: "Tambah ke Troli",
-        zh: "加入购物车",
-        es: "Añadir al Carrito",
-      },
-      "checkout.total": {
-        th: "ยอดรวม",
-        en: "Total",
-        ms: "Jumlah",
-        zh: "总计",
-        es: "Total",
-      },
-      "order.status.pending": {
-        th: "รอดำเนินการ",
-        en: "Pending",
-        ms: "Menunggu",
-        zh: "待处理",
-        es: "Pendiente",
-      },
-      "order.status.confirmed": {
-        th: "ยืนยันแล้ว",
-        en: "Confirmed",
-        ms: "Disahkan",
-        zh: "已确认",
-        es: "Confirmado",
-      },
-      "order.status.shipped": {
-        th: "จัดส่งแล้ว",
-        en: "Shipped",
-        ms: "Dihantar",
-        zh: "已发货",
-        es: "Enviado",
-      },
-      "order.status.delivered": {
-        th: "ส่งแล้ว",
-        en: "Delivered",
-        ms: "Disampaikan",
-        zh: "已送达",
-        es: "Entregado",
-      },
-      "payment.methods.promptpay": {
-        th: "พร้อมเพย์",
-        en: "PromptPay",
-        ms: "PromptPay",
-        zh: "PromptPay",
-        es: "PromptPay",
-      },
-      "payment.methods.bank_transfer": {
-        th: "โอนเงินผ่านธนาคาร",
-        en: "Bank Transfer",
-        ms: "Pindahan Bank",
-        zh: "银行转账",
-        es: "Transferencia Bancaria",
-      },
-      "shipping.free": {
-        th: "จัดส่งฟรี",
-        en: "Free Shipping",
-        ms: "Penghantaran Percuma",
-        zh: "免费送货",
-        es: "Envío Gratis",
-      },
       "error.network": {
         th: "เกิดข้อผิดพลาดในการเชื่อมต่อ",
         en: "Network connection error",
         ms: "Ralat sambungan rangkaian",
         zh: "网络连接错误",
         es: "Error de conexión de red",
-      },
-      "success.orderPlaced": {
-        th: "สั่งซื้อสำเร็จแล้ว",
-        en: "Order placed successfully",
-        ms: "Pesanan berjaya dibuat",
-        zh: "订单下单成功",
-        es: "Pedido realizado con éxito",
       },
     }
   }
@@ -326,8 +282,8 @@ export class GlobalExpansionService {
 
   // Language and localization
   setCurrentLanguage(languageCode: string): void {
-    const country = this.getCurrentCountry()
-    if (country.language.supported.includes(languageCode)) {
+    const supportedLanguages = this.getSupportedLanguages()
+    if (supportedLanguages.includes(languageCode)) {
       this.currentLanguage = languageCode
       analytics.trackEvent("language_changed", "localization", languageCode, 1)
     }
@@ -340,6 +296,19 @@ export class GlobalExpansionService {
   translate(key: string, language?: string): string {
     const lang = language || this.currentLanguage
     return this.localizationData[key]?.[lang] || key
+  }
+
+  // Reload translations from files
+  reloadTranslations(): void {
+    translationLoader.clearCache()
+    this.initializeLocalizationData()
+    logger.info("Translations reloaded from files")
+  }
+
+  // Get supported languages from available translation files
+  getSupportedLanguages(): string[] {
+    const availableLocales = translationLoader.getAvailableLocales()
+    return availableLocales.length > 0 ? availableLocales : ["th", "en", "ms", "zh", "es"]
   }
 
   // Currency management

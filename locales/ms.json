@@ -1,0 +1,17 @@
+{
+  "nav.home": "Laman Utama",
+  "nav.products": "Produk",
+  "nav.about": "Tentang Kami",
+  "nav.contact": "Hubungi",
+  "product.addToCart": "Tambah ke Troli",
+  "checkout.total": "Jumlah",
+  "order.status.pending": "Menunggu",
+  "order.status.confirmed": "Disahkan",
+  "order.status.shipped": "Dihantar",
+  "order.status.delivered": "Disampaikan",
+  "payment.methods.promptpay": "PromptPay",
+  "payment.methods.bank_transfer": "Pindahan Bank",
+  "shipping.free": "Penghantaran Percuma",
+  "error.network": "Ralat sambungan rangkaian",
+  "success.orderPlaced": "Pesanan berjaya dibuat"
+}
