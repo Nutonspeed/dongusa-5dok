@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server"
 
 export async function GET(request: NextRequest) {
   try {
-    const supabase = createClient()
+  const supabase = createClient()
 
     // Test database connectivity and data flow
     const tests = [

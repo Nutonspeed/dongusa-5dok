@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Rating must be between 1 and 5" }, { status: 400 })
     }
 
-    const supabase = createClient()
+  const supabase = createClient()
 
     // Create feedback entry
     const feedbackData: Partial<UserFeedback> = {
@@ -95,7 +95,7 @@ export async function GET(request: NextRequest) {
     const page = Number.parseInt(searchParams.get("page") || "1")
     const limit = Number.parseInt(searchParams.get("limit") || "20")
 
-    const supabase = createClient()
+  const supabase = createClient()
 
     let query = supabase.from("user_feedback").select("*").order("created_at", { ascending: false })
 

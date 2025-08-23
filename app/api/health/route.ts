@@ -8,7 +8,7 @@ export async function GET() {
   const info = supabaseEnvInfo();
   const tables: string[] = [];
   if (USE_SUPABASE) {
-    const supabase = createClient();
+    const supabase = createClient()
     const checkTables = [
       "products",
       "categories",

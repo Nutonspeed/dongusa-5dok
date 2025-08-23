@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Missing required fields: email, subject, description" }, { status: 400 })
     }
 
-    const supabase = createClient()
+  const supabase = createClient()
 
     // Create support ticket
     const ticketData: Partial<SupportTicket> = {
@@ -76,7 +76,7 @@ export async function GET(request: NextRequest) {
     const page = Number.parseInt(searchParams.get("page") || "1")
     const limit = Number.parseInt(searchParams.get("limit") || "20")
 
-    const supabase = createClient()
+  const supabase = createClient()
 
     let query = supabase.from("support_tickets").select("*").order("created_at", { ascending: false })
 
