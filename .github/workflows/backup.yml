@@ -1,0 +1,225 @@
+name: Backup Workflow
+
+on:
+  schedule:
+    # Daily backup at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      backup_type:
+        description: 'Type of backup to perform'
+        required: true
+        default: 'full'
+        type: choice
+        options:
+        - full
+        - source-only
+        - artifacts-only
+      cloud_provider:
+        description: 'Cloud storage provider'
+        required: true
+        default: 'aws-s3'
+        type: choice
+        options:
+        - aws-s3
+        - gcs
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for complete backup
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+      
+      - name: Install pnpm
+        run: npm install -g pnpm@10
+      
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile=false
+      
+      - name: Build application
+        if: ${{ github.event.inputs.backup_type == 'full' || github.event.inputs.backup_type == 'artifacts-only' }}
+        env:
+          NEXT_TELEMETRY_DISABLED: 1
+          QA_BYPASS_AUTH: 1
+          MAINTENANCE: 0
+          NEXT_PUBLIC_SUPABASE_URL: http://example.com
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: dummy
+        run: pnpm build
+      
+      - name: Create backup archive
+        run: |
+          mkdir -p ./backup
+          
+          # Create timestamp for backup
+          TIMESTAMP=$(date +"%Y-%m-%d_%H-%M-%S")
+          BACKUP_NAME="dongusa-5dok-backup-${TIMESTAMP}"
+          
+          # Source code backup
+          if [[ "${{ github.event.inputs.backup_type }}" == "full" || "${{ github.event.inputs.backup_type }}" == "source-only" ]]; then
+            echo "Creating source code backup..."
+            tar -czf "./backup/${BACKUP_NAME}-source.tar.gz" \
+              --exclude='.git' \
+              --exclude='node_modules' \
+              --exclude='.next' \
+              --exclude='backup' \
+              --exclude='dist' \
+              --exclude='build' \
+              .
+          fi
+          
+          # Build artifacts backup
+          if [[ "${{ github.event.inputs.backup_type }}" == "full" || "${{ github.event.inputs.backup_type }}" == "artifacts-only" ]]; then
+            if [ -d ".next" ]; then
+              echo "Creating build artifacts backup..."
+              tar -czf "./backup/${BACKUP_NAME}-artifacts.tar.gz" \
+                .next/ \
+                package.json \
+                package-lock.json \
+                pnpm-lock.yaml \
+                next.config.* \
+                tsconfig.json
+            fi
+          fi
+          
+          # Create metadata file
+          cat > "./backup/${BACKUP_NAME}-metadata.json" << EOF
+          {
+            "timestamp": "${TIMESTAMP}",
+            "commit_sha": "${{ github.sha }}",
+            "branch": "${{ github.ref_name }}",
+            "backup_type": "${{ github.event.inputs.backup_type || 'full' }}",
+            "cloud_provider": "${{ github.event.inputs.cloud_provider || 'aws-s3' }}",
+            "workflow_run_id": "${{ github.run_id }}",
+            "repository": "${{ github.repository }}"
+          }
+          EOF
+          
+          echo "BACKUP_NAME=${BACKUP_NAME}" >> $GITHUB_ENV
+          echo "TIMESTAMP=${TIMESTAMP}" >> $GITHUB_ENV
+      
+      - name: Configure AWS credentials
+        if: ${{ github.event.inputs.cloud_provider == 'aws-s3' || github.event.inputs.cloud_provider == '' }}
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION || 'us-east-1' }}
+      
+      - name: Upload to AWS S3
+        if: ${{ github.event.inputs.cloud_provider == 'aws-s3' || github.event.inputs.cloud_provider == '' }}
+        run: |
+          S3_BUCKET="${{ secrets.AWS_S3_BACKUP_BUCKET }}"
+          S3_PREFIX="backups/${{ github.repository }}/${{ env.TIMESTAMP }}"
+          
+          if [ -z "$S3_BUCKET" ]; then
+            echo "Error: AWS_S3_BACKUP_BUCKET secret not configured"
+            exit 1
+          fi
+          
+          echo "Uploading backups to S3: s3://${S3_BUCKET}/${S3_PREFIX}/"
+          
+          # Upload all backup files
+          for file in ./backup/${BACKUP_NAME}*; do
+            if [ -f "$file" ]; then
+              aws s3 cp "$file" "s3://${S3_BUCKET}/${S3_PREFIX}/" --no-progress
+              echo "Uploaded: $(basename "$file")"
+            fi
+          done
+          
+          echo "Backup completed successfully!"
+          echo "S3 Location: s3://${S3_BUCKET}/${S3_PREFIX}/"
+      
+      - name: Setup Google Cloud SDK
+        if: ${{ github.event.inputs.cloud_provider == 'gcs' }}
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          service_account_key: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+      
+      - name: Upload to Google Cloud Storage
+        if: ${{ github.event.inputs.cloud_provider == 'gcs' }}
+        run: |
+          GCS_BUCKET="${{ secrets.GCS_BACKUP_BUCKET }}"
+          GCS_PREFIX="backups/${{ github.repository }}/${{ env.TIMESTAMP }}"
+          
+          if [ -z "$GCS_BUCKET" ]; then
+            echo "Error: GCS_BACKUP_BUCKET secret not configured"
+            exit 1
+          fi
+          
+          echo "Uploading backups to GCS: gs://${GCS_BUCKET}/${GCS_PREFIX}/"
+          
+          # Upload all backup files
+          for file in ./backup/${BACKUP_NAME}*; do
+            if [ -f "$file" ]; then
+              gsutil cp "$file" "gs://${GCS_BUCKET}/${GCS_PREFIX}/"
+              echo "Uploaded: $(basename "$file")"
+            fi
+          done
+          
+          echo "Backup completed successfully!"
+          echo "GCS Location: gs://${GCS_BUCKET}/${GCS_PREFIX}/"
+      
+      - name: Cleanup old backups
+        if: ${{ github.event.inputs.cloud_provider == 'aws-s3' || github.event.inputs.cloud_provider == '' }}
+        run: |
+          S3_BUCKET="${{ secrets.AWS_S3_BACKUP_BUCKET }}"
+          RETENTION_DAYS="${{ secrets.BACKUP_RETENTION_DAYS || '30' }}"
+          
+          if [ -n "$S3_BUCKET" ]; then
+            echo "Cleaning up backups older than ${RETENTION_DAYS} days..."
+            
+            # Calculate cutoff date
+            CUTOFF_DATE=$(date -d "${RETENTION_DAYS} days ago" +%s)
+            
+            # List and delete old backups
+            aws s3api list-objects-v2 \
+              --bucket "${S3_BUCKET}" \
+              --prefix "backups/${{ github.repository }}/" \
+              --query "Contents[?LastModified<=\`$(date -d "${RETENTION_DAYS} days ago" --iso-8601)\`].Key" \
+              --output text | \
+            while read -r key; do
+              if [ -n "$key" ] && [ "$key" != "None" ]; then
+                echo "Deleting old backup: $key"
+                aws s3 rm "s3://${S3_BUCKET}/${key}"
+              fi
+            done
+          fi
+      
+      - name: Cleanup old backups (GCS)
+        if: ${{ github.event.inputs.cloud_provider == 'gcs' }}
+        run: |
+          GCS_BUCKET="${{ secrets.GCS_BACKUP_BUCKET }}"
+          RETENTION_DAYS="${{ secrets.BACKUP_RETENTION_DAYS || '30' }}"
+          
+          if [ -n "$GCS_BUCKET" ]; then
+            echo "Cleaning up backups older than ${RETENTION_DAYS} days..."
+            
+            # Delete old backups
+            gsutil -m rm -r "gs://${GCS_BUCKET}/backups/${{ github.repository }}/**" \
+              -t "$(date -d "${RETENTION_DAYS} days ago" --iso-8601)" || true
+          fi
+      
+      - name: Report backup status
+        if: always()
+        run: |
+          if [ "${{ job.status }}" == "success" ]; then
+            echo "✅ Backup completed successfully!"
+            echo "Backup type: ${{ github.event.inputs.backup_type || 'full' }}"
+            echo "Cloud provider: ${{ github.event.inputs.cloud_provider || 'aws-s3' }}"
+            echo "Timestamp: ${{ env.TIMESTAMP }}"
+          else
+            echo "❌ Backup failed!"
+          fi
