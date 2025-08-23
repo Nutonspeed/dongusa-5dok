@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server"
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = createClient()
+    const supabase = await createClient()
     const settings = await request.json()
 
     const { error } = await supabase.from("system_settings").upsert([
@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
 
 export async function GET() {
   try {
-    const supabase = createClient()
+    const supabase = await createClient()
 
     const { data, error } = await supabase.from("system_settings").select("value").eq("key", "admin_settings").single()
 

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { logger } from "@/lib/logger"
-import { supabase } from "@/lib/supabase"
+import { supabase } from "@/lib/supabase/client"
 
 // POST /api/uploads/proof
 // form-data fields:

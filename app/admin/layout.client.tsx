@@ -59,6 +59,7 @@ const navigation: NavItem[] = [
   { name: "Demo", href: "/admin/demo", icon: TestTube },
 ]
 
+export { AdminLayoutClient }
 function AdminLayoutClient({
   children,
 }: {

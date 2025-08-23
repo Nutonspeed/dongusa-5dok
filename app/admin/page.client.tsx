@@ -25,6 +25,7 @@ const AdminInventory = loadable(() => import("./inventory/page"), {
   loading: () => <div className="animate-pulse bg-muted h-64 rounded-lg"></div>,
 })
 
+export { AdminDashboardClient }
 function AdminDashboardClient({ summary }: { summary: { orders: number; revenue: number } }) {
   const [currentTime, setCurrentTime] = useState(new Date())
   const [analytics, setAnalytics] = useState({

@@ -108,7 +108,7 @@ pnpm qa:smoke --verbose
 
 ## โครงสร้างโปรเจค
 
-```
+\`\`\`
 .
 ├── app/                    # Next.js App Router
 │   ├── api/               # API Routes
@@ -123,7 +123,7 @@ pnpm qa:smoke --verbose
 ├── public/               # Static files
 │   └── fabrics/          # รูปภาพผ้า
 └── styles/               # Global styles
-```
+\`\`\`
 
 ## Contributing
 

@@ -89,4 +89,3 @@ class DemoCredentialsSecurityValidator {
 
 const validator = new DemoCredentialsSecurityValidator()
 validator.validateProductionSafety()
-

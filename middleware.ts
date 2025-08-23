@@ -1,19 +1,11 @@
+import { createServerClient } from "@supabase/ssr"
 import { decidePostAuthRedirect } from "@/lib/auth/redirect"
 import { featureFlags } from "@/utils/featureFlags"
 import type { NextRequest } from "next/server"
 import { NextResponse } from "next/server"
+
 export const config = {
-  matcher: [
-    "/admin/:path*",
-    "/profile/:path*",
-    "/orders/:path*",
-    "/checkout",
-    "/auth/callback",
-    "/auth/login",
-    "/login",
-    "/api/admin/:path*",
-    "/api/user/:path*",
-  ],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)"],
 }
 
 const PROTECTED_ROUTES = {
@@ -47,51 +39,15 @@ function requiresAuth(pathname: string): { required: boolean; role?: string } {
   return { required: false }
 }
 
-async function handleSupabaseAuth(request: NextRequest) {
-  const { pathname } = request.nextUrl
-
+async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
     request,
   })
 
-  try {
-    const url = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL
-    const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY
-
-    if (!url || !anon) {
-      console.error("Missing Supabase environment variables")
-      const authCheck = requiresAuth(pathname)
-      if (authCheck.required) {
-        const loginUrl = new URL("/auth/login", request.url)
-        loginUrl.searchParams.set("redirect", pathname)
-        const res = NextResponse.redirect(loginUrl)
-        res.headers.set("Cache-Control", "no-store")
-        return res
-      }
-      // For non-protected routes, optionally rewrite to a friendly offline page if features are disabled or DB not configured
-      if (featureFlags.DISABLE_UNREADY_FEATURES || !featureFlags.IS_SUPABASE_CONFIGURED) {
-        const offlineUrl = new URL("/offline", request.url)
-        const res = NextResponse.rewrite(offlineUrl)
-        res.headers.set("Cache-Control", "no-store")
-        return res
-      }
-      return NextResponse.next()
-    }
-
-    const { createServerClient } = await import("@supabase/ssr").catch(() => ({ createServerClient: null }))
-
-    if (!createServerClient) {
-      console.warn("Supabase SSR not available, falling back to basic auth")
-      const authCheck = requiresAuth(pathname)
-      if (authCheck.required) {
-        const loginUrl = new URL("/auth/login", request.url)
-        loginUrl.searchParams.set("redirect", pathname)
-        return NextResponse.redirect(loginUrl)
-      }
-      return NextResponse.next()
-    }
-
-    const supabase = createServerClient(url, anon, {
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
       cookies: {
         getAll() {
           return request.cookies.getAll()
@@ -104,130 +60,94 @@ async function handleSupabaseAuth(request: NextRequest) {
           cookiesToSet.forEach(({ name, value, options }) => supabaseResponse.cookies.set(name, value, options))
         },
       },
-    })
+    },
+  )
 
-    // Handle auth callback
-    const code = request.nextUrl.searchParams.get("code")
-    if (code && pathname === "/auth/callback") {
-      try {
-        await supabase.auth.exchangeCodeForSession(code)
-        const redirectParam = request.nextUrl.searchParams.get("redirect")
-        // Fetch session and role to decide landing deterministically
-        const {
-          data: { session: postSession },
-        } = await supabase.auth.getSession()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
 
-        let role: "admin" | "customer" | "staff" | null | undefined = null
-        if (postSession) {
-          try {
-            const { data: profile } = await supabase
-              .from("profiles")
-              .select("role")
-              .eq("id", postSession.user.id)
-              .single()
-            role = (profile?.role as any) || null
-          } catch {
-            // ignore role fetch error; role remains null
-          }
-        }
+  const { pathname } = request.nextUrl
+  const authCheck = requiresAuth(pathname)
 
-        const dest = decidePostAuthRedirect(role, redirectParam || undefined)
-        const res = NextResponse.redirect(new URL(dest, request.url))
-        res.headers.set("Cache-Control", "no-store")
-        return res
-      } catch (error) {
-        console.error("Auth callback error:", error)
-        const res = NextResponse.redirect(new URL("/auth/login?error=callback_failed", request.url))
-        res.headers.set("Cache-Control", "no-store")
-        return res
-      }
-    }
+  // Handle auth callback
+  const code = request.nextUrl.searchParams.get("code")
+  if (code && pathname === "/auth/callback") {
+    try {
+      await supabase.auth.exchangeCodeForSession(code)
+      const redirectParam = request.nextUrl.searchParams.get("redirect")
 
-    // Refresh session
-    const {
-      data: { session },
-      error: sessionError,
-    } = await supabase.auth.getSession()
+      const {
+        data: { session: postSession },
+      } = await supabase.auth.getSession()
 
-    if (sessionError) {
-      console.error("Session error:", sessionError)
-    }
-
-    const authCheck = requiresAuth(pathname)
-
-    if (!authCheck.required) {
-      // If user opens /auth/login while already authenticated, route them smartly (role-first with safe returnUrl)
-      if (pathname === "/auth/login" && session) {
-        const redirectParam = request.nextUrl.searchParams.get("redirect")
-        let role: "admin" | "customer" | "staff" | null | undefined = null
+      let role: "admin" | "customer" | "staff" | null | undefined = null
+      if (postSession) {
         try {
           const { data: profile } = await supabase
             .from("profiles")
             .select("role")
-            .eq("id", session.user.id)
+            .eq("id", postSession.user.id)
             .single()
           role = (profile?.role as any) || null
         } catch {
-          // ignore and fall through
-        }
-        const dest = decidePostAuthRedirect(role, redirectParam || undefined)
-        const res = NextResponse.redirect(new URL(dest, request.url))
-        res.headers.set("Cache-Control", "no-store")
-        return res
-      }
-      return supabaseResponse
-    }
-
-    // Check if user is authenticated
-    if (!session) {
-      const loginUrl = new URL("/auth/login", request.url)
-      loginUrl.searchParams.set("redirect", pathname)
-      return NextResponse.redirect(loginUrl)
-    }
-
-    // Check role-based access for protected routes
-    if (authCheck.role) {
-      try {
-        const { data: profile, error: profileError } = await supabase
-          .from("profiles")
-          .select("role")
-          .eq("id", session.user.id)
-          .single()
-
-        if (profileError) {
-          console.error("Profile fetch error:", profileError)
-          if (authCheck.role === "admin") {
-            return NextResponse.redirect(new URL("/auth/login?error=profile_access", request.url))
-          }
-          return supabaseResponse
-        }
-
-        const userRole = profile?.role as string | null | undefined
-
-        // Check admin access strictly based on role from profiles
-        if (authCheck.role === "admin" && userRole !== "admin") {
-          return NextResponse.redirect(new URL("/?error=insufficient_permissions", request.url))
-        }
-      } catch (error) {
-        console.error("Role check error:", error)
-        if (authCheck.role === "admin") {
-          return NextResponse.redirect(new URL("/auth/login?error=role_check_failed", request.url))
+          // ignore role fetch error; role remains null
         }
       }
-    }
 
-    return supabaseResponse
-  } catch (error) {
-    console.error("Supabase middleware error:", error)
-    const authCheck = requiresAuth(pathname)
-    if (authCheck.required) {
-      const loginUrl = new URL("/auth/login", request.url)
-      loginUrl.searchParams.set("error", "middleware_error")
-      loginUrl.searchParams.set("redirect", pathname)
-      return NextResponse.redirect(loginUrl)
+      const dest = decidePostAuthRedirect(role, redirectParam || undefined)
+      const res = NextResponse.redirect(new URL(dest, request.url))
+      res.headers.set("Cache-Control", "no-store")
+      return res
+    } catch (error) {
+      console.error("Auth callback error:", error)
+      const res = NextResponse.redirect(new URL("/auth/login?error=callback_failed", request.url))
+      res.headers.set("Cache-Control", "no-store")
+      return res
     }
-    return NextResponse.next()
   }
+
+  if (authCheck.required && !user) {
+    const url = request.nextUrl.clone()
+    url.pathname = "/auth/login"
+    url.searchParams.set("redirect", pathname)
+    return NextResponse.redirect(url)
+  }
+
+  // Handle authenticated user on login page
+  if (pathname === "/auth/login" && user) {
+    const redirectParam = request.nextUrl.searchParams.get("redirect")
+    let role: "admin" | "customer" | "staff" | null | undefined = null
+    try {
+      const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).single()
+      role = (profile?.role as any) || null
+    } catch {
+      // ignore and fall through
+    }
+    const dest = decidePostAuthRedirect(role, redirectParam || undefined)
+    const res = NextResponse.redirect(new URL(dest, request.url))
+    res.headers.set("Cache-Control", "no-store")
+    return res
+  }
+
+  if (authCheck.role === "admin" && user) {
+    try {
+      const { data: profile, error: profileError } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .single()
+
+      if (profileError || profile?.role !== "admin") {
+        return NextResponse.redirect(new URL("/?error=insufficient_permissions", request.url))
+      }
+    } catch (error) {
+      console.error("Role check error:", error)
+      return NextResponse.redirect(new URL("/auth/login?error=role_check_failed", request.url))
+    }
+  }
+
+  return supabaseResponse
 }
 
 export default async function middleware(request: NextRequest) {
@@ -239,7 +159,7 @@ export default async function middleware(request: NextRequest) {
       return NextResponse.rewrite(new URL("/maintenance", request.url))
     }
 
-    // Skip middleware for static files and API routes (except protected ones)
+    // Skip middleware for static files
     if (
       pathname.startsWith("/_next") ||
       pathname.startsWith("/favicon") ||
@@ -254,8 +174,7 @@ export default async function middleware(request: NextRequest) {
       return NextResponse.next()
     }
 
-    // Always use Supabase auth on Edge to avoid Node APIs
-    return await handleSupabaseAuth(request)
+    return await updateSession(request)
   } catch (error) {
     console.error("Critical middleware error:", error)
     return NextResponse.next()

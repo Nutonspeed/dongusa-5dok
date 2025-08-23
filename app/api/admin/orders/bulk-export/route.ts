@@ -1,33 +1,29 @@
 export const runtime = "nodejs"
 
-import { type NextRequest } from "next/server"
+import type { NextRequest } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { requireAdmin } from "@/lib/auth/requireAdmin"
 
-export const dynamic = 'force-dynamic'
+export const dynamic = "force-dynamic"
 
 export async function GET(request: NextRequest) {
   await requireAdmin(request)
   try {
-    const supabase = createClient()
-    const { data, error } = await supabase
-      .from("orders")
-      .select("id, total, created_at")
+    const supabase = await createClient()
+    const { data, error } = await supabase.from("orders").select("id, total_amount, created_at")
 
     if (error) {
       throw error
     }
 
-    const header = ["id", "total", "created_at"]
+    const header = ["id", "total_amount", "created_at"]
     const escapeField = (v: any) => {
       const value = v === null || v === undefined ? "" : String(v)
       const escaped = value.replace(/"/g, '""').replace(/\r?\n/g, "\\n")
       return /[",\n]/.test(escaped) ? `"${escaped}"` : escaped
     }
 
-    const lines = (data || []).map((row: any) =>
-      header.map((key) => escapeField(row[key])).join(","),
-    )
+    const lines = (data || []).map((row: any) => header.map((key) => escapeField(row[key])).join(","))
 
     const csv = [header.join(","), ...lines].join("\n")
     const bom = "\uFEFF"

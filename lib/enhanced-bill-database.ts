@@ -1,5 +1,5 @@
 import { USE_SUPABASE } from "@/lib/runtime"
-import { supabase } from "@/lib/supabase"
+import { supabase } from "@/lib/supabase/client"
 
 export interface Bill {
   id: string

@@ -1,4 +1,4 @@
-import { supabase } from "@/lib/supabase"
+import { supabase } from "@/lib/supabase/client"
 import { USE_SUPABASE } from "@/lib/runtime"
 
 interface QueryMetrics {

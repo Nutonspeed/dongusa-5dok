@@ -1,9 +1,9 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { supabase } from "@/lib/supabase"
+import { supabase } from "@/lib/supabase/client"
 import { logger } from "@/lib/logger"
 import { OrderStatus } from "@/lib/i18n/status"
 
-export const dynamic = 'force-dynamic'
+export const dynamic = "force-dynamic"
 
 export async function GET(request: NextRequest) {
   try {
@@ -40,7 +40,7 @@ export async function GET(request: NextRequest) {
           )
         )
       `,
-        { count: "exact" }
+        { count: "exact" },
       )
       .eq("user_id", userId)
 

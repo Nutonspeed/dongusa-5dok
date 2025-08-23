@@ -4,7 +4,7 @@ import { logger } from "@/lib/logger"
 
 import type React from "react"
 import { createContext, useContext, useState, useEffect } from "react"
-import { supabase } from "@/lib/supabase/client"
+import { createClient } from "@/lib/supabase/client"
 import { USE_SUPABASE } from "@/lib/runtime"
 import type { AppUser } from "@/types/user"
 import type { Database } from "@/lib/supabase/types"
@@ -62,6 +62,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isMounted, setIsMounted] = useState(false)
   const QA_BYPASS_AUTH = process.env.QA_BYPASS_AUTH === "1"
 
+  const supabase = createClient()
+
   const getClientInfo = () => {
     if (typeof window === "undefined") return { ip: "unknown", userAgent: "unknown" }
 
@@ -81,11 +83,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!isMounted) return
 
     const initializeAuth = async () => {
-  // console.log("[v0] Initializing auth, USE_SUPABASE:", USE_SUPABASE, "QA_BYPASS_AUTH:", QA_BYPASS_AUTH)
-
       try {
         if (USE_SUPABASE && !QA_BYPASS_AUTH) {
-          // console.log("[v0] Using Supabase auth")
           const {
             data: { session },
             error,
@@ -93,7 +92,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
           if (error) {
             logger.error("Error getting session:", error)
-            // console.log("[v0] Supabase session error, setting loading to false")
             setIsLoading(false)
             return
           }
@@ -102,20 +100,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             ? { ...session.user, full_name: session.user.user_metadata?.full_name }
             : null
           setUser(mappedUser)
-          // console.log("[v0] Supabase user set:", mappedUser ? "logged in" : "not logged in")
 
           if (mappedUser) {
             await fetchProfile(mappedUser.id)
           }
         } else {
-          // console.log("[v0] Using fallback auth (localStorage)")
           const storedUser = typeof window !== "undefined" ? localStorage.getItem("user_data") : null
           const adminToken = typeof window !== "undefined" ? localStorage.getItem("admin_token") : null
 
           if (storedUser) {
             const parsedUser = JSON.parse(storedUser)
             setUser(parsedUser)
-            // console.log("[v0] Restored user from localStorage:", parsedUser.email)
 
             // Set appropriate profile based on stored data
             const isAdminUser = adminToken === "demo_token" || parsedUser.email === "admin@sofacover.com"
@@ -129,15 +124,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               created_at: new Date().toISOString(),
               updated_at: new Date().toISOString(),
             })
-          } else {
-            // console.log("[v0] No stored user found")
           }
         }
       } catch (error) {
         logger.error("Error initializing auth:", error)
-  // console.log("[v0] Auth initialization error:", error)
       } finally {
-  // console.log("[v0] Auth initialization complete, setting loading to false")
         setIsLoading(false)
       }
     }
@@ -148,7 +139,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const {
         data: { subscription },
       } = supabase.auth.onAuthStateChange(async (event: any, session: any) => {
-  // console.log("[v0] Auth state change:", event, session ? "has session" : "no session")
         const mappedUser: AppUser | null = session?.user
           ? { ...session.user, full_name: session.user.user_metadata?.full_name }
           : null
@@ -165,7 +155,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       return () => subscription.unsubscribe()
     }
-  }, [isMounted])
+  }, [isMounted, supabase])
 
   const fetchProfile = async (userId: string) => {
     try {
@@ -265,7 +255,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 window.location.href = dest
               }
             } catch (error) {
-              // console.error("[Auth] Post-login redirect error:", error)
               window.location.href = "/"
             }
           }, 300)
@@ -378,7 +367,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             },
             emailRedirectTo:
               process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL ||
-              (typeof window !== "undefined" ? window.location.origin : ""),
+              (typeof window !== "undefined" ? `${window.location.origin}/protected` : ""),
           },
         })
 

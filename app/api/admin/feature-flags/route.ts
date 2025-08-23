@@ -25,7 +25,7 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const body = await request.json()
-    const supabase = createClient()
+    const supabase = await createClient()
 
     // Store feature flags in database for persistence
     const { error } = await supabase.from("system_settings").upsert(

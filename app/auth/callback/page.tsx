@@ -12,30 +12,32 @@ export default async function AuthCallbackPage({
   const code = searchParams.code
 
   if (code) {
-    const supabase = createClient()
-    await supabase.auth.exchangeCodeForSession(code)
+    const supabase = await createClient()
 
-    // Read session and role to decide a role-first, safe landing
-    const {
-      data: { session },
-    } = await supabase.auth.getSession()
+    try {
+      await supabase.auth.exchangeCodeForSession(code)
 
-    let role: "admin" | "customer" | "staff" | null | undefined = null
-    if (session) {
-      try {
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("role")
-          .eq("id", session.user.id)
-          .single()
-        role = (profile?.role as any) || null
-      } catch {
-        // ignore and use default fallback based on null role
+      // Read session and role to decide a role-first, safe landing
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
+
+      let role: "admin" | "customer" | "staff" | null | undefined = null
+      if (session) {
+        try {
+          const { data: profile } = await supabase.from("profiles").select("role").eq("id", session.user.id).single()
+          role = (profile?.role as any) || null
+        } catch {
+          // ignore and use default fallback based on null role
+        }
       }
-    }
 
-    const dest = decidePostAuthRedirect(role, searchParams?.redirect)
-    redirect(dest)
+      const dest = decidePostAuthRedirect(role, searchParams?.redirect)
+      redirect(dest)
+    } catch (error) {
+      console.error("Auth callback error:", error)
+      redirect("/auth/error?error=callback_failed")
+    }
   }
 
   // No code: fallback to home
