@@ -1,0 +1,64 @@
+{
+  "channels": [
+    {
+      "name": "slack-dev-team",
+      "webhook": "https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK",
+      "enabled": false,
+      "filters": {
+        "branches": ["main", "develop"],
+        "events": ["pull_request", "push"],
+        "severity": ["high", "critical"]
+      }
+    },
+    {
+      "name": "discord-qa-team",
+      "webhook": "https://discord.com/api/webhooks/YOUR/DISCORD/WEBHOOK",
+      "enabled": false,
+      "filters": {
+        "branches": ["main"],
+        "events": ["push"],
+        "severity": ["medium", "high", "critical"]
+      }
+    },
+    {
+      "name": "teams-security",
+      "webhook": "https://your-org.webhook.office.com/webhookb2/YOUR/TEAMS/WEBHOOK",
+      "enabled": false,
+      "filters": {
+        "branches": ["main", "develop"],
+        "events": ["pull_request", "push"],
+        "severity": ["critical"]
+      }
+    }
+  ],
+  "settings": {
+    "default_timeout": 10000,
+    "retry_attempts": 3,
+    "quiet_hours": {
+      "enabled": false,
+      "start": "22:00",
+      "end": "08:00",
+      "timezone": "Asia/Bangkok"
+    }
+  },
+  "templates": {
+    "pull_request": {
+      "title": "🔍 Code Review: {status} for PR #{number}",
+      "text": "Pull Request: {title} by {author}",
+      "color_mapping": {
+        "passed": "good",
+        "failed": "danger",
+        "warning": "warning"
+      }
+    },
+    "push": {
+      "title": "🔍 Code Review: {status} for {repository}",
+      "text": "Push to {branch} ({commit})",
+      "color_mapping": {
+        "passed": "good", 
+        "failed": "danger",
+        "warning": "warning"
+      }
+    }
+  }
+}

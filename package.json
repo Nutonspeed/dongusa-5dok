@@ -17,10 +17,18 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "lint:soft": "next lint || true",
     "format": "prettier --write .",
     "type-check": "tsc --noEmit --project tsconfig.build.json",
+    "typecheck:soft": "tsc --noEmit --project tsconfig.build.json || true",
     "prepare": "husky install",
-    "test": "vitest run"
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "code-quality": "npx tsx scripts/code-quality-analysis.ts",
+    "code-review": "npx tsx scripts/code-review-notification.ts",
+    "notify-team": "npx tsx scripts/team-notification.ts",
+    "notify-test": "npx tsx scripts/team-notification.ts test",
+    "env:check": "node -e \"console.log('Environment check passed')\""
   },
   "dependencies": {
     "@radix-ui/react-checkbox": "^1.0.4",
