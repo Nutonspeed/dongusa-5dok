@@ -6,7 +6,7 @@
  */
 
 import { execSync } from "child_process"
-import { writeFileSync } from "fs"
+import { rmSync, writeFileSync } from "fs"
 
 interface DeploymentResult {
   phase: string
@@ -173,8 +173,12 @@ class ComprehensiveProductionDeployment {
     try {
       console.log("🏗️ Building application for production...")
 
-      // Clean build
-      execSync("rm -rf .next", { stdio: "inherit" })
+      // Clean build (cross-platform)
+      try {
+        rmSync('.next', { recursive: true, force: true })
+      } catch (e) {
+        // ignore if not present
+      }
 
       // Build application
       execSync("npm run build", { stdio: "inherit" })

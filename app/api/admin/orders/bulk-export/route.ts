@@ -1,9 +1,11 @@
 export const runtime = "nodejs"
 
-import { type NextRequest } from "next/server"
-import { createClient } from "@/lib/supabase/server"
 import { requireAdmin } from "@/lib/auth/requireAdmin"
+import { createClient } from "@/lib/supabase/server"
+import { type NextRequest } from "next/server"
 
+// Bulk export relies on server database access; run on Node.
+export const runtime = "nodejs"
 export const dynamic = 'force-dynamic'
 
 export async function GET(request: NextRequest) {

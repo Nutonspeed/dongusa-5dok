@@ -1,11 +1,14 @@
-import { NextResponse, type NextRequest } from "next/server"
-import { z } from "zod"
-import crypto from "crypto"
+import { requireAdmin } from "@/lib/auth/requireAdmin"
+import { OrderStatus } from "@/lib/i18n/status"
+import { logger } from "@/lib/logger"
 import { USE_SUPABASE } from "@/lib/runtime"
 import { createClient } from "@/lib/supabase/server"
-import { logger } from "@/lib/logger"
-import { OrderStatus } from "@/lib/i18n/status"
-import { requireAdmin } from "@/lib/auth/requireAdmin"
+import crypto from "crypto"
+import { NextResponse, type NextRequest } from "next/server"
+import { z } from "zod"
+
+// Server-side bulk updates require Node runtime.
+export const runtime = "nodejs"
 
 export async function POST(request: NextRequest) {
   await requireAdmin(request)

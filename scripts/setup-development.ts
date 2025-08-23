@@ -1,4 +1,4 @@
-import { writeFileSync, existsSync, readFileSync, mkdirSync } from "fs"
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs"
 import { join } from "path"
 
 export const runtime = 'nodejs'
@@ -196,8 +196,8 @@ AUTO_REORDER_ENABLED=true
           "build:analyze": "ANALYZE=true npm run build",
           "build:production": "NODE_ENV=production npm run build",
           "test:env": "tsx lib/environment-validator.ts",
-          clean: "rm -rf .next out dist",
-          "clean:all": "rm -rf .next out dist node_modules package-lock.json",
+          clean: "rimraf .next out dist",
+          "clean:all": "rimraf .next out dist node_modules package-lock.json",
         }
 
         let updated = false

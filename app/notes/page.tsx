@@ -1,5 +1,8 @@
 import { createClient } from "@/lib/supabase/server"
 
+// This server component uses the Supabase server client. Force Node runtime
+export const runtime = "nodejs"
+
 export default async function Notes() {
   const supabase = await createClient()
 

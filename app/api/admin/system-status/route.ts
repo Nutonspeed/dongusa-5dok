@@ -1,5 +1,8 @@
-import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
+import { NextResponse } from "next/server"
+
+// Uses server Supabase client; force Node runtime to avoid Edge bundling.
+export const runtime = "nodejs"
 
 export async function GET() {
   try {

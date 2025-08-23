@@ -1,5 +1,8 @@
-import { type NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
+import { type NextRequest, NextResponse } from "next/server"
+
+// Uses server Supabase client - force Node runtime.
+export const runtime = "nodejs"
 
 interface UserFeedback {
   id: string

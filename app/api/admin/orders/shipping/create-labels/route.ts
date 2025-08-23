@@ -1,8 +1,11 @@
-import { NextResponse, type NextRequest } from "next/server"
+import { requireAdmin } from "@/lib/auth/requireAdmin"
+import { logger } from "@/lib/logger"
 import { USE_SUPABASE } from "@/lib/runtime"
 import { createClient } from "@/lib/supabase/client"
-import { logger } from "@/lib/logger"
-import { requireAdmin } from "@/lib/auth/requireAdmin"
+import { NextResponse, type NextRequest } from "next/server"
+
+// This endpoint may access Supabase server client; ensure Node runtime.
+export const runtime = "nodejs"
 
 function generateTrackingNumber(): string {
   return `TH${Math.random().toString(36).substr(2, 9).toUpperCase()}`

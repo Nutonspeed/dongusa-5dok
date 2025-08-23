@@ -1,0 +1,33 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: ["*"]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use Node.js 18
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+      - name: Install pnpm
+        run: npm install -g pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Validate required envs
+        run: node scripts/ci-validate-env.js
+        env:
+          # Intentionally empty here; secrets should be configured in repo/org settings or environment.
+          # The script will exit non-zero if required env vars are missing.
+          CI: true
+      - name: Run health checks
+        run: pnpm exec tsx scripts/website-health-check.ts
+      - name: Build
+        run: pnpm run build
+      - name: Run tests
+        run: pnpm test

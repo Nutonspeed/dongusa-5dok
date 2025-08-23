@@ -1,8 +1,11 @@
-import { NextResponse, type NextRequest } from "next/server"
+import { requireAdmin } from "@/lib/auth/requireAdmin"
+import { logger } from "@/lib/logger"
 import { USE_SUPABASE } from "@/lib/runtime"
 import { createClient } from "@/lib/supabase/client"
-import { logger } from "@/lib/logger"
-import { requireAdmin } from "@/lib/auth/requireAdmin"
+import { NextResponse, type NextRequest } from "next/server"
+
+// Server-side: sending messages / DB writes. Force Node runtime.
+export const runtime = "nodejs"
 
 const MESSAGE_PRESETS: Record<string, { name: string; template: string }> = {
   payment_reminder: {
