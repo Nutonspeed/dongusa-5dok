@@ -95,6 +95,7 @@ class SecurityNotificationService {
         {
           color: color,
           title: `${emoji} Security Scan Alert - ${alert.repository}`,
+          title_link: alert.scanUrl || undefined,
           fields: [
             {
               title: "Security Score",
@@ -138,10 +139,6 @@ class SecurityNotificationService {
 
     if (alert.criticalVulns > 0 && this.config.slack.mention) {
       payload.attachments[0].text = `${this.config.slack.mention.map(user => `<@${user}>`).join(" ")} - ${payload.attachments[0].text}`
-    }
-
-    if (alert.scanUrl) {
-      payload.attachments[0].title_link = alert.scanUrl
     }
 
     try {
@@ -258,7 +255,7 @@ ${alert.reportUrl ? `- [Detailed Report](${alert.reportUrl})` : ""}
     const color = alert.criticalVulns > 0 ? "Attention" : alert.highVulns > 5 ? "Warning" : "Good"
     const emoji = alert.criticalVulns > 0 ? "🚨" : alert.highVulns > 5 ? "⚠️" : "📋"
 
-    const payload = {
+    const payload: any = {
       "@type": "MessageCard",
       "@context": "http://schema.org/extensions",
       themeColor: alert.criticalVulns > 0 ? "FF0000" : alert.highVulns > 5 ? "FFA500" : "00FF00",
