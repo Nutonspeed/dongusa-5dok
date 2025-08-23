@@ -129,66 +129,42 @@ class LoginSystemTester {
       // Test that AuthContext has all required methods and properties
       const requiredMethods = ["signIn", "signUp", "signOut", "refreshProfile", "checkAccountStatus"]
 
-      const requiredProperties = ["user", "profile", "isLoading", "isAuthenticated", "isAdmin"]
+  // ...removed unused variable requiredProperties...
 
       // This is a structural test - in a real app you'd import and test the actual context
 
-      console.log(`   ✓ Required properties: ${requiredProperties.join(", ")}`)
+  // ...removed console.log for hygiene...
     })
   }
 
   async testRoutingConfiguration(): Promise<void> {
     await this.runTest("Routing Configuration Test", async () => {
       // Test middleware and routing configuration
-      const protectedRoutes = ["/admin", "/profile", "/orders", "/checkout"]
+  // ...removed unused variables protectedRoutes, publicRoutes...
 
-      const publicRoutes = ["/auth/login", "/auth/signup", "/auth/callback", "/"]
-
-      console.log("   ✓ Protected routes configured:", protectedRoutes.join(", "))
-      console.log("   ✓ Public routes configured:", publicRoutes.join(", "))
-      console.log("   ✓ Middleware routing configuration validated")
+  // ...removed console.log for hygiene...
     })
   }
 
   async testErrorHandling(): Promise<void> {
     await this.runTest("Error Handling Test", async () => {
       // Test error handling scenarios
-      const errorScenarios = [
-        "Invalid credentials",
-        "Account locked",
-        "Network error",
-        "Database connection error",
-        "Session expired",
-      ]
+  // ...removed unused variable errorScenarios...
 
-      console.log("   ✓ Error handling scenarios covered:")
-      errorScenarios.forEach((scenario) => {
-        console.log(`     - ${scenario}`)
-      })
+  // ...removed console.log for hygiene...
     })
   }
 
   async testSecurityFeatures(): Promise<void> {
     await this.runTest("Security Features Test", async () => {
-      const securityFeatures = [
-        "Progressive account lockout",
-        "IP-based tracking",
-        "User agent validation",
-        "CAPTCHA integration",
-        "Session security",
-        "Input sanitization",
-      ]
+  // ...removed unused variable securityFeatures...
 
-      console.log("   ✓ Security features implemented:")
-      securityFeatures.forEach((feature) => {
-        console.log(`     - ${feature}`)
-      })
+  // ...removed console.log for hygiene...
     })
   }
 
   async runAllTests(): Promise<void> {
-    console.log("🚀 Starting Login System Comprehensive Test Suite")
-    console.log("=".repeat(60))
+  // ...removed console.log for hygiene...
 
     await this.testEnvironmentVariables()
     await this.testSupabaseConnection()

@@ -1,9 +1,8 @@
 // Re-export everything from supabase client
 export * from './supabase/client';
 
-// Re-export server-side supabase if needed on the client
-import { createClient as createServerClient } from './supabase/server';
-export { createServerClient };
+// Re-export the guarded createServerClient from the supabase façade so callers go through the mock guard.
+export { createServerClient } from './supabase';
 
 // Re-export utilities
 export * from './utils/formatPrice';

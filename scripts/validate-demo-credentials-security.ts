@@ -58,30 +58,11 @@ class DemoCredentialsSecurityValidator {
 
   private addCheck(check: SecurityCheck): void {
     this.checks.push(check)
-    const icon = check.status === "PASS" ? "✅" : check.status === "WARNING" ? "⚠️" : "❌"
-
-    if (check.recommendation) {
-
-    }
+    // ...existing code...
   }
 
   private printResults(): void {
-
-
-    const passed = this.checks.filter((c) => c.status === "PASS").length
-    const warnings = this.checks.filter((c) => c.status === "WARNING").length
-    const failed = this.checks.filter((c) => c.status === "FAIL").length
-
-
-
-
-    if (failed === 0) {
-
-    } else {
-
-    }
-
-
+    // ...existing code...
   }
 }
 

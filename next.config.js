@@ -1,4 +1,14 @@
 /** @type {import('next').NextConfig} */
+// If the environment requests forcing mock Supabase for safety, load the
+// emergency require-hook before Next does any bundling.
+if (process.env.FORCE_MOCK_SUPABASE) {
+  try {
+    require("./lib/force-mock-loader")
+  } catch (err) {
+    // ignore
+  }
+}
+
 const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,

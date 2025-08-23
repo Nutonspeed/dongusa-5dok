@@ -1,8 +1,8 @@
 // DO NOT remove or restructure UI; data wiring only
-import { createClient } from '@/lib/supabase/server';
+import { createServerClient } from '@/lib/supabase';
 
 export async function validate(code: string) {
-  const supabase = createClient();
+  const supabase = await createServerClient();
   const { data, error } = await supabase
     .from('promotions')
     .select('discount_pct')

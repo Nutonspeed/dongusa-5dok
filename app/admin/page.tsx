@@ -1,4 +1,4 @@
-import AdminDashboardClient from "./page.client.tsx"
+import AdminDashboardClient from "./page.client"
 import databaseClient from "@/lib/database-client"
 import { USE_SUPABASE } from "@/lib/runtime"
 

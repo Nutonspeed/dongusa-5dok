@@ -2,7 +2,7 @@ import { loadEnv } from "@/lib/config/env"
 import { emailService } from "@/lib/email"
 import { createSmsClient } from "@/lib/sms"
 import { createClient } from "@/lib/supabase/client"
-import { isSupabaseConfigured } from "@/lib/supabase/server"
+import { isSupabaseConfigured } from "@/lib/supabase"
 
 function flags() {
   const env = loadEnv()

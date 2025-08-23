@@ -1,5 +1,5 @@
 // NOTE: Data wiring only. DO NOT remove or restructure existing UI.
-import { createClient } from '@/lib/supabase/server';
+import { createServerClient } from '@/lib/supabase';
 
 export type AuthUser = { id: string; email?: string | null; role?: 'admin' | 'user' };
 
@@ -11,7 +11,7 @@ export const AuthService = {
     if (process.env.QA_BYPASS_AUTH === '1') {
       return { ok: true, user: { id: 'qa-user', email, role: 'admin' } };
     }
-    const supabase = createClient();
+  const supabase = await createServerClient();
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error || !data.user) {
       return { ok: false, error: error?.message || 'Invalid credentials' };
@@ -21,7 +21,7 @@ export const AuthService = {
 
   async signOut(): Promise<void> {
     if (process.env.QA_BYPASS_AUTH === '1') return;
-    const supabase = createClient();
+  const supabase = await createServerClient();
     await supabase.auth.signOut();
   },
 
@@ -29,7 +29,7 @@ export const AuthService = {
     if (process.env.QA_BYPASS_AUTH === '1') {
       return { id: 'qa-user', email: 'qa@example.com', role: 'admin' };
     }
-    const supabase = createClient();
+  const supabase = await createServerClient();
     const { data, error } = await supabase.auth.getUser();
     if (error || !data.user) return null;
     return { id: data.user.id, email: data.user.email };

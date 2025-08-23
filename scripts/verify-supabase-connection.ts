@@ -1,4 +1,4 @@
-import { createClient as createServerClient } from "@/lib/supabase/server"
+import { createServerClient } from "@/lib/supabase"
 import { supabase as clientSupabase } from "@/lib/supabase/client"
 
 interface ConnectionTest {

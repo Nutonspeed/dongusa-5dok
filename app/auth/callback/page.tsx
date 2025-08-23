@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server"
+import { createServerClient } from "@/lib/supabase"
 import { redirect } from "next/navigation"
 import { decidePostAuthRedirect } from "@/lib/auth/redirect"
 
@@ -12,7 +12,7 @@ export default async function AuthCallbackPage({
   const code = searchParams.code
 
   if (code) {
-    const supabase = await createClient()
+  const supabase = await createServerClient()
 
     try {
       await supabase.auth.exchangeCodeForSession(code)

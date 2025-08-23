@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/client"
-import { createClient as createServerClient } from "@/lib/supabase/server"
+import { createServerClient } from "@/lib/supabase"
 
 export interface GuestUser {
   id: string
@@ -261,8 +261,14 @@ export class GuestUserManager {
 
 // Server-side version for API routes
 export class ServerGuestUserManager {
-  private supabase = createServerClient()
+  private supabase: any
 
+  constructor() {
+    // defer initialization; callers should await init if they need serverGuestUserManager in scripts
+    ;(async () => {
+      this.supabase = await createServerClient()
+    })()
+  }
   async getAllGuestUsers(page = 1, limit = 50): Promise<{ users: GuestUser[]; total: number }> {
     try {
       const offset = (page - 1) * limit

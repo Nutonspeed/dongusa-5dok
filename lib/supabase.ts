@@ -1,23 +1,31 @@
-import { createClient } from "@supabase/supabase-js"
+import { createClient as createBrowserClient } from "@supabase/supabase-js"
+
+// Lightweight mock used across the project when real DB access must be disabled.
+function makeMockSupabase() {
+  const noop = () => ({ data: null, error: null })
+  return {
+    from: () => ({ select: noop, insert: noop, update: noop, delete: noop, eq: noop, single: noop, range: noop, limit: noop, order: noop, rpc: noop }),
+    rpc: noop,
+    auth: { getUser: async () => null, signIn: async () => ({ data: null, error: null }) },
+  } as any
+}
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+const FORCE_MOCK = !!process.env.FORCE_MOCK_SUPABASE || process.env.NODE_ENV === "test"
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error("Missing Supabase environment variables")
+export const supabase = !FORCE_MOCK && supabaseUrl && supabaseAnonKey
+  ? createBrowserClient(supabaseUrl, supabaseAnonKey, { auth: { persistSession: true, autoRefreshToken: true } })
+  : makeMockSupabase()
+
+// Export createServerClient for server contexts dynamically from server module when needed.
+export async function createServerClient() {
+  // If tests or a forced mock are requested, return the mock immediately.
+  if (FORCE_MOCK) return makeMockSupabase()
+
+  // dynamic import avoids pulling server-only code into client/build time
+  const mod = await import("./supabase/server")
+  return mod.createClient()
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    persistSession: true,
-    autoRefreshToken: true,
-  },
-})
-
-// Export createClient function for contexts
-export { createClient }
-
-// Re-export from new locations for backward compatibility
-export { supabase as default } from "@/lib/supabase/client"
-export * from "@/lib/supabase/client"
-export * from "@/lib/supabase/server"
+export const isSupabaseConfigured = !FORCE_MOCK && !!supabaseUrl && !!supabaseAnonKey

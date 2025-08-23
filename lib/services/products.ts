@@ -1,6 +1,6 @@
 // DO NOT remove or restructure UI; data wiring only
 
-import { createClient } from '@/lib/supabase/server';
+import { createServerClient } from '@/lib/supabase';
 
 interface ListParams {
   categorySlug?: string;
@@ -12,7 +12,7 @@ interface ListParams {
 }
 
 export async function listProducts(params: ListParams = {}) {
-  const supabase = createClient();
+  const supabase = await createServerClient();
   const {
     categorySlug,
     q,
@@ -32,7 +32,7 @@ export async function listProducts(params: ListParams = {}) {
 }
 
 export async function getProduct(id: string) {
-  const supabase = createClient();
+  const supabase = await createServerClient();
   const { data, error } = await supabase
     .from('products')
     .select('*')

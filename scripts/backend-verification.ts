@@ -1,6 +1,6 @@
 #!/usr/bin/env tsx
 
-import { createClient } from "@/lib/supabase/server"
+import { createServerClient } from "@/lib/supabase"
 
 interface VerificationResult {
   component: string

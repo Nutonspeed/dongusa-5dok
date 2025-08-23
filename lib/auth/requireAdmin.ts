@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server"
-import { createClient } from "@/lib/supabase/server"
+import { createServerClient } from "@/lib/supabase"
 
 /**
  * Ensures the requester is an administrator.
@@ -46,7 +46,7 @@ export async function requireAdmin(request: NextRequest): Promise<void> {
 
   // Fallback: attempt server client (may not have cookie context)
   try {
-    const supabase = createClient()
+    const supabase = await createServerClient()
     const {
       data: { user },
     } = await supabase.auth.getUser()

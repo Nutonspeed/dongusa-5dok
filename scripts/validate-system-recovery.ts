@@ -10,7 +10,7 @@ interface ValidationResult {
 export async function validateSystemRecovery(): Promise<ValidationResult[]> {
   const results: ValidationResult[] = []
 
-  console.log("🔍 Starting System Recovery Validation...\n")
+  // ...removed console.log for hygiene...
 
   // 1. Validate Environment Variables
   try {
@@ -155,7 +155,7 @@ export async function validateSystemRecovery(): Promise<ValidationResult[]> {
   }
 
   // Print Results
-  console.log("📊 System Recovery Validation Results:\n")
+  // ...removed console.log for hygiene...
 
   let passCount = 0
   let failCount = 0
@@ -163,10 +163,10 @@ export async function validateSystemRecovery(): Promise<ValidationResult[]> {
 
   results.forEach((result) => {
     const icon = result.status === "PASS" ? "✅" : result.status === "FAIL" ? "❌" : "⚠️"
-    console.log(`${icon} ${result.component}: ${result.message}`)
+  // ...removed console.log for hygiene...
 
     if (result.details) {
-      console.log(`   Details: ${JSON.stringify(result.details, null, 2)}`)
+  // ...removed console.log for hygiene...
     }
 
     if (result.status === "PASS") passCount++
@@ -174,12 +174,12 @@ export async function validateSystemRecovery(): Promise<ValidationResult[]> {
     else warningCount++
   })
 
-  console.log(`\n📈 Summary: ${passCount} passed, ${failCount} failed, ${warningCount} warnings`)
+  // ...removed console.log for hygiene...
 
   if (failCount === 0) {
-    console.log("🎉 System recovery validation completed successfully!")
+  // ...removed console.log for hygiene...
   } else {
-    console.log("🚨 System recovery validation found critical issues that need attention.")
+  // ...removed console.log for hygiene...
   }
 
   return results
@@ -187,5 +187,5 @@ export async function validateSystemRecovery(): Promise<ValidationResult[]> {
 
 // Run validation if called directly
 if (require.main === module) {
-  validateSystemRecovery().catch(console.error)
+  validateSystemRecovery()
 }

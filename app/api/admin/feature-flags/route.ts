@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { createClient } from "@/lib/supabase/server"
+import { createServerClient } from "@/lib/supabase"
 
 export async function GET() {
   try {
@@ -25,7 +25,7 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const body = await request.json()
-    const supabase = await createClient()
+  const supabase = await createServerClient()
 
     // Store feature flags in database for persistence
     const { error } = await supabase.from("system_settings").upsert(

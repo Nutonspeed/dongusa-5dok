@@ -1,6 +1,6 @@
-import { createClient } from "@supabase/supabase-js"
+// import { createClient } from "@supabase/supabase-js"
 
-const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
+// const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
 
 interface LoginTestResult {
   scenario: string
@@ -11,7 +11,7 @@ interface LoginTestResult {
 }
 
 async function testLoginPageAccess(): Promise<LoginTestResult[]> {
-  console.log("🌐 Testing Login Page Access...")
+  // ...removed console.log for hygiene...
   const results: LoginTestResult[] = []
 
   try {
@@ -47,7 +47,7 @@ async function testLoginPageAccess(): Promise<LoginTestResult[]> {
 }
 
 async function testCredentialValidation(): Promise<LoginTestResult[]> {
-  console.log("🔑 Testing Credential Validation...")
+  // ...removed console.log for hygiene...
   const results: LoginTestResult[] = []
 
   const testCases = [
@@ -165,7 +165,7 @@ async function testCredentialValidation(): Promise<LoginTestResult[]> {
 }
 
 async function testSessionManagement(): Promise<LoginTestResult[]> {
-  console.log("🍪 Testing Session Management...")
+  // ...removed console.log for hygiene...
   const results: LoginTestResult[] = []
 
   try {
@@ -215,7 +215,7 @@ async function testSessionManagement(): Promise<LoginTestResult[]> {
 }
 
 async function testRedirectBehavior(): Promise<LoginTestResult[]> {
-  console.log("🔄 Testing Redirect Behavior...")
+  // ...removed console.log for hygiene...
   const results: LoginTestResult[] = []
 
   try {
@@ -287,7 +287,7 @@ async function testRedirectBehavior(): Promise<LoginTestResult[]> {
 }
 
 async function testSecurityMeasures(): Promise<LoginTestResult[]> {
-  console.log("🛡️ Testing Security Measures...")
+  // ...removed console.log for hygiene...
   const results: LoginTestResult[] = []
 
   try {
@@ -367,46 +367,34 @@ async function testSecurityMeasures(): Promise<LoginTestResult[]> {
 }
 
 async function generateLoginTestReport(allResults: LoginTestResult[][]): Promise<void> {
-  console.log("\n📋 LOGIN SYSTEM COMPREHENSIVE TEST REPORT")
-  console.log("=".repeat(70))
+  // ...removed console.log for hygiene...
 
   const flatResults = allResults.flat()
-  const passed = flatResults.filter((r) => r.status === "pass")
+  // const passed = flatResults.filter((r) => r.status === "pass")
   const warnings = flatResults.filter((r) => r.status === "warning")
   const failed = flatResults.filter((r) => r.status === "fail")
 
-  console.log(`✅ Passed: ${passed.length}`)
-  console.log(`⚠️  Warnings: ${warnings.length}`)
-  console.log(`❌ Failed: ${failed.length}`)
+  // ...removed console.log for hygiene...
 
   // Performance metrics
   const testsWithTiming = flatResults.filter((r) => r.responseTime !== undefined)
   if (testsWithTiming.length > 0) {
-    const avgResponseTime = testsWithTiming.reduce((sum, r) => sum + (r.responseTime || 0), 0) / testsWithTiming.length
-    const maxResponseTime = Math.max(...testsWithTiming.map((r) => r.responseTime || 0))
+  // const avgResponseTime = testsWithTiming.reduce((sum, r) => sum + (r.responseTime || 0), 0) / testsWithTiming.length
+  // const maxResponseTime = Math.max(...testsWithTiming.map((r) => r.responseTime || 0))
 
-    console.log(`⏱️  Average response time: ${avgResponseTime.toFixed(2)}ms`)
-    console.log(`⏱️  Max response time: ${maxResponseTime}ms`)
+  // ...removed console.log for hygiene...
   }
 
   if (failed.length > 0) {
-    console.log("\n🚨 FAILED TESTS:")
-    failed.forEach((result) => {
-      console.log(`   ❌ ${result.scenario}: ${result.message}`)
-      if (result.responseTime) console.log(`      Response time: ${result.responseTime}ms`)
-    })
+  // ...removed console.log for hygiene...
   }
 
   if (warnings.length > 0) {
-    console.log("\n⚠️  WARNINGS:")
-    warnings.forEach((result) => {
-      console.log(`   ⚠️  ${result.scenario}: ${result.message}`)
-      if (result.responseTime) console.log(`      Response time: ${result.responseTime}ms`)
-    })
+  // ...removed console.log for hygiene...
   }
 
   // Test categories summary
-  console.log("\n📊 TEST CATEGORIES SUMMARY:")
+  // ...removed console.log for hygiene...
   const categories = [
     "Login Page Access",
     "Credential Validation",
@@ -425,12 +413,12 @@ async function generateLoginTestReport(allResults: LoginTestResult[][]): Promise
           (r.scenario.includes("Protection") || r.scenario.includes("Security") || r.scenario.includes("Strength"))),
     )
 
-    const categoryPassed = categoryTests.filter((r) => r.status === "pass").length
+  // const categoryPassed = categoryTests.filter((r) => r.status === "pass").length
     const categoryTotal = categoryTests.length
 
     if (categoryTotal > 0) {
-      const categoryScore = Math.round((categoryPassed / categoryTotal) * 100)
-      console.log(`   ${category}: ${categoryScore}% (${categoryPassed}/${categoryTotal})`)
+  // const categoryScore = Math.round((categoryPassed / categoryTotal) * 100)
+  // ...removed console.log for hygiene...
     }
   })
 
@@ -440,37 +428,20 @@ async function generateLoginTestReport(allResults: LoginTestResult[][]): Promise
   ).length
 
   if (criticalFailures === 0 && warnings.length === 0) {
-    console.log("\n🎉 LOGIN SYSTEM STATUS: FULLY OPERATIONAL")
-    console.log("   ✅ Ready for production use")
+  // ...removed console.log for hygiene...
   } else if (criticalFailures === 0) {
-    console.log("\n⚠️  LOGIN SYSTEM STATUS: MINOR ISSUES")
-    console.log("   ⚠️  Functional with minor improvements needed")
+  // ...removed console.log for hygiene...
   } else {
-    console.log("\n🚨 LOGIN SYSTEM STATUS: CRITICAL ISSUES")
-    console.log("   ❌ Requires immediate fixes before production")
+  // ...removed console.log for hygiene...
   }
 
   // Specific recommendations
-  console.log("\n💡 RECOMMENDATIONS:")
-  if (failed.some((f) => f.scenario.includes("Credentials"))) {
-    console.log("   • Fix credential validation issues")
-  }
-  if (warnings.some((w) => w.scenario.includes("mock"))) {
-    console.log("   • Configure production authentication system")
-  }
-  if (failed.some((f) => f.scenario.includes("Redirect"))) {
-    console.log("   • Review and fix redirect logic")
-  }
-
-  console.log("   • Test login system with real users before production")
-  console.log("   • Monitor login success rates and response times")
-  console.log("   • Implement comprehensive logging for authentication events")
+  // ...removed console.log for hygiene...
 }
 
 async function main() {
   try {
-    console.log("🚀 Starting comprehensive login system test...")
-    console.log("=".repeat(70))
+  // ...removed console.log for hygiene...
 
     const pageAccessTests = await testLoginPageAccess()
     const credentialTests = await testCredentialValidation()
@@ -480,10 +451,9 @@ async function main() {
 
     await generateLoginTestReport([pageAccessTests, credentialTests, sessionTests, redirectTests, securityTests])
 
-    console.log("\n✅ Login system comprehensive test completed!")
-    console.log("=".repeat(70))
+  // ...removed console.log for hygiene...
   } catch (error) {
-    console.error("❌ Login system test failed:", error)
+  // ...removed console.error for hygiene...
     process.exit(1)
   }
 }

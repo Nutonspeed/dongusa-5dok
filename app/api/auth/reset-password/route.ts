@@ -2,7 +2,7 @@ export const runtime = "nodejs"
 
 import { type NextRequest, NextResponse } from "next/server"
 import { securityService } from "@/lib/security-service"
-import { createClient } from "@/lib/supabase/server"
+import { createServerClient } from "@/lib/supabase"
 import { USE_SUPABASE } from "@/lib/runtime"
 
 export async function POST(request: NextRequest) {
@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (USE_SUPABASE) {
-      const supabase = createClient()
+  const supabase = await createServerClient()
       const { error } = await supabase.auth.resetPasswordForEmail(validation.sanitized, {
         redirectTo: `${request.nextUrl.origin}/auth/reset-password`,
       })

@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server"
+import { createServerClient } from "@/lib/supabase"
 
 async function testSupabaseConnection() {
 
@@ -10,7 +10,7 @@ async function testSupabaseConnection() {
 
   // Test server client connection
   try {
-    const supabase = createClient()
+  const supabase = await createServerClient()
 
     // Test a simple query to verify connection
   const { error } = await supabase.from("profiles").select("count").limit(1)
@@ -37,4 +37,4 @@ async function testSupabaseConnection() {
   }
 }
 
-testSupabaseConnection().catch(console.error)
+testSupabaseConnection()

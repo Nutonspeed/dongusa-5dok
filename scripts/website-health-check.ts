@@ -1,6 +1,6 @@
 #!/usr/bin/env tsx
 
-import { createClient } from "@supabase/supabase-js"
+import { createClient } from "@/lib/supabase/client"
 import fs from "fs"
 
 interface HealthCheckResult {

@@ -1,7 +1,7 @@
-import { createClient } from "@/lib/supabase/server"
+import { createServerClient } from "@/lib/supabase"
 
 export default async function Notes() {
-  const supabase = await createClient()
+  const supabase = await createServerClient()
 
   try {
     const { data: notes, error } = await supabase.from("notes").select("*").order("created_at", { ascending: false })

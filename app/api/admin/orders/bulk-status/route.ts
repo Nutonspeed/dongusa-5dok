@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from "next/server"
 import { z } from "zod"
 import crypto from "crypto"
 import { USE_SUPABASE } from "@/lib/runtime"
-import { createClient } from "@/lib/supabase/server"
+import { createServerClient } from "@/lib/supabase"
 import { logger } from "@/lib/logger"
 import { OrderStatus } from "@/lib/i18n/status"
 import { requireAdmin } from "@/lib/auth/requireAdmin"
@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
 
     if (USE_SUPABASE) {
       try {
-        const supabase = createClient()
+  const supabase = await createServerClient()
 
         if (idempotencyKey) {
           const { data: existing } = await supabase

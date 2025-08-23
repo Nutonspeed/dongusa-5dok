@@ -1,6 +1,6 @@
 // DO NOT remove or restructure UI; data wiring only
 
-import { createClient } from '@/lib/supabase/server';
+import { createServerClient } from '@/lib/supabase';
 
 interface OrderItem {
   product_id: string;
@@ -16,7 +16,7 @@ interface CreateOrderPayload {
 }
 
 export async function createOrder(payload: CreateOrderPayload) {
-  const supabase = createClient();
+  const supabase = await createServerClient();
   const { data, error } = await supabase
     .from('orders')
     .insert({
@@ -37,7 +37,7 @@ export async function createOrder(payload: CreateOrderPayload) {
 }
 
 export async function getOrderById(id: string) {
-  const supabase = createClient();
+  const supabase = await createServerClient();
   const { data, error } = await supabase
     .from('orders')
     .select('*, order_items(*)')
@@ -51,7 +51,7 @@ export async function listOrdersByCustomer(
   uid: string,
   opts: { limit?: number; offset?: number } = {},
 ) {
-  const supabase = createClient();
+  const supabase = await createServerClient();
   const { limit = 20, offset = 0 } = opts;
   const { data, error } = await supabase
     .from('orders')

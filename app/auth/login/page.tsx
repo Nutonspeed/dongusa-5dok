@@ -1,6 +1,6 @@
 export const dynamic = "force-dynamic"
 
-import { createClient } from "@/lib/supabase/server"
+import { createServerClient } from "@/lib/supabase"
 import { USE_SUPABASE } from "@/lib/runtime"
 import { redirect } from "next/navigation"
 import ModernLoginForm from "@/components/ModernLoginForm"
@@ -14,7 +14,7 @@ export default async function LoginPage({
   searchParams?: { redirect?: string }
 }) {
   if (USE_SUPABASE) {
-    const supabase = createClient()
+  const supabase = await createServerClient()
     const {
       data: { session },
     } = await supabase.auth.getSession()

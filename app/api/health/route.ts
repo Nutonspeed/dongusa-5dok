@@ -1,5 +1,5 @@
 import { USE_SUPABASE, supabaseEnvInfo } from "@/lib/runtime"
-import { createClient } from "@/lib/supabase/server"
+import { createServerClient } from "@/lib/supabase"
 
 export const runtime = "nodejs"
 
@@ -8,7 +8,7 @@ export async function GET() {
   const info = supabaseEnvInfo()
   const tables: string[] = []
   if (USE_SUPABASE) {
-    const supabase = await createClient()
+  const supabase = await createServerClient()
     const checkTables = ["products", "categories", "customers", "orders", "order_items"]
     for (const t of checkTables) {
       const { error } = await supabase.from(t).select("id").limit(1)

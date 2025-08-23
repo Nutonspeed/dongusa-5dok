@@ -1,9 +1,9 @@
 // DO NOT remove or restructure UI; data wiring only
 
-import { createClient } from '@/lib/supabase/server';
+import { createServerClient } from '@/lib/supabase';
 
 export async function listCategories() {
-  const supabase = createClient();
+  const supabase = await createServerClient();
   const { data, error } = await supabase
     .from('categories')
     .select('*')
@@ -13,7 +13,7 @@ export async function listCategories() {
 }
 
 export async function getCategoryBySlug(slug: string) {
-  const supabase = createClient();
+  const supabase = await createServerClient();
   const { data, error } = await supabase
     .from('categories')
     .select('*')

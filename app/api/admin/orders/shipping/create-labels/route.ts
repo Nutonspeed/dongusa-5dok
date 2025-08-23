@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server"
 import { USE_SUPABASE } from "@/lib/runtime"
-import { createClient } from "@/lib/supabase/server"
+import { createServerClient } from "@/lib/supabase"
 import { logger } from "@/lib/logger"
 import { requireAdmin } from "@/lib/auth/requireAdmin"
 import { notifications } from "@/lib/notifications"
@@ -25,9 +25,9 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    if (USE_SUPABASE) {
+  if (USE_SUPABASE) {
       try {
-        const supabase = createClient()
+    const supabase = await createServerClient()
 
         // Create shipping labels for each order
         const labelRecords = orderIds.map((orderId) => {

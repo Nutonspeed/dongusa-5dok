@@ -1,4 +1,4 @@
-import { createServerClient } from "@supabase/ssr"
+import { createServerClient } from "@/lib/supabase"
 import { decidePostAuthRedirect } from "@/lib/auth/redirect"
 import { featureFlags } from "@/utils/featureFlags"
 import type { NextRequest } from "next/server"
@@ -14,7 +14,7 @@ const PROTECTED_ROUTES = {
   public: ["/auth/callback", "/auth/login", "/login"],
 }
 
-function getClientIP(request: NextRequest): string {
+function _getClientIP(request: NextRequest): string {
   return (
     request.headers.get("x-forwarded-for")?.split(",")[0] ||
     request.headers.get("x-real-ip") ||
@@ -44,24 +44,24 @@ async function updateSession(request: NextRequest) {
     request,
   })
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll()
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
-          supabaseResponse = NextResponse.next({
-            request,
-          })
-          cookiesToSet.forEach(({ name, value, options }) => supabaseResponse.cookies.set(name, value, options))
-        },
-      },
+  const cookieAdapter = {
+    getAll() {
+      return request.cookies.getAll()
     },
-  )
+    setAll(cookiesToSet: any[]) {
+      cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
+      supabaseResponse = NextResponse.next({
+        request,
+      })
+      cookiesToSet.forEach(({ name, value, options }) => supabaseResponse.cookies.set(name, value, options))
+    },
+  }
+
+  const supabase = await createServerClient()
+  // If the returned client supports configuring cookies (real client), pass cookie adapter if available
+  if (supabase && typeof (supabase as any).setCookieAdapter === "function") {
+    (supabase as any).setCookieAdapter?.(cookieAdapter)
+  }
 
   const {
     data: { user },

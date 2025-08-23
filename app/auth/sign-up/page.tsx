@@ -1,6 +1,6 @@
 export const dynamic = "force-dynamic"
 
-import { createClient } from "@/lib/supabase/server"
+import { createServerClient } from "@/lib/supabase"
 import { USE_SUPABASE } from "@/lib/runtime"
 import { redirect } from "next/navigation"
 import SignUpForm from "@/components/sign-up-form"
@@ -16,7 +16,7 @@ export default async function SignUpPage() {
     )
   }
 
-  const supabase = createClient()
+  const supabase = await createServerClient()
   const {
     data: { session },
   } = await supabase.auth.getSession()

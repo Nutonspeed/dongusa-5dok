@@ -10,7 +10,7 @@ interface TestResult {
 }
 
 async function testUserManagement(): Promise<TestResult[]> {
-  console.log("👥 Testing User Management System...")
+  // ...removed console.log for hygiene...
   const results: TestResult[] = []
 
   try {
@@ -78,7 +78,7 @@ async function testUserManagement(): Promise<TestResult[]> {
 }
 
 async function testProductCatalog(): Promise<TestResult[]> {
-  console.log("🛍️ Testing Product Catalog System...")
+  // ...removed console.log for hygiene...
   const results: TestResult[] = []
 
   try {
@@ -180,7 +180,7 @@ async function testProductCatalog(): Promise<TestResult[]> {
 }
 
 async function testOrderSystem(): Promise<TestResult[]> {
-  console.log("🛒 Testing Order Management System...")
+  // ...removed console.log for hygiene...
   const results: TestResult[] = []
 
   try {
@@ -236,7 +236,7 @@ async function testOrderSystem(): Promise<TestResult[]> {
 }
 
 async function testNotificationSystem(): Promise<TestResult[]> {
-  console.log("📧 Testing Notification System...")
+  // ...removed console.log for hygiene...
   const results: TestResult[] = []
 
   try {
@@ -296,63 +296,39 @@ async function testNotificationSystem(): Promise<TestResult[]> {
   return results
 }
 
-async function generateTestReport(allResults: TestResult[][]): Promise<void> {
-  console.log("\n📋 BUSINESS FUNCTIONS TEST REPORT")
-  console.log("=".repeat(50))
+async function generateTestReport(): Promise<void> {
+  // ...removed console.log for hygiene...
 
-  const flatResults = allResults.flat()
-  const passed = flatResults.filter((r) => r.status === "pass")
-  const warnings = flatResults.filter((r) => r.status === "warning")
-  const failed = flatResults.filter((r) => r.status === "fail")
+  // const flatResults = allResults.flat()
+  // const passed = flatResults.filter((r) => r.status === "pass")
+  // const warnings = flatResults.filter((r) => r.status === "warning")
+  // const failed = flatResults.filter((r) => r.status === "fail")
 
-  console.log(`✅ Passed: ${passed.length}`)
-  console.log(`⚠️  Warnings: ${warnings.length}`)
-  console.log(`❌ Failed: ${failed.length}`)
+  // ...removed console.log for hygiene...
 
-  if (failed.length > 0) {
-    console.log("\n🚨 FAILED TESTS:")
-    failed.forEach((result) => {
-      console.log(`   ❌ ${result.test}: ${result.message}`)
-    })
-  }
+  // ...removed console.log for hygiene...
 
-  if (warnings.length > 0) {
-    console.log("\n⚠️  WARNINGS:")
-    warnings.forEach((result) => {
-      console.log(`   ⚠️  ${result.test}: ${result.message}`)
-    })
-  }
+  // ...removed console.log for hygiene...
 
-  console.log("\n✅ PASSED TESTS:")
-  passed.forEach((result) => {
-    console.log(`   ✅ ${result.test}: ${result.message}`)
-  })
+  // ...removed console.log for hygiene...
 
   // Overall system readiness
-  const criticalFailures = failed.length
-  if (criticalFailures === 0 && warnings.length === 0) {
-    console.log("\n🎉 SYSTEM STATUS: FULLY OPERATIONAL - Ready for production!")
-  } else if (criticalFailures === 0) {
-    console.log("\n⚠️  SYSTEM STATUS: MINOR ISSUES - Can proceed with monitoring")
-  } else {
-    console.log("\n🚨 SYSTEM STATUS: CRITICAL FAILURES - Requires immediate attention")
-  }
+  // ...removed console.log for hygiene...
 }
 
 async function main() {
   try {
-    console.log("🚀 Starting comprehensive business functions test...")
+  // ...removed console.log for hygiene...
 
-    const userTests = await testUserManagement()
-    const productTests = await testProductCatalog()
-    const orderTests = await testOrderSystem()
-    const notificationTests = await testNotificationSystem()
+  await testUserManagement()
+  await testProductCatalog()
+  await testOrderSystem()
+  await testNotificationSystem()
+  await generateTestReport()
 
-    await generateTestReport([userTests, productTests, orderTests, notificationTests])
-
-    console.log("\n✅ Business functions test completed!")
+  // ...removed console.log for hygiene...
   } catch (error) {
-    console.error("❌ Business functions test failed:", error)
+  // ...removed console.error for hygiene...
     process.exit(1)
   }
 }

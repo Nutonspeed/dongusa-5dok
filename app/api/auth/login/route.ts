@@ -3,7 +3,7 @@ export const runtime = "nodejs"
 import { bruteForceProtection } from "@/lib/brute-force-protection"
 import { USE_SUPABASE } from "@/lib/runtime"
 import { securityService } from "@/lib/security-service"
-import { createServerClient } from "@supabase/ssr"
+import { createServerClient } from "@/lib/supabase"
 import { type NextRequest, NextResponse } from "next/server"
 
 /**
@@ -89,21 +89,24 @@ export async function POST(request: NextRequest) {
     const supabaseAnon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY
 
     if (USE_SUPABASE && supabaseUrl && supabaseAnon) {
-      // Provide get and set methods for cookies as required by @supabase/ssr
+      // Provide get and set methods for cookies as required by server client
       const cookiesToSet: Array<{ name: string; value: string; options?: any }> = []
-      const supabase = createServerClient(supabaseUrl, supabaseAnon, {
-        cookies: {
-          get(name: string) {
-            return request.cookies.get(name)?.value
-          },
-          set(name: string, value: string, options?: any) {
-            cookiesToSet.push({ name, value, options })
-          },
+      const cookieAdapter = {
+        get(name: string) {
+          return request.cookies.get(name)?.value
         },
-      })
+        set(name: string, value: string, options?: any) {
+          cookiesToSet.push({ name, value, options })
+        },
+      }
+
+      const supabase = await createServerClient()
+      if (supabase && typeof (supabase as any).setCookieAdapter === "function") {
+        (supabase as any).setCookieAdapter?.(cookieAdapter)
+      }
 
       // Perform sign-in
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await (supabase as any).auth.signInWithPassword({
         email: emailValidation.sanitized,
         password,
       })

@@ -5,7 +5,7 @@
  * Tests admin authentication and backend access functionality
  */
 
-import { createClient } from "@supabase/supabase-js"
+import { createClient } from "@/lib/supabase/client"
 import type { Database } from "@/lib/supabase/types"
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL!

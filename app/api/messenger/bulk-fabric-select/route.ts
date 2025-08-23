@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { messengerService } from "@/lib/messenger-integration"
-import { conversionTracker } from "@/lib/conversion-tracking"
+import { conversionTracker, ConversionTrackingService } from "@/lib/conversion-tracking"
 
 export async function POST(request: NextRequest) {
   try {
@@ -29,9 +29,9 @@ ${customerMessage || `สนใจลายผ้าทั้ง ${fabrics.lengt
     // Track bulk selection
     await conversionTracker.trackEvent({
       eventType: "fabric_select" as any,
-      userId: conversionTracker.constructor.getUserId(),
-      sessionId: sessionId || conversionTracker.constructor.generateSessionId(),
-      timestamp: new Date(),
+      userId: ConversionTrackingService.getUserId(),
+      sessionId: sessionId || ConversionTrackingService.generateSessionId(),
+      source: "web",
       data: {
         bulk_selection: true,
         fabric_count: fabrics.length,

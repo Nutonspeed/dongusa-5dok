@@ -3,8 +3,8 @@
 
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
-import { createServerClient } from "@supabase/ssr"
-import type { Database } from "@/lib/supabase/types"
+import { createServerClient } from "@/lib/supabase"
+// ...existing code...
 import { USE_SUPABASE } from "@/lib/runtime"
 import { logger } from "@/lib/logger"
 
@@ -93,23 +93,24 @@ async function handleSupabaseAuth(request: NextRequest) {
   })
 
   try {
-    const url = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL!
-    const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY!
 
-    const supabase = createServerClient<Database>(url, anon, {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll()
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
-          supabaseResponse = NextResponse.next({
-            request,
-          })
-          cookiesToSet.forEach(({ name, value, options }) => supabaseResponse.cookies.set(name, value, options))
-        },
+    const cookieAdapter = {
+      getAll() {
+        return request.cookies.getAll()
       },
-    })
+      setAll(cookiesToSet: any[]) {
+        cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
+        supabaseResponse = NextResponse.next({
+          request,
+        })
+        cookiesToSet.forEach(({ name, value, options }) => supabaseResponse.cookies.set(name, value, options))
+      },
+    }
+
+  const supabase = await createServerClient()
+    if (supabase && typeof (supabase as any).setCookieAdapter === "function") {
+      (supabase as any).setCookieAdapter?.(cookieAdapter)
+    }
 
     // Handle auth callback
     const code = request.nextUrl.searchParams.get("code")

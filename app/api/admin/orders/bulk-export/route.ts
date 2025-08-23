@@ -1,7 +1,7 @@
 export const runtime = "nodejs"
 
 import type { NextRequest } from "next/server"
-import { createClient } from "@/lib/supabase/server"
+import { createServerClient } from "@/lib/supabase"
 import { requireAdmin } from "@/lib/auth/requireAdmin"
 
 export const dynamic = "force-dynamic"
@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic"
 export async function GET(request: NextRequest) {
   await requireAdmin(request)
   try {
-    const supabase = await createClient()
+  const supabase = await createServerClient()
     const { data, error } = await supabase.from("orders").select("id, total_amount, created_at")
 
     if (error) {

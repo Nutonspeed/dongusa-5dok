@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { createClient } from "@/lib/supabase/server"
+import { createServerClient } from "@/lib/supabase"
 
 interface SupportTicket {
   id: string
@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Missing required fields: email, subject, description" }, { status: 400 })
     }
 
-  const supabase = createClient()
+  const supabase = await createServerClient()
 
     // Create support ticket
     const ticketData: Partial<SupportTicket> = {

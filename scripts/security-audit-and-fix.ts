@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server"
+import { createServerClient } from "@/lib/supabase"
 import { USE_SUPABASE, IS_PRODUCTION, QA_BYPASS_AUTH } from "@/lib/runtime"
 
 interface SecurityIssue {
@@ -55,7 +55,7 @@ async function runSecurityAudit(): Promise<{
   let databaseConnected = false
   try {
     if (USE_SUPABASE) {
-      const supabase = createClient()
+    const supabase = await createServerClient()
       const { data, error } = await supabase.from("profiles").select("count").limit(1)
 
       if (!error) {
@@ -122,7 +122,7 @@ async function runSecurityAudit(): Promise<{
   let authenticationWorking = false
   try {
     if (USE_SUPABASE) {
-      const supabase = createClient()
+    const supabase = await createServerClient()
 
       // Test invalid login (should fail gracefully)
       const { error } = await supabase.auth.signInWithPassword({
@@ -166,7 +166,7 @@ async function runSecurityAudit(): Promise<{
   console.log("[v0] Testing admin access controls...")
   try {
     if (USE_SUPABASE) {
-      const supabase = createClient()
+    const supabase = await createServerClient()
 
       // Check if profiles table has proper RLS
       const { data, error } = await supabase.from("profiles").select("role").limit(1)
