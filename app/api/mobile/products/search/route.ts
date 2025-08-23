@@ -57,7 +57,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Mobile-optimized response
-    const optimizedProducts = products?.map((product) => ({
+  const optimizedProducts = products?.map((product: any) => ({
       ...product,
       // Optimize images for mobile
       images: product.images?.slice(0, 3).map((img: string) => ({

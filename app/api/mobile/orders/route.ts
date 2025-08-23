@@ -65,13 +65,29 @@ export async function GET(request: NextRequest) {
     }
 
     // Mobile-optimized response
-    const optimizedOrders = orders?.map((order) => ({
+    type OrderItem = {
+      id: string
+      quantity: number
+      price: number
+      products: { id: string; name: string; images?: string[] }
+    }
+
+    type OrderRow = {
+      id: string
+      status: string
+      total: number
+      created_at: string
+      updated_at: string
+      order_items?: OrderItem[]
+    }
+
+    const optimizedOrders = (orders as OrderRow[] | undefined)?.map((order) => ({
       id: order.id,
       status: order.status,
       total: order.total,
       created_at: order.created_at,
       updated_at: order.updated_at,
-      items: order.order_items?.slice(0, 3).map((item: any) => ({
+      items: order.order_items?.slice(0, 3).map((item) => ({
         id: item.id,
         quantity: item.quantity,
         price: item.price,
