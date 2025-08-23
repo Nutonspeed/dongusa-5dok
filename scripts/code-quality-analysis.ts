@@ -3,6 +3,7 @@
 import { execSync } from "child_process"
 import { readFileSync, readdirSync, statSync } from "fs"
 import { join, extname } from "path"
+import { handleAnalysisError, generateCommonRecommendations } from "./utils/config-utils"
 
 interface QualityIssue {
   file: string
@@ -237,7 +238,7 @@ class CodeQualityAnalyzer {
 
       console.log(`✅ Found ${this.metrics.unusedExports} unused exports`)
     } catch (error) {
-      console.log("⚠️ Unused code check skipped (ts-unused-exports not available)")
+      handleAnalysisError("Unused code check", error)
     }
   }
 
@@ -269,7 +270,7 @@ class CodeQualityAnalyzer {
 
       console.log(`✅ Found ${this.metrics.circularDependencies.length} circular dependencies`)
     } catch (error) {
-      console.log("⚠️ Circular dependency check skipped (madge not available)")
+      handleAnalysisError("Circular dependency check", error)
     }
   }
 
@@ -374,37 +375,32 @@ class CodeQualityAnalyzer {
   }
 
   private generateRecommendations(): string[] {
-    const recommendations: string[] = []
-
-    if (this.issues.filter((i) => i.category === "typescript").length > 0) {
-      recommendations.push("Fix TypeScript errors to improve type safety")
-    }
-
-    if (this.issues.filter((i) => i.category === "eslint" && i.severity === "error").length > 0) {
-      recommendations.push("Address ESLint errors to maintain code quality standards")
-    }
+    const baseRecommendations = generateCommonRecommendations(this.issues)
+    const specificRecommendations: string[] = []
 
     if (this.metrics.codeComplexity > 8) {
-      recommendations.push("Consider refactoring complex functions to improve maintainability")
+      specificRecommendations.push("Consider refactoring complex functions to improve maintainability")
     }
 
     if (this.metrics.unusedExports > 10) {
-      recommendations.push("Remove unused exports to reduce bundle size")
+      specificRecommendations.push("Remove unused exports to reduce bundle size")
     }
 
     if (this.metrics.circularDependencies.length > 0) {
-      recommendations.push("Resolve circular dependencies to improve module structure")
+      specificRecommendations.push("Resolve circular dependencies to improve module structure")
     }
 
     if (this.metrics.duplicatedLines > 50) {
-      recommendations.push("Extract common code into reusable functions or components")
+      specificRecommendations.push("Extract common code into reusable functions or components")
     }
 
-    if (recommendations.length === 0) {
-      recommendations.push("Code quality looks good! Continue following best practices")
+    const allRecommendations = [...baseRecommendations, ...specificRecommendations]
+
+    if (allRecommendations.length === 0) {
+      return ["Code quality looks good! Continue following best practices"]
     }
 
-    return recommendations
+    return allRecommendations
   }
 }
 
