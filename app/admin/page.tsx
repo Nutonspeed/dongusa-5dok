@@ -1,4 +1,4 @@
-import AdminDashboardClient from "./page.client"
+import AdminDashboardClient from "./page.client.tsx"
 import databaseClient from "@/lib/database-client"
 import { USE_SUPABASE } from "@/lib/runtime"
 
@@ -19,7 +19,7 @@ export default async function AdminPage() {
         }
       }
     } catch (e) {
-  // console.error("admin summary error", e)
+      // console.error("admin summary error", e)
     }
   } else {
     summary = { orders: 3, revenue: 12345.5 }
