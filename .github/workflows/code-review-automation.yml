@@ -1,0 +1,400 @@
+name: Automated Code Review
+
+on:
+  pull_request:
+    branches: [main, develop]
+    types: [opened, synchronize, reopened]
+  push:
+    branches: [main, develop]
+
+env:
+  NODE_VERSION: 20
+  PNPM_VERSION: 8
+
+jobs:
+  code-quality-analysis:
+    name: Code Quality Analysis
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      checks: write
+      security-events: write
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Full history for better analysis
+      
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile=false
+      
+      - name: Run ESLint with reporting
+        run: |
+          npx eslint . --ext .ts,.tsx,.js,.jsx --format json --output-file eslint-report.json || true
+          npx eslint . --ext .ts,.tsx,.js,.jsx --format unix
+        continue-on-error: true
+      
+      - name: Run TypeScript type checking
+        run: |
+          npx tsc --noEmit --project tsconfig.build.json > typescript-report.txt 2>&1 || true
+        continue-on-error: true
+      
+      - name: Run comprehensive code quality analysis
+        run: |
+          npm run lint > lint-report.txt 2>&1 || true
+          npx tsx scripts/code-quality-analysis.ts > quality-report.json 2>&1 || true
+        continue-on-error: true
+      
+      - name: Upload ESLint results to GitHub
+        if: always()
+        uses: github/super-linter/slim@v5
+        env:
+          DEFAULT_BRANCH: main
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VALIDATE_JAVASCRIPT_ES: true
+          VALIDATE_TYPESCRIPT_ES: true
+          VALIDATE_JSON: true
+          VALIDATE_MARKDOWN: true
+          JAVASCRIPT_ES_CONFIG_FILE: .eslintrc.json
+          TYPESCRIPT_ES_CONFIG_FILE: .eslintrc.json
+      
+      - name: Archive code quality reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: code-quality-reports
+          path: |
+            eslint-report.json
+            typescript-report.txt
+            lint-report.txt
+            quality-report.json
+          retention-days: 30
+
+  sonarcloud-analysis:
+    name: SonarCloud Analysis
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile=false
+      
+      - name: Run tests with coverage
+        run: |
+          npm run test -- --coverage --reporter=json --outputFile=test-results.json 2>/dev/null || true
+        continue-on-error: true
+      
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          args: >
+            -Dsonar.projectKey=Nutonspeed_dongusa-5dok
+            -Dsonar.organization=nutonspeed
+            -Dsonar.sources=.
+            -Dsonar.exclusions=node_modules/**,**/*.test.*,**/*.spec.*,dist/**,build/**,.next/**
+            -Dsonar.typescript.lcov.reportPaths=coverage/lcov.info
+            -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
+
+  security-analysis:
+    name: Security Analysis
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Run npm audit
+        run: |
+          npm audit --json > security-audit.json 2>/dev/null || true
+          npm audit
+        continue-on-error: true
+      
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: javascript
+          queries: security-and-quality
+      
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:javascript"
+      
+      - name: Upload security reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-reports
+          path: security-audit.json
+          retention-days: 30
+
+  code-review-notification:
+    name: Code Review Notifications
+    runs-on: ubuntu-latest
+    needs: [code-quality-analysis, sonarcloud-analysis, security-analysis]
+    if: always()
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ./reports
+      
+      - name: Generate code review summary
+        run: |
+          npx tsx -e "
+          const fs = require('fs');
+          const path = require('path');
+          
+          let summary = '## 🔍 Automated Code Review Summary\n\n';
+          let hasIssues = false;
+          
+          // Check ESLint results
+          try {
+            const eslintPath = './reports/code-quality-reports/eslint-report.json';
+            if (fs.existsSync(eslintPath)) {
+              const eslintData = JSON.parse(fs.readFileSync(eslintPath, 'utf8'));
+              const totalIssues = eslintData.reduce((sum, file) => sum + file.messages.length, 0);
+              const errorCount = eslintData.reduce((sum, file) => sum + file.messages.filter(m => m.severity === 2).length, 0);
+              const warningCount = eslintData.reduce((sum, file) => sum + file.messages.filter(m => m.severity === 1).length, 0);
+              
+              summary += '### 📋 ESLint Analysis\n';
+              summary += \`- **Total Issues**: \${totalIssues}\n\`;
+              summary += \`- **Errors**: \${errorCount}\n\`;
+              summary += \`- **Warnings**: \${warningCount}\n\n\`;
+              
+              if (errorCount > 0) hasIssues = true;
+            }
+          } catch (e) {
+            summary += '### ❌ ESLint Analysis Failed\n\n';
+          }
+          
+          // Check TypeScript results
+          try {
+            const tsPath = './reports/code-quality-reports/typescript-report.txt';
+            if (fs.existsSync(tsPath)) {
+              const tsData = fs.readFileSync(tsPath, 'utf8');
+              const errorCount = (tsData.match(/error TS/g) || []).length;
+              
+              summary += '### 🔷 TypeScript Analysis\n';
+              summary += \`- **Type Errors**: \${errorCount}\n\n\`;
+              
+              if (errorCount > 0) hasIssues = true;
+            }
+          } catch (e) {
+            summary += '### ❌ TypeScript Analysis Failed\n\n';
+          }
+          
+          // Security audit
+          try {
+            const secPath = './reports/security-reports/security-audit.json';
+            if (fs.existsSync(secPath)) {
+              const secData = JSON.parse(fs.readFileSync(secPath, 'utf8'));
+              const vulnCount = secData.metadata?.vulnerabilities?.total || 0;
+              
+              summary += '### 🔒 Security Analysis\n';
+              summary += \`- **Vulnerabilities Found**: \${vulnCount}\n\n\`;
+              
+              if (vulnCount > 0) hasIssues = true;
+            }
+          } catch (e) {
+            summary += '### ❌ Security Analysis Failed\n\n';
+          }
+          
+          // Overall status
+          if (hasIssues) {
+            summary += '### ⚠️ Action Required\n';
+            summary += 'Issues were found that need attention. Please review the detailed reports above.\n\n';
+          } else {
+            summary += '### ✅ All Checks Passed\n';
+            summary += 'No critical issues found. Good job! 🎉\n\n';
+          }
+          
+          summary += '---\n';
+          summary += '*This summary was generated automatically by the code review workflow.*';
+          
+          fs.writeFileSync('code-review-summary.md', summary);
+          console.log(summary);
+          "
+      
+      - name: Comment on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const summary = fs.readFileSync('code-review-summary.md', 'utf8');
+            
+            // Find existing bot comment
+            const comments = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number
+            });
+            
+            const botComment = comments.data.find(comment => 
+              comment.user.type === 'Bot' && 
+              comment.body.includes('Automated Code Review Summary')
+            );
+            
+            if (botComment) {
+              // Update existing comment
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: summary
+              });
+            } else {
+              // Create new comment
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: summary
+              });
+            }
+      
+      - name: Send team notification
+        run: npx tsx scripts/team-notification.ts
+        env:
+          TEAM_WEBHOOK_URL: ${{ secrets.TEAM_WEBHOOK_URL }}
+        continue-on-error: true
+
+  deployment-quality-gate:
+    name: Deployment Quality Gate
+    runs-on: ubuntu-latest
+    needs: [code-quality-analysis, sonarcloud-analysis, security-analysis]
+    if: github.ref == 'refs/heads/main'
+    permissions:
+      contents: read
+      deployments: write
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ./reports
+      
+      - name: Quality gate check
+        run: |
+          npx tsx -e "
+          const fs = require('fs');
+          let passQualityGate = true;
+          let reasons = [];
+          
+          // Check ESLint errors
+          try {
+            const eslintPath = './reports/code-quality-reports/eslint-report.json';
+            if (fs.existsSync(eslintPath)) {
+              const eslintData = JSON.parse(fs.readFileSync(eslintPath, 'utf8'));
+              const errorCount = eslintData.reduce((sum, file) => sum + file.messages.filter(m => m.severity === 2).length, 0);
+              if (errorCount > 5) {
+                passQualityGate = false;
+                reasons.push(\`Too many ESLint errors: \${errorCount}\`);
+              }
+            }
+          } catch (e) {}
+          
+          // Check TypeScript errors
+          try {
+            const tsPath = './reports/code-quality-reports/typescript-report.txt';
+            if (fs.existsSync(tsPath)) {
+              const tsData = fs.readFileSync(tsPath, 'utf8');
+              const errorCount = (tsData.match(/error TS/g) || []).length;
+              if (errorCount > 0) {
+                passQualityGate = false;
+                reasons.push(\`TypeScript errors found: \${errorCount}\`);
+              }
+            }
+          } catch (e) {}
+          
+          // Check security vulnerabilities
+          try {
+            const secPath = './reports/security-reports/security-audit.json';
+            if (fs.existsSync(secPath)) {
+              const secData = JSON.parse(fs.readFileSync(secPath, 'utf8'));
+              const highVulns = secData.metadata?.vulnerabilities?.high || 0;
+              const criticalVulns = secData.metadata?.vulnerabilities?.critical || 0;
+              if (highVulns + criticalVulns > 0) {
+                passQualityGate = false;
+                reasons.push(\`High/Critical vulnerabilities: \${highVulns + criticalVulns}\`);
+              }
+            }
+          } catch (e) {}
+          
+          if (!passQualityGate) {
+            console.log('❌ Quality gate failed:');
+            reasons.forEach(reason => console.log(\`  - \${reason}\`));
+            process.exit(1);
+          } else {
+            console.log('✅ Quality gate passed - ready for deployment');
+          }
+          "
+      
+      - name: Create deployment
+        if: success()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.repos.createDeployment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: context.sha,
+              environment: 'production',
+              description: 'Automated deployment after quality gate passed',
+              auto_merge: false,
+              required_contexts: []
+            });

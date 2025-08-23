@@ -28,6 +28,11 @@ A comprehensive e-commerce and business management platform built with Next.js, 
 - Built with Next.js 14 and TypeScript
 - Supabase for database and authentication
 - Redis caching with Upstash
+- **Automated Code Review** with ESLint, TypeScript, and SonarCloud
+- **CI/CD Pipeline** with GitHub Actions
+- **Team Notifications** via Slack, Discord, and Teams
+- **Security Scanning** with CodeQL and npm audit
+- **Quality Gates** for deployment protection
 - File storage with Vercel Blob
 - AI-powered features with xAI integration
 - Responsive design with Tailwind CSS
@@ -93,6 +98,35 @@ pnpm dev
 - `pnpm start` - Start production server
 - `pnpm lint` - Run ESLint
 - `pnpm test` - Run tests
+- `npm run code-quality` - Run comprehensive code quality analysis
+- `npm run code-review` - Generate code review report with notifications
+- `npm run notify-team` - Send team notifications
+- `npm run notify-test` - Test notification system
+
+## 🔍 Automated Code Review System
+
+This project includes a comprehensive automated code review system that ensures code quality and security:
+
+### Features
+- **Static Analysis**: ESLint, TypeScript checking, and SonarCloud integration
+- **Security Scanning**: npm audit and GitHub CodeQL analysis  
+- **Team Notifications**: Automatic alerts via Slack, Discord, and Teams
+- **Quality Gates**: Deployment protection based on code quality metrics
+- **PR Comments**: Automated code review summaries on pull requests
+
+### Quick Setup
+1. Add `SONAR_TOKEN` to GitHub repository secrets
+2. Configure team webhooks (optional): `DEV_TEAM_WEBHOOK`, `QA_TEAM_WEBHOOK`
+3. Customize notification settings in `.github/notifications.json`
+
+### Documentation
+- [`docs/AUTOMATED_CODE_REVIEW.md`](docs/AUTOMATED_CODE_REVIEW.md) - Complete system overview
+- [`docs/TEAM_SETUP_GUIDE.md`](docs/TEAM_SETUP_GUIDE.md) - Team configuration guide
+
+### Workflow Triggers
+- **Pull Requests**: Automatic analysis on PRs to `main` or `develop`
+- **Push Events**: Quality checks on pushes to protected branches
+- **Manual**: Run `npm run code-quality` locally anytime
 - `pnpm db:setup` - Initialize database
 - `pnpm validate:system` - Run system validation
 

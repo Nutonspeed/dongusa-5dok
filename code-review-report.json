@@ -1,0 +1,36 @@
+{
+  "timestamp": "2025-08-23T12:37:05.462Z",
+  "repository": "Nutonspeed/dongusa-5dok",
+  "branch": "copilot/fix-b307bae3-a894-4f71-ab72-26bf1f9c792c",
+  "commit": "facc595",
+  "analysis": {
+    "eslint": {
+      "totalIssues": 1915,
+      "errors": 16,
+      "warnings": 1899,
+      "files": 254
+    },
+    "typescript": {
+      "errors": 0,
+      "files": 0
+    },
+    "security": {
+      "vulnerabilities": 0,
+      "high": 0,
+      "critical": 0
+    }
+  },
+  "qualityGate": {
+    "passed": false,
+    "blockers": [
+      "Too many ESLint errors: 16"
+    ],
+    "warnings": [
+      "Many ESLint warnings: 1899"
+    ]
+  },
+  "recommendations": [
+    "Fix ESLint errors to improve code quality",
+    "Address ESLint warnings to maintain code standards"
+  ]
+}
