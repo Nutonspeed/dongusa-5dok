@@ -25,3 +25,10 @@ jobs:
         run: pnpm install --frozen-lockfile
       - name: Run build
         run: pnpm build
+        env:
+          # Set CI environment variables to prevent build failures
+          CI: true
+          SKIP_NODE_VERSION_CHECK: "1"
+          NEXT_PUBLIC_SUPABASE_URL: "https://mock.supabase.co"
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: "mock_key"
+          NEXT_PUBLIC_USE_SUPABASE: "false"

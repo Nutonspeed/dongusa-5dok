@@ -3,6 +3,8 @@ const nextConfig = {
   experimental: {
     serverComponentsExternalPackages: ["@neondatabase/serverless"],
   },
+  // Disable font optimization in CI to avoid network dependencies
+  optimizeFonts: process.env.CI !== 'true',
   // Enable strict checking for production quality
   eslint: {
     ignoreDuringBuilds: process.env.NODE_ENV !== "production",

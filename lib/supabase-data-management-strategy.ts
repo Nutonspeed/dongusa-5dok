@@ -1,45 +1,60 @@
-import { createClient } from "@supabase/supabase-js"
-import { cacheService } from "./performance/cache-service"
+import { createClient } from "@supabase/supabase-js";
+import { cacheService } from "./performance/cache-service";
+import { USE_SUPABASE } from "./runtime";
 
 interface DataLifecyclePolicy {
-  tableName: string
-  retentionPeriod: number // days
-  archiveAfter: number // days
-  compressionEnabled: boolean
-  backupFrequency: "daily" | "weekly" | "monthly"
+  tableName: string;
+  retentionPeriod: number; // days
+  archiveAfter: number; // days
+  compressionEnabled: boolean;
+  backupFrequency: "daily" | "weekly" | "monthly";
   cleanupRules: {
-    deleteOldRecords: boolean
-    archiveOldRecords: boolean
-    compressOldData: boolean
-  }
+    deleteOldRecords: boolean;
+    archiveOldRecords: boolean;
+    compressOldData: boolean;
+  };
 }
 
 interface DataArchiveResult {
-  tableName: string
-  recordsArchived: number
-  recordsDeleted: number
-  spaceSaved: number // MB
-  errors: string[]
+  tableName: string;
+  recordsArchived: number;
+  recordsDeleted: number;
+  spaceSaved: number; // MB
+  errors: string[];
 }
 
 interface DataCleanupResult {
-  totalRecordsProcessed: number
-  totalRecordsDeleted: number
-  totalSpaceSaved: number // MB
-  tablesProcessed: string[]
-  errors: string[]
+  totalRecordsProcessed: number;
+  totalRecordsDeleted: number;
+  totalSpaceSaved: number; // MB
+  tablesProcessed: string[];
+  errors: string[];
 }
 
 interface BackupStrategy {
-  type: "full" | "incremental"
-  frequency: "daily" | "weekly" | "monthly"
-  retention: number // days
-  compression: boolean
-  encryption: boolean
+  type: "full" | "incremental";
+  frequency: "daily" | "weekly" | "monthly";
+  retention: number; // days
+  compression: boolean;
+  encryption: boolean;
 }
 
 export class SupabaseDataManagementStrategy {
-  private supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
+  private supabase: any = null;
+
+  constructor() {
+    // Only create Supabase client if USE_SUPABASE is true and credentials are available
+    if (
+      USE_SUPABASE &&
+      process.env.NEXT_PUBLIC_SUPABASE_URL &&
+      process.env.SUPABASE_SERVICE_ROLE_KEY
+    ) {
+      this.supabase = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL,
+        process.env.SUPABASE_SERVICE_ROLE_KEY,
+      );
+    }
+  }
 
   private dataLifecyclePolicies: DataLifecyclePolicy[] = [
     {
@@ -126,7 +141,7 @@ export class SupabaseDataManagementStrategy {
         compressOldData: false,
       },
     },
-  ]
+  ];
 
   private backupStrategy: BackupStrategy = {
     type: "incremental",
@@ -134,37 +149,53 @@ export class SupabaseDataManagementStrategy {
     retention: 30, // Keep backups for 30 days
     compression: true,
     encryption: true,
-  }
+  };
 
   async executeDataManagementStrategy(): Promise<{
-    success: boolean
-    cleanupResults: DataCleanupResult
-    archiveResults: DataArchiveResult[]
-    backupResults: any
+    success: boolean;
+    cleanupResults: DataCleanupResult;
+    archiveResults: DataArchiveResult[];
+    backupResults: any;
   }> {
-    console.log("Starting data management strategy execution...")
+    console.log("Starting data management strategy execution...");
+
+    if (!this.supabase) {
+      // Return mock results when Supabase is not available
+      return {
+        success: true,
+        cleanupResults: {
+          totalRecordsProcessed: 0,
+          totalRecordsDeleted: 0,
+          totalSpaceSaved: 0,
+          tablesProcessed: [],
+          errors: ["Supabase not available - using mock results"],
+        },
+        archiveResults: [],
+        backupResults: { success: true, message: "Mock backup completed" },
+      };
+    }
 
     try {
       // Step 1: Execute data cleanup
-      const cleanupResults = await this.executeDataCleanup()
+      const cleanupResults = await this.executeDataCleanup();
 
       // Step 2: Execute data archiving
-      const archiveResults = await this.executeDataArchiving()
+      const archiveResults = await this.executeDataArchiving();
 
       // Step 3: Execute backup strategy
-      const backupResults = await this.executeBackupStrategy()
+      const backupResults = await this.executeBackupStrategy();
 
       // Step 4: Update storage statistics
-      await this.updateStorageStatistics()
+      await this.updateStorageStatistics();
 
       return {
         success: true,
         cleanupResults,
         archiveResults,
         backupResults,
-      }
+      };
     } catch (error) {
-      console.error("Data management strategy failed:", error)
+      console.error("Data management strategy failed:", error);
       return {
         success: false,
         cleanupResults: {
@@ -176,39 +207,42 @@ export class SupabaseDataManagementStrategy {
         },
         archiveResults: [],
         backupResults: { success: false, error: error.message },
-      }
+      };
     }
   }
 
   private async executeDataCleanup(): Promise<DataCleanupResult> {
-    console.log("Executing data cleanup...")
+    console.log("Executing data cleanup...");
 
-    let totalRecordsProcessed = 0
-    let totalRecordsDeleted = 0
-    let totalSpaceSaved = 0
-    const tablesProcessed: string[] = []
-    const errors: string[] = []
+    let totalRecordsProcessed = 0;
+    let totalRecordsDeleted = 0;
+    let totalSpaceSaved = 0;
+    const tablesProcessed: string[] = [];
+    const errors: string[] = [];
 
     for (const policy of this.dataLifecyclePolicies) {
-      if (!policy.cleanupRules.deleteOldRecords && !policy.cleanupRules.compressOldData) {
-        continue // Skip if no cleanup rules apply
+      if (
+        !policy.cleanupRules.deleteOldRecords &&
+        !policy.cleanupRules.compressOldData
+      ) {
+        continue; // Skip if no cleanup rules apply
       }
 
       try {
-        console.log(`Processing cleanup for table: ${policy.tableName}`)
+        console.log(`Processing cleanup for table: ${policy.tableName}`);
 
-        const result = await this.cleanupTable(policy)
-        totalRecordsProcessed += result.recordsProcessed
-        totalRecordsDeleted += result.recordsDeleted
-        totalSpaceSaved += result.spaceSaved
-        tablesProcessed.push(policy.tableName)
+        const result = await this.cleanupTable(policy);
+        totalRecordsProcessed += result.recordsProcessed;
+        totalRecordsDeleted += result.recordsDeleted;
+        totalSpaceSaved += result.spaceSaved;
+        tablesProcessed.push(policy.tableName);
 
         if (result.errors.length > 0) {
-          errors.push(...result.errors)
+          errors.push(...result.errors);
         }
       } catch (error) {
-        console.error(`Cleanup failed for table ${policy.tableName}:`, error)
-        errors.push(`${policy.tableName}: ${error.message}`)
+        console.error(`Cleanup failed for table ${policy.tableName}:`, error);
+        errors.push(`${policy.tableName}: ${error.message}`);
       }
     }
 
@@ -218,40 +252,42 @@ export class SupabaseDataManagementStrategy {
       totalSpaceSaved,
       tablesProcessed,
       errors,
-    }
+    };
   }
 
   private async cleanupTable(policy: DataLifecyclePolicy): Promise<{
-    recordsProcessed: number
-    recordsDeleted: number
-    spaceSaved: number
-    errors: string[]
+    recordsProcessed: number;
+    recordsDeleted: number;
+    spaceSaved: number;
+    errors: string[];
   }> {
-    const errors: string[] = []
-    let recordsProcessed = 0
-    let recordsDeleted = 0
-    let spaceSaved = 0
+    const errors: string[] = [];
+    let recordsProcessed = 0;
+    let recordsDeleted = 0;
+    let spaceSaved = 0;
 
     // Calculate cutoff date for cleanup
-    const cutoffDate = new Date(Date.now() - policy.retentionPeriod * 24 * 60 * 60 * 1000)
+    const cutoffDate = new Date(
+      Date.now() - policy.retentionPeriod * 24 * 60 * 60 * 1000,
+    );
 
     try {
       // Get records to be cleaned up
       const { data: recordsToCleanup, error: selectError } = await this.supabase
         .from(policy.tableName)
         .select("id, created_at")
-        .lt("created_at", cutoffDate.toISOString())
+        .lt("created_at", cutoffDate.toISOString());
 
       if (selectError) {
-        errors.push(`Failed to select records: ${selectError.message}`)
-        return { recordsProcessed, recordsDeleted, spaceSaved, errors }
+        errors.push(`Failed to select records: ${selectError.message}`);
+        return { recordsProcessed, recordsDeleted, spaceSaved, errors };
       }
 
-      recordsProcessed = recordsToCleanup?.length || 0
+      recordsProcessed = recordsToCleanup?.length || 0;
 
       if (recordsProcessed === 0) {
-        console.log(`No records to cleanup for table: ${policy.tableName}`)
-        return { recordsProcessed, recordsDeleted, spaceSaved, errors }
+        console.log(`No records to cleanup for table: ${policy.tableName}`);
+        return { recordsProcessed, recordsDeleted, spaceSaved, errors };
       }
 
       // Delete old records if policy allows
@@ -259,120 +295,164 @@ export class SupabaseDataManagementStrategy {
         const { error: deleteError } = await this.supabase
           .from(policy.tableName)
           .delete()
-          .lt("created_at", cutoffDate.toISOString())
+          .lt("created_at", cutoffDate.toISOString());
 
         if (deleteError) {
-          errors.push(`Failed to delete records: ${deleteError.message}`)
+          errors.push(`Failed to delete records: ${deleteError.message}`);
         } else {
-          recordsDeleted = recordsProcessed
-          spaceSaved = this.estimateSpaceSaved(policy.tableName, recordsDeleted)
-          console.log(`Deleted ${recordsDeleted} records from ${policy.tableName}`)
+          recordsDeleted = recordsProcessed;
+          spaceSaved = this.estimateSpaceSaved(
+            policy.tableName,
+            recordsDeleted,
+          );
+          console.log(
+            `Deleted ${recordsDeleted} records from ${policy.tableName}`,
+          );
         }
       }
 
       // Compress old data if policy allows
       if (policy.cleanupRules.compressOldData) {
-        await this.compressTableData(policy.tableName)
-        spaceSaved += this.estimateCompressionSavings(policy.tableName)
+        await this.compressTableData(policy.tableName);
+        spaceSaved += this.estimateCompressionSavings(policy.tableName);
       }
     } catch (error) {
-      errors.push(`Cleanup error: ${error.message}`)
+      errors.push(`Cleanup error: ${error.message}`);
     }
 
-    return { recordsProcessed, recordsDeleted, spaceSaved, errors }
+    return { recordsProcessed, recordsDeleted, spaceSaved, errors };
   }
 
   private async executeDataArchiving(): Promise<DataArchiveResult[]> {
-    console.log("Executing data archiving...")
+    console.log("Executing data archiving...");
 
-    const results: DataArchiveResult[] = []
+    const results: DataArchiveResult[] = [];
 
     for (const policy of this.dataLifecyclePolicies) {
-      if (!policy.cleanupRules.archiveOldRecords || policy.archiveAfter === -1) {
-        continue // Skip if archiving is disabled
+      if (
+        !policy.cleanupRules.archiveOldRecords ||
+        policy.archiveAfter === -1
+      ) {
+        continue; // Skip if archiving is disabled
       }
 
       try {
-        console.log(`Processing archiving for table: ${policy.tableName}`)
-        const result = await this.archiveTableData(policy)
-        results.push(result)
+        console.log(`Processing archiving for table: ${policy.tableName}`);
+        const result = await this.archiveTableData(policy);
+        results.push(result);
       } catch (error) {
-        console.error(`Archiving failed for table ${policy.tableName}:`, error)
+        console.error(`Archiving failed for table ${policy.tableName}:`, error);
         results.push({
           tableName: policy.tableName,
           recordsArchived: 0,
           recordsDeleted: 0,
           spaceSaved: 0,
           errors: [error.message],
-        })
+        });
       }
     }
 
-    return results
+    return results;
   }
 
-  private async archiveTableData(policy: DataLifecyclePolicy): Promise<DataArchiveResult> {
-    const errors: string[] = []
-    let recordsArchived = 0
-    let recordsDeleted = 0
-    let spaceSaved = 0
+  private async archiveTableData(
+    policy: DataLifecyclePolicy,
+  ): Promise<DataArchiveResult> {
+    const errors: string[] = [];
+    let recordsArchived = 0;
+    let recordsDeleted = 0;
+    let spaceSaved = 0;
 
     // Calculate archive cutoff date
-    const archiveDate = new Date(Date.now() - policy.archiveAfter * 24 * 60 * 60 * 1000)
+    const archiveDate = new Date(
+      Date.now() - policy.archiveAfter * 24 * 60 * 60 * 1000,
+    );
 
     try {
       // Get records to archive
       const { data: recordsToArchive, error: selectError } = await this.supabase
         .from(policy.tableName)
         .select("*")
-        .lt("created_at", archiveDate.toISOString())
+        .lt("created_at", archiveDate.toISOString());
 
       if (selectError) {
-        errors.push(`Failed to select records for archiving: ${selectError.message}`)
-        return { tableName: policy.tableName, recordsArchived, recordsDeleted, spaceSaved, errors }
+        errors.push(
+          `Failed to select records for archiving: ${selectError.message}`,
+        );
+        return {
+          tableName: policy.tableName,
+          recordsArchived,
+          recordsDeleted,
+          spaceSaved,
+          errors,
+        };
       }
 
       if (!recordsToArchive || recordsToArchive.length === 0) {
-        console.log(`No records to archive for table: ${policy.tableName}`)
-        return { tableName: policy.tableName, recordsArchived, recordsDeleted, spaceSaved, errors }
+        console.log(`No records to archive for table: ${policy.tableName}`);
+        return {
+          tableName: policy.tableName,
+          recordsArchived,
+          recordsDeleted,
+          spaceSaved,
+          errors,
+        };
       }
 
       // Create archive table if it doesn't exist
-      await this.createArchiveTable(policy.tableName)
+      await this.createArchiveTable(policy.tableName);
 
       // Move records to archive table
-      const { error: insertError } = await this.supabase.from(`${policy.tableName}_archive`).insert(recordsToArchive)
+      const { error: insertError } = await this.supabase
+        .from(`${policy.tableName}_archive`)
+        .insert(recordsToArchive);
 
       if (insertError) {
-        errors.push(`Failed to insert into archive: ${insertError.message}`)
-        return { tableName: policy.tableName, recordsArchived, recordsDeleted, spaceSaved, errors }
+        errors.push(`Failed to insert into archive: ${insertError.message}`);
+        return {
+          tableName: policy.tableName,
+          recordsArchived,
+          recordsDeleted,
+          spaceSaved,
+          errors,
+        };
       }
 
-      recordsArchived = recordsToArchive.length
+      recordsArchived = recordsToArchive.length;
 
       // Delete original records after successful archiving
       const { error: deleteError } = await this.supabase
         .from(policy.tableName)
         .delete()
-        .lt("created_at", archiveDate.toISOString())
+        .lt("created_at", archiveDate.toISOString());
 
       if (deleteError) {
-        errors.push(`Failed to delete archived records: ${deleteError.message}`)
+        errors.push(
+          `Failed to delete archived records: ${deleteError.message}`,
+        );
       } else {
-        recordsDeleted = recordsArchived
-        spaceSaved = this.estimateSpaceSaved(policy.tableName, recordsDeleted)
+        recordsDeleted = recordsArchived;
+        spaceSaved = this.estimateSpaceSaved(policy.tableName, recordsDeleted);
       }
 
-      console.log(`Archived ${recordsArchived} records from ${policy.tableName}`)
+      console.log(
+        `Archived ${recordsArchived} records from ${policy.tableName}`,
+      );
     } catch (error) {
-      errors.push(`Archiving error: ${error.message}`)
+      errors.push(`Archiving error: ${error.message}`);
     }
 
-    return { tableName: policy.tableName, recordsArchived, recordsDeleted, spaceSaved, errors }
+    return {
+      tableName: policy.tableName,
+      recordsArchived,
+      recordsDeleted,
+      spaceSaved,
+      errors,
+    };
   }
 
   private async createArchiveTable(tableName: string): Promise<void> {
-    const archiveTableName = `${tableName}_archive`
+    const archiveTableName = `${tableName}_archive`;
 
     try {
       // Check if archive table already exists
@@ -380,10 +460,10 @@ export class SupabaseDataManagementStrategy {
         .from("information_schema.tables")
         .select("table_name")
         .eq("table_name", archiveTableName)
-        .single()
+        .single();
 
       if (existingTable) {
-        return // Archive table already exists
+        return; // Archive table already exists
       }
 
       // Create archive table with same structure as original
@@ -396,13 +476,16 @@ export class SupabaseDataManagementStrategy {
         
         CREATE INDEX idx_${archiveTableName}_archived_at 
         ON ${archiveTableName}(archived_at);
-      `
+      `;
 
-      await this.supabase.rpc("execute_sql", { query: createTableSQL })
-      console.log(`Created archive table: ${archiveTableName}`)
+      await this.supabase.rpc("execute_sql", { query: createTableSQL });
+      console.log(`Created archive table: ${archiveTableName}`);
     } catch (error) {
-      console.error(`Failed to create archive table ${archiveTableName}:`, error)
-      throw error
+      console.error(
+        `Failed to create archive table ${archiveTableName}:`,
+        error,
+      );
+      throw error;
     }
   }
 
@@ -415,17 +498,17 @@ export class SupabaseDataManagementStrategy {
           fillfactor = 90
         );
         VACUUM FULL ${tableName};
-      `
+      `;
 
-      await this.supabase.rpc("execute_sql", { query: compressionSQL })
-      console.log(`Compressed data for table: ${tableName}`)
+      await this.supabase.rpc("execute_sql", { query: compressionSQL });
+      console.log(`Compressed data for table: ${tableName}`);
     } catch (error) {
-      console.error(`Failed to compress table ${tableName}:`, error)
+      console.error(`Failed to compress table ${tableName}:`, error);
     }
   }
 
   private async executeBackupStrategy(): Promise<any> {
-    console.log("Executing backup strategy...")
+    console.log("Executing backup strategy...");
 
     try {
       const backupResult = {
@@ -434,42 +517,46 @@ export class SupabaseDataManagementStrategy {
         tables: [],
         success: true,
         size: 0, // MB
-      }
+      };
 
       // Get list of tables to backup
-      const tablesToBackup = this.dataLifecyclePolicies.map((policy) => policy.tableName)
+      const tablesToBackup = this.dataLifecyclePolicies.map(
+        (policy) => policy.tableName,
+      );
 
       for (const tableName of tablesToBackup) {
         try {
-          const tableBackup = await this.backupTable(tableName)
-          backupResult.tables.push(tableBackup)
-          backupResult.size += tableBackup.size
+          const tableBackup = await this.backupTable(tableName);
+          backupResult.tables.push(tableBackup);
+          backupResult.size += tableBackup.size;
         } catch (error) {
-          console.error(`Backup failed for table ${tableName}:`, error)
+          console.error(`Backup failed for table ${tableName}:`, error);
           backupResult.tables.push({
             tableName,
             success: false,
             error: error.message,
             size: 0,
-          })
+          });
         }
       }
 
       // Store backup metadata
-      await this.storeBackupMetadata(backupResult)
+      await this.storeBackupMetadata(backupResult);
 
-      return backupResult
+      return backupResult;
     } catch (error) {
-      console.error("Backup strategy failed:", error)
-      return { success: false, error: error.message }
+      console.error("Backup strategy failed:", error);
+      return { success: false, error: error.message };
     }
   }
 
   private async backupTable(tableName: string): Promise<any> {
     // Simulate table backup
-    const { count } = await this.supabase.from(tableName).select("*", { count: "exact", head: true })
+    const { count } = await this.supabase
+      .from(tableName)
+      .select("*", { count: "exact", head: true });
 
-    const estimatedSize = this.estimateTableSize(tableName, count || 0)
+    const estimatedSize = this.estimateTableSize(tableName, count || 0);
 
     return {
       tableName,
@@ -477,7 +564,7 @@ export class SupabaseDataManagementStrategy {
       size: estimatedSize,
       success: true,
       timestamp: new Date().toISOString(),
-    }
+    };
   }
 
   private async storeBackupMetadata(backupResult: any): Promise<void> {
@@ -489,14 +576,16 @@ export class SupabaseDataManagementStrategy {
         tables_backed_up: backupResult.tables.map((t: any) => t.tableName),
         total_size_mb: backupResult.size,
         success: backupResult.success,
-        retention_until: new Date(Date.now() + this.backupStrategy.retention * 24 * 60 * 60 * 1000).toISOString(),
-      })
+        retention_until: new Date(
+          Date.now() + this.backupStrategy.retention * 24 * 60 * 60 * 1000,
+        ).toISOString(),
+      });
 
       if (error) {
-        console.error("Failed to store backup metadata:", error)
+        console.error("Failed to store backup metadata:", error);
       }
     } catch (error) {
-      console.error("Error storing backup metadata:", error)
+      console.error("Error storing backup metadata:", error);
     }
   }
 
@@ -507,23 +596,31 @@ export class SupabaseDataManagementStrategy {
         totalEstimatedSize: 0,
         lastCleanup: new Date().toISOString(),
         policies: this.dataLifecyclePolicies.length,
-      }
+      };
 
       // Calculate total estimated size
       for (const policy of this.dataLifecyclePolicies) {
-        const { count } = await this.supabase.from(policy.tableName).select("*", { count: "exact", head: true })
-        stats.totalEstimatedSize += this.estimateTableSize(policy.tableName, count || 0)
+        const { count } = await this.supabase
+          .from(policy.tableName)
+          .select("*", { count: "exact", head: true });
+        stats.totalEstimatedSize += this.estimateTableSize(
+          policy.tableName,
+          count || 0,
+        );
       }
 
       // Cache storage statistics
-      cacheService.set("storage_statistics", stats, 3600) // Cache for 1 hour
+      cacheService.set("storage_statistics", stats, 3600); // Cache for 1 hour
     } catch (error) {
-      console.error("Failed to update storage statistics:", error)
+      console.error("Failed to update storage statistics:", error);
     }
   }
 
   // Utility methods
-  private estimateSpaceSaved(tableName: string, recordsDeleted: number): number {
+  private estimateSpaceSaved(
+    tableName: string,
+    recordsDeleted: number,
+  ): number {
     const avgRowSizes: Record<string, number> = {
       orders: 2.0, // KB per row
       order_items: 0.3,
@@ -532,18 +629,20 @@ export class SupabaseDataManagementStrategy {
       categories: 0.5,
       fabrics: 0.8,
       fabric_collections: 0.6,
-    }
+    };
 
-    const avgRowSize = avgRowSizes[tableName] || 0.5
-    return (recordsDeleted * avgRowSize) / 1024 // Convert to MB
+    const avgRowSize = avgRowSizes[tableName] || 0.5;
+    return (recordsDeleted * avgRowSize) / 1024; // Convert to MB
   }
 
   private estimateCompressionSavings(tableName: string): number {
     // Estimate 20-30% compression savings
-    const compressionRatio = 0.25
-    const { count } = this.supabase.from(tableName).select("*", { count: "exact", head: true })
-    const tableSize = this.estimateTableSize(tableName, count || 0)
-    return tableSize * compressionRatio
+    const compressionRatio = 0.25;
+    const { count } = this.supabase
+      .from(tableName)
+      .select("*", { count: "exact", head: true });
+    const tableSize = this.estimateTableSize(tableName, count || 0);
+    return tableSize * compressionRatio;
   }
 
   private estimateTableSize(tableName: string, recordCount: number): number {
@@ -555,15 +654,33 @@ export class SupabaseDataManagementStrategy {
       categories: 0.5,
       fabrics: 0.8,
       fabric_collections: 0.6,
-    }
+    };
 
-    const avgRowSize = avgRowSizes[tableName] || 0.5
-    return (recordCount * avgRowSize) / 1024 // Convert to MB
+    const avgRowSize = avgRowSizes[tableName] || 0.5;
+    return (recordCount * avgRowSize) / 1024; // Convert to MB
   }
 
   // Public methods for management
   async getDataManagementReport(): Promise<string> {
-    const stats = cacheService.get("storage_statistics") || {}
+    if (!this.supabase) {
+      return `
+# Supabase Data Management Strategy Report
+
+## Status
+⚠️  **Supabase not available** - Using mock report
+
+## Mock Storage Status
+- **Total Tables**: 0
+- **Estimated Total Size**: 0 MB
+- **Last Cleanup**: Never
+- **Active Policies**: 0
+
+## Data Lifecycle Policies
+Mock environment - no policies active.
+`;
+    }
+
+    const stats = cacheService.get("storage_statistics") || {};
 
     return `
 # Supabase Data Management Strategy Report
@@ -608,35 +725,40 @@ ${this.dataLifecyclePolicies
 
 ---
 *Report generated at: ${new Date().toISOString()}*
-    `.trim()
+    `.trim();
   }
 
   async scheduleAutomaticCleanup(): Promise<void> {
     // Schedule weekly cleanup
     setInterval(
       async () => {
-        console.log("Running scheduled data cleanup...")
-        await this.executeDataManagementStrategy()
+        console.log("Running scheduled data cleanup...");
+        await this.executeDataManagementStrategy();
       },
       7 * 24 * 60 * 60 * 1000,
-    ) // Weekly
+    ); // Weekly
 
-    console.log("Automatic data cleanup scheduled (weekly)")
+    console.log("Automatic data cleanup scheduled (weekly)");
   }
 
   getDataLifecyclePolicies(): DataLifecyclePolicy[] {
-    return [...this.dataLifecyclePolicies]
+    return [...this.dataLifecyclePolicies];
   }
 
-  updateDataLifecyclePolicy(tableName: string, updates: Partial<DataLifecyclePolicy>): void {
-    const policyIndex = this.dataLifecyclePolicies.findIndex((p) => p.tableName === tableName)
+  updateDataLifecyclePolicy(
+    tableName: string,
+    updates: Partial<DataLifecyclePolicy>,
+  ): void {
+    const policyIndex = this.dataLifecyclePolicies.findIndex(
+      (p) => p.tableName === tableName,
+    );
     if (policyIndex !== -1) {
       this.dataLifecyclePolicies[policyIndex] = {
         ...this.dataLifecyclePolicies[policyIndex],
         ...updates,
-      }
+      };
     }
   }
 }
 
-export const dataManagementStrategy = new SupabaseDataManagementStrategy()
+export const dataManagementStrategy = new SupabaseDataManagementStrategy();

@@ -1,53 +1,68 @@
-import { createClient } from "@supabase/supabase-js"
-import { performanceOptimizer } from "./supabase-performance-optimizer"
-import { cacheService } from "./performance/cache-service"
+import { createClient } from "@supabase/supabase-js";
+import { performanceOptimizer } from "./supabase-performance-optimizer";
+import { cacheService } from "./performance/cache-service";
+import { USE_SUPABASE } from "./runtime";
 
 interface FreePlanLimits {
-  databaseStorage: number // 500 MB
-  bandwidth: number // 5 GB
-  apiRequests: number // Unlimited but should be optimized
+  databaseStorage: number; // 500 MB
+  bandwidth: number; // 5 GB
+  apiRequests: number; // Unlimited but should be optimized
 }
 
 interface OptimizationStrategy {
-  name: string
-  description: string
-  implementation: () => Promise<void>
+  name: string;
+  description: string;
+  implementation: () => Promise<void>;
   estimatedSavings: {
-    storage?: number // MB
-    bandwidth?: number // MB
-    requests?: number // requests/day
-  }
+    storage?: number; // MB
+    bandwidth?: number; // MB
+    requests?: number; // requests/day
+  };
 }
 
 interface OptimizationResult {
-  name: string
-  success: boolean
-  message: string
+  name: string;
+  success: boolean;
+  message: string;
 }
 
 export class SupabaseFreePlanOptimizer {
-  private supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
+  private supabase: any = null;
   private limits: FreePlanLimits = {
     databaseStorage: 500, // MB
     bandwidth: 5000, // MB
     apiRequests: Number.POSITIVE_INFINITY, // Unlimited but optimize anyway
+  };
+  private optimizationResults: OptimizationResult[] = [];
+
+  constructor() {
+    // Only create Supabase client if USE_SUPABASE is true and credentials are available
+    if (
+      USE_SUPABASE &&
+      process.env.NEXT_PUBLIC_SUPABASE_URL &&
+      process.env.SUPABASE_SERVICE_ROLE_KEY
+    ) {
+      this.supabase = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL,
+        process.env.SUPABASE_SERVICE_ROLE_KEY,
+      );
+    }
   }
-  private optimizationResults: OptimizationResult[] = []
 
   async optimizeForFreePlan(): Promise<{
-    optimizations: OptimizationStrategy[]
+    optimizations: OptimizationStrategy[];
     estimatedSavings: {
-      totalStorage: number
-      totalBandwidth: number
-      totalRequests: number
-    }
+      totalStorage: number;
+      totalBandwidth: number;
+      totalRequests: number;
+    };
   }> {
     const optimizations: OptimizationStrategy[] = [
       {
         name: "Image Compression & WebP Conversion",
         description: "Compress existing images and convert to WebP format",
         implementation: async () => {
-          await this.optimizeExistingImages()
+          await this.optimizeExistingImages();
         },
         estimatedSavings: {
           storage: 50, // MB
@@ -58,7 +73,7 @@ export class SupabaseFreePlanOptimizer {
         name: "Database Query Optimization",
         description: "Implement aggressive caching and query batching",
         implementation: async () => {
-          await this.optimizeDatabaseQueries()
+          await this.optimizeDatabaseQueries();
         },
         estimatedSavings: {
           requests: 5000, // requests/day
@@ -68,7 +83,7 @@ export class SupabaseFreePlanOptimizer {
         name: "Static Asset Caching",
         description: "Implement browser caching and service worker",
         implementation: async () => {
-          await this.implementStaticCaching()
+          await this.implementStaticCaching();
         },
         estimatedSavings: {
           bandwidth: 500, // MB/month
@@ -79,7 +94,7 @@ export class SupabaseFreePlanOptimizer {
         name: "Data Cleanup & Archiving",
         description: "Remove unnecessary data and implement archiving",
         implementation: async () => {
-          await this.cleanupAndArchiveData()
+          await this.cleanupAndArchiveData();
         },
         estimatedSavings: {
           storage: 100, // MB
@@ -89,7 +104,7 @@ export class SupabaseFreePlanOptimizer {
         name: "API Response Compression",
         description: "Enable gzip compression for API responses",
         implementation: async () => {
-          await this.enableResponseCompression()
+          await this.enableResponseCompression();
         },
         estimatedSavings: {
           bandwidth: 300, // MB/month
@@ -99,77 +114,97 @@ export class SupabaseFreePlanOptimizer {
         name: "Lazy Loading Implementation",
         description: "Implement lazy loading for images and components",
         implementation: async () => {
-          await this.implementLazyLoading()
+          await this.implementLazyLoading();
         },
         estimatedSavings: {
           bandwidth: 400, // MB/month
           requests: 1500, // requests/day
         },
       },
-    ]
+    ];
 
     const estimatedSavings = {
-      totalStorage: optimizations.reduce((sum, opt) => sum + (opt.estimatedSavings.storage || 0), 0),
-      totalBandwidth: optimizations.reduce((sum, opt) => sum + (opt.estimatedSavings.bandwidth || 0), 0),
-      totalRequests: optimizations.reduce((sum, opt) => sum + (opt.estimatedSavings.requests || 0), 0),
-    }
+      totalStorage: optimizations.reduce(
+        (sum, opt) => sum + (opt.estimatedSavings.storage || 0),
+        0,
+      ),
+      totalBandwidth: optimizations.reduce(
+        (sum, opt) => sum + (opt.estimatedSavings.bandwidth || 0),
+        0,
+      ),
+      totalRequests: optimizations.reduce(
+        (sum, opt) => sum + (opt.estimatedSavings.requests || 0),
+        0,
+      ),
+    };
 
-    return { optimizations, estimatedSavings }
+    return { optimizations, estimatedSavings };
   }
 
   async executeOptimizationStrategy(): Promise<{
-    success: boolean
-    optimizations: OptimizationResult[]
-    performanceImprovements: any
-    recommendations: string[]
+    success: boolean;
+    optimizations: OptimizationResult[];
+    performanceImprovements: any;
+    recommendations: string[];
   }> {
-    console.log("Starting comprehensive Supabase Free Plan optimization...")
+    console.log("Starting comprehensive Supabase Free Plan optimization...");
 
     try {
-      const { optimizations, estimatedSavings } = await this.optimizeForFreePlan()
+      const { optimizations, estimatedSavings } =
+        await this.optimizeForFreePlan();
 
       // Running individual optimizations and recording results
       for (const optimization of optimizations) {
         try {
-          await optimization.implementation()
-          this.optimizationResults.push({ name: optimization.name, success: true, message: "Optimization successful" })
+          await optimization.implementation();
+          this.optimizationResults.push({
+            name: optimization.name,
+            success: true,
+            message: "Optimization successful",
+          });
         } catch (error) {
           this.optimizationResults.push({
             name: optimization.name,
             success: false,
             message: `Optimization failed: ${error.message}`,
-          })
+          });
         }
       }
 
-      console.log("Running advanced performance optimization...")
-      const performanceResult = await performanceOptimizer.optimizeDatabase()
+      console.log("Running advanced performance optimization...");
+      const performanceResult = await performanceOptimizer.optimizeDatabase();
 
       return {
         success: true,
         optimizations: this.optimizationResults,
         performanceImprovements: performanceResult,
         recommendations: this.generateRecommendations(),
-      }
+      };
     } catch (error) {
-      console.error("Optimization strategy failed:", error)
+      console.error("Optimization strategy failed:", error);
       return {
         success: false,
         optimizations: [],
         performanceImprovements: null,
         recommendations: [`Optimization failed: ${error.message}`],
-      }
+      };
     }
   }
 
   private async optimizeExistingImages() {
-    const { data: products } = await this.supabase.from("products").select("id, images").not("images", "is", null)
+    const { data: products } = await this.supabase
+      .from("products")
+      .select("id, images")
+      .not("images", "is", null);
 
     if (products) {
       for (const product of products) {
         if (product.images && Array.isArray(product.images)) {
-          const optimizedImages = await this.compressImageUrls(product.images)
-          await this.supabase.from("products").update({ images: optimizedImages }).eq("id", product.id)
+          const optimizedImages = await this.compressImageUrls(product.images);
+          await this.supabase
+            .from("products")
+            .update({ images: optimizedImages })
+            .eq("id", product.id);
         }
       }
     }
@@ -178,13 +213,18 @@ export class SupabaseFreePlanOptimizer {
     const { data: collections } = await this.supabase
       .from("fabric_collections")
       .select("id, image_url")
-      .not("image_url", "is", null)
+      .not("image_url", "is", null);
 
     if (collections) {
       for (const collection of collections) {
         if (collection.image_url) {
-          const optimizedUrl = await this.compressImageUrl(collection.image_url)
-          await this.supabase.from("fabric_collections").update({ image_url: optimizedUrl }).eq("id", collection.id)
+          const optimizedUrl = await this.compressImageUrl(
+            collection.image_url,
+          );
+          await this.supabase
+            .from("fabric_collections")
+            .update({ image_url: optimizedUrl })
+            .eq("id", collection.id);
         }
       }
     }
@@ -194,44 +234,55 @@ export class SupabaseFreePlanOptimizer {
     return imageUrls.map((url) => {
       if (url.includes("supabase")) {
         // Add compression parameters to Supabase storage URLs
-        return `${url}?width=800&quality=75&format=webp`
+        return `${url}?width=800&quality=75&format=webp`;
       }
-      return url
-    })
+      return url;
+    });
   }
 
   private async compressImageUrl(imageUrl: string): Promise<string> {
     if (imageUrl.includes("supabase")) {
-      return `${imageUrl}?width=600&quality=75&format=webp`
+      return `${imageUrl}?width=600&quality=75&format=webp`;
     }
-    return imageUrl
+    return imageUrl;
   }
 
   private async optimizeDatabaseQueries() {
     const commonQueries = [
       {
         key: "featured_products",
-        query: () => this.supabase.from("products").select("*").eq("is_active", true).limit(6),
+        query: () =>
+          this.supabase
+            .from("products")
+            .select("*")
+            .eq("is_active", true)
+            .limit(6),
       },
       {
         key: "active_categories",
-        query: () => this.supabase.from("categories").select("*").eq("is_active", true),
+        query: () =>
+          this.supabase.from("categories").select("*").eq("is_active", true),
       },
       {
         key: "featured_collections",
-        query: () => this.supabase.from("fabric_collections").select("*").eq("is_featured", true).limit(4),
+        query: () =>
+          this.supabase
+            .from("fabric_collections")
+            .select("*")
+            .eq("is_featured", true)
+            .limit(4),
       },
-    ]
+    ];
 
     for (const { key, query } of commonQueries) {
       await performanceOptimizer.getCachedData(key, async () => {
-        const { data } = await query()
-        return data
-      })
+        const { data } = await query();
+        return data;
+      });
     }
 
     // Implement connection pooling settings
-    await this.optimizeConnectionSettings()
+    await this.optimizeConnectionSettings();
   }
 
   private async optimizeConnectionSettings() {
@@ -240,10 +291,10 @@ export class SupabaseFreePlanOptimizer {
       max: 10, // Maximum connections for free plan
       idleTimeoutMillis: 30000,
       connectionTimeoutMillis: 2000,
-    }
+    };
 
     // Store configuration for application use
-    cacheService.set("db_pool_config", poolConfig, 3600)
+    cacheService.set("db_pool_config", poolConfig, 3600);
   }
 
   private async implementStaticCaching() {
@@ -260,12 +311,12 @@ export class SupabaseFreePlanOptimizer {
         maxAge: 2592000, // 30 days
         staleWhileRevalidate: 86400, // 1 day
       },
-    }
+    };
 
-    cacheService.set("cache_config", cacheConfig, 3600)
+    cacheService.set("cache_config", cacheConfig, 3600);
 
     // Update service worker with optimized caching strategy
-    await this.updateServiceWorkerCache()
+    await this.updateServiceWorkerCache();
   }
 
   private async updateServiceWorkerCache() {
@@ -277,49 +328,61 @@ export class SupabaseFreePlanOptimizer {
       "/api/categories",
       "/images/hero-sofa.webp",
       "/images/placeholder.svg",
-    ]
+    ];
 
-    cacheService.set("sw_critical_resources", criticalResources, 3600)
+    cacheService.set("sw_critical_resources", criticalResources, 3600);
   }
 
   private async cleanupAndArchiveData() {
-    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
+    const thirtyDaysAgo = new Date(
+      Date.now() - 30 * 24 * 60 * 60 * 1000,
+    ).toISOString();
 
     // Archive old orders (keep only last 30 days in main table)
     const { data: oldOrders } = await this.supabase
       .from("orders")
       .select("*")
       .lt("created_at", thirtyDaysAgo)
-      .eq("status", "completed")
+      .eq("status", "completed");
 
     if (oldOrders && oldOrders.length > 0) {
       // In a real implementation, you'd move these to an archive table
-      console.log(`Found ${oldOrders.length} orders to archive`)
+      console.log(`Found ${oldOrders.length} orders to archive`);
     }
 
     // Clean up unused images from storage
-    await this.cleanupUnusedImages()
+    await this.cleanupUnusedImages();
 
     // Optimize database by running VACUUM (if supported)
-    await this.optimizeDatabaseStorage()
+    await this.optimizeDatabaseStorage();
   }
 
   private async cleanupUnusedImages() {
     // Get all image URLs from database
-    const { data: products } = await this.supabase.from("products").select("images")
-    const { data: collections } = await this.supabase.from("fabric_collections").select("image_url")
-    const { data: categories } = await this.supabase.from("categories").select("image_url")
-    const { data: fabrics } = await this.supabase.from("fabrics").select("image_url")
+    const { data: products } = await this.supabase
+      .from("products")
+      .select("images");
+    const { data: collections } = await this.supabase
+      .from("fabric_collections")
+      .select("image_url");
+    const { data: categories } = await this.supabase
+      .from("categories")
+      .select("image_url");
+    const { data: fabrics } = await this.supabase
+      .from("fabrics")
+      .select("image_url");
 
-    const usedImages = new Set<string>()
+    const usedImages = new Set<string>();
 
     // Collect all used image URLs
-    products?.forEach((p) => p.images?.forEach((img: string) => usedImages.add(img)))
-    collections?.forEach((c) => c.image_url && usedImages.add(c.image_url))
-    categories?.forEach((c) => c.image_url && usedImages.add(c.image_url))
-    fabrics?.forEach((f) => f.image_url && usedImages.add(f.image_url))
+    products?.forEach((p) =>
+      p.images?.forEach((img: string) => usedImages.add(img)),
+    );
+    collections?.forEach((c) => c.image_url && usedImages.add(c.image_url));
+    categories?.forEach((c) => c.image_url && usedImages.add(c.image_url));
+    fabrics?.forEach((f) => f.image_url && usedImages.add(f.image_url));
 
-    console.log(`Found ${usedImages.size} images in use`)
+    console.log(`Found ${usedImages.size} images in use`);
   }
 
   private async optimizeDatabaseStorage() {
@@ -327,13 +390,13 @@ export class SupabaseFreePlanOptimizer {
     const optimizationQueries = [
       "REINDEX;", // Rebuild indexes
       "ANALYZE;", // Update statistics
-    ]
+    ];
 
     for (const query of optimizationQueries) {
       try {
-        await this.supabase.rpc("execute_sql", { query })
+        await this.supabase.rpc("execute_sql", { query });
       } catch (error) {
-        console.log(`Optimization query not supported: ${query}`)
+        console.log(`Optimization query not supported: ${query}`);
       }
     }
   }
@@ -344,9 +407,9 @@ export class SupabaseFreePlanOptimizer {
       threshold: 1024, // Compress responses larger than 1KB
       algorithms: ["gzip", "deflate"],
       excludeTypes: ["image/*", "video/*", "audio/*"],
-    }
+    };
 
-    cacheService.set("compression_config", compressionConfig, 3600)
+    cacheService.set("compression_config", compressionConfig, 3600);
   }
 
   private async implementLazyLoading() {
@@ -356,13 +419,35 @@ export class SupabaseFreePlanOptimizer {
       enableIntersectionObserver: true,
       fallbackToTimeout: true,
       timeoutDelay: 3000,
-    }
+    };
 
-    cacheService.set("lazy_load_config", lazyLoadConfig, 3600)
+    cacheService.set("lazy_load_config", lazyLoadConfig, 3600);
   }
 
   async generateOptimizationReport(): Promise<string> {
-    const { optimizations, estimatedSavings } = await this.optimizeForFreePlan()
+    if (!this.supabase) {
+      return `
+# Supabase Free Plan Optimization Report
+
+## Status
+⚠️  **Supabase not available** - Using mock report
+
+## Mock Current Limits
+- Database Storage: ${this.limits.databaseStorage} MB
+- Bandwidth: ${this.limits.bandwidth} MB/month
+- API Requests: Unlimited (but optimized)
+
+## Mock Recommendations
+- Image compression and WebP conversion
+- Database query optimization
+- Caching strategies implementation
+
+Mock environment - no optimizations can be implemented.
+`;
+    }
+
+    const { optimizations, estimatedSavings } =
+      await this.optimizeForFreePlan();
 
     return `
 # Supabase Free Plan Optimization Report
@@ -402,7 +487,7 @@ ${opt.estimatedSavings.requests ? `- API Requests: ${opt.estimatedSavings.reques
 - Set up alerts at 80% of storage limit (400 MB)
 - Monitor bandwidth usage weekly
 - Track API request patterns for optimization opportunities
-    `.trim()
+    `.trim();
   }
 
   private generateRecommendations(): string[] {
@@ -410,26 +495,33 @@ ${opt.estimatedSavings.requests ? `- API Requests: ${opt.estimatedSavings.reques
       "Monitor database storage usage and clean up unnecessary data regularly.",
       "Optimize API responses by enabling compression.",
       "Implement lazy loading for images and components to reduce initial load times.",
-    ]
+    ];
   }
 
   async implementAllOptimizations(): Promise<void> {
-    const { optimizations } = await this.optimizeForFreePlan()
+    if (!this.supabase) {
+      console.log(
+        "Supabase not available - using mock optimization implementation",
+      );
+      return;
+    }
 
-    console.log("Starting Free Plan optimizations...")
+    const { optimizations } = await this.optimizeForFreePlan();
+
+    console.log("Starting Free Plan optimizations...");
 
     for (const optimization of optimizations) {
       try {
-        console.log(`Implementing: ${optimization.name}`)
-        await optimization.implementation()
-        console.log(`✓ Completed: ${optimization.name}`)
+        console.log(`Implementing: ${optimization.name}`);
+        await optimization.implementation();
+        console.log(`✓ Completed: ${optimization.name}`);
       } catch (error) {
-        console.error(`✗ Failed: ${optimization.name}`, error)
+        console.error(`✗ Failed: ${optimization.name}`, error);
       }
     }
 
-    console.log("Free Plan optimizations completed!")
+    console.log("Free Plan optimizations completed!");
   }
 }
 
-export const freePlanOptimizer = new SupabaseFreePlanOptimizer()
+export const freePlanOptimizer = new SupabaseFreePlanOptimizer();
