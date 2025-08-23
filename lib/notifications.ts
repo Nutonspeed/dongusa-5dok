@@ -1,7 +1,8 @@
 import { loadEnv } from "@/lib/config/env"
 import { emailService } from "@/lib/email"
 import { createSmsClient } from "@/lib/sms"
-import { createClient, isSupabaseConfigured } from "@/lib/supabase/client"
+import { createClient } from "@/lib/supabase/client"
+import { isSupabaseConfigured } from "@/lib/supabase/server"
 
 function flags() {
   const env = loadEnv()
@@ -25,7 +26,10 @@ async function logOutboxAndAttempt(params: {
 }) {
   try {
     if (!isSupabaseConfigured) return
-    const supabase = createClient()
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    )
     const { data: notif, error: insErr } = await supabase
       .from("notifications")
       .insert({

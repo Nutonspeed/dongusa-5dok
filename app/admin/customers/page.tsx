@@ -33,7 +33,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Progress } from "@/components/ui/progress"
 import { DatabaseService } from "@/lib/database"
-import { formatPrice } from "@/utils/formatPrice" // Import formatPrice function
+import { formatPrice } from "@/lib/utils/formatPrice" // Import formatPrice function (updated path)
 
 export const dynamic = "force-dynamic"
 
