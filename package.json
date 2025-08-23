@@ -137,7 +137,8 @@
     "typescript": "^5",
     "vitest": "^1.2.2"
   },
-  "engines": {
-    "node": ">=18.0.0"
-  }
+    "engines": {
+      "node": ">=18.0.0"
+    },
+    "packageManager": "pnpm@10"
 }
