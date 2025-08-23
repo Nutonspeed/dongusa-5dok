@@ -19,6 +19,13 @@ jobs:
       - run: pnpm env:check || true
       - run: pnpm typecheck:soft
       - run: pnpm lint:soft
+      
+      # Quick security check for critical vulnerabilities
+      - name: Quick Security Check
+        run: |
+          echo "🔒 Running quick security check..."
+          npm audit --audit-level=critical --json || true
+          
       - name: Build (dev-friendly)
         run: |
           NEXT_TELEMETRY_DISABLED=1 \

@@ -1,0 +1,416 @@
+name: "Security Vulnerability Scanning"
+
+on:
+  push:
+    branches: [ "main", "develop" ]
+  pull_request:
+    branches: [ "main" ]
+  schedule:
+    # Run security scan daily at 2 AM Bangkok time
+    - cron: '0 19 * * *' # 7 PM UTC = 2 AM Bangkok
+  workflow_dispatch:
+    inputs:
+      scan_type:
+        description: 'Type of security scan to run'
+        required: true
+        default: 'comprehensive'
+        type: choice
+        options:
+        - 'comprehensive'
+        - 'dependencies-only'
+        - 'code-only'
+        - 'quick'
+
+permissions:
+  contents: read
+  security-events: write
+  issues: write
+  pull-requests: write
+
+jobs:
+  security-scan:
+    name: Security Vulnerability Scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    
+    outputs:
+      security-score: ${{ steps.scan.outputs.security-score }}
+      critical-vulnerabilities: ${{ steps.scan.outputs.critical-vulnerabilities }}
+      scan-id: ${{ steps.scan.outputs.scan-id }}
+      
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: |
+        npm ci --prefer-offline --no-audit --no-fund
+
+    - name: Run NPM Security Audit
+      id: npm-audit
+      run: |
+        echo "Running npm security audit..."
+        npm audit --audit-level=moderate --json > npm-audit-results.json || true
+        
+        # Parse results and set outputs
+        CRITICAL=$(cat npm-audit-results.json | jq '.metadata.vulnerabilities.critical // 0')
+        HIGH=$(cat npm-audit-results.json | jq '.metadata.vulnerabilities.high // 0')
+        MODERATE=$(cat npm-audit-results.json | jq '.metadata.vulnerabilities.moderate // 0')
+        LOW=$(cat npm-audit-results.json | jq '.metadata.vulnerabilities.low // 0')
+        
+        echo "critical=$CRITICAL" >> $GITHUB_OUTPUT
+        echo "high=$HIGH" >> $GITHUB_OUTPUT
+        echo "moderate=$MODERATE" >> $GITHUB_OUTPUT
+        echo "low=$LOW" >> $GITHUB_OUTPUT
+        
+        TOTAL=$((CRITICAL + HIGH + MODERATE + LOW))
+        echo "total=$TOTAL" >> $GITHUB_OUTPUT
+        
+        echo "📊 NPM Audit Results:"
+        echo "Critical: $CRITICAL"
+        echo "High: $HIGH" 
+        echo "Moderate: $MODERATE"
+        echo "Low: $LOW"
+        echo "Total: $TOTAL"
+
+    - name: Run Comprehensive Security Scan
+      id: scan
+      run: |
+        echo "Running comprehensive security vulnerability scan..."
+        
+        # Create a simple Node.js wrapper to run our security scan
+        cat > run-security-scan.js << 'EOF'
+        const { execSync } = require('child_process');
+        const fs = require('fs');
+        
+        // Basic security scan implementation
+        try {
+          console.log('🔒 Starting Security Vulnerability Scan...\n');
+          
+          // Run npm audit and capture results
+          let auditResults = {};
+          try {
+            const auditOutput = execSync('npm audit --json', { stdio: 'pipe' }).toString();
+            auditResults = JSON.parse(auditOutput);
+          } catch (error) {
+            // npm audit returns non-zero exit code when vulnerabilities are found
+            if (error.stdout) {
+              auditResults = JSON.parse(error.stdout.toString());
+            }
+          }
+          
+          const vulnerabilities = auditResults.vulnerabilities || {};
+          const metadata = auditResults.metadata || { vulnerabilities: {} };
+          
+          const critical = metadata.vulnerabilities.critical || 0;
+          const high = metadata.vulnerabilities.high || 0;
+          const moderate = metadata.vulnerabilities.moderate || 0;
+          const low = metadata.vulnerabilities.low || 0;
+          const total = critical + high + moderate + low;
+          
+          // Calculate security score
+          const securityScore = Math.max(0, 100 - critical * 25 - high * 10 - moderate * 5 - low * 1);
+          
+          const report = {
+            scanId: `scan_${Date.now()}`,
+            timestamp: new Date().toISOString(),
+            summary: {
+              totalVulnerabilities: total,
+              critical: critical,
+              high: high,
+              medium: moderate,
+              low: low
+            },
+            securityScore: securityScore,
+            vulnerabilities: Object.keys(vulnerabilities).map(name => {
+              const vuln = vulnerabilities[name];
+              return {
+                name: name,
+                severity: vuln.severity,
+                title: vuln.title,
+                vulnerableVersions: vuln.range,
+                patchedVersions: vuln.fixAvailable ? 'Available' : 'None'
+              };
+            }),
+            recommendations: [
+              'Run npm audit fix to apply automatic fixes',
+              'Update vulnerable dependencies manually if needed',
+              'Review and test all security patches',
+              'Implement regular security scanning in CI/CD pipeline'
+            ]
+          };
+          
+          console.log('🔒 Security Vulnerability Scan Report');
+          console.log('='.repeat(60));
+          console.log(`Scan ID: ${report.scanId}`);
+          console.log(`Security Score: ${report.securityScore}/100`);
+          console.log(`Total Vulnerabilities: ${report.summary.totalVulnerabilities}`);
+          console.log(`  - Critical: ${report.summary.critical}`);
+          console.log(`  - High: ${report.summary.high}`);
+          console.log(`  - Medium: ${report.summary.medium}`);
+          console.log(`  - Low: ${report.summary.low}`);
+          
+          if (report.summary.critical > 0) {
+            console.log('\n❌ Critical security vulnerabilities found!');
+          } else if (report.summary.high > 5) {
+            console.log('\n⚠️ High number of security vulnerabilities found!');
+          } else {
+            console.log('\n✅ Security scan completed successfully');
+          }
+          
+          console.log('\n💡 Recommendations:');
+          report.recommendations.forEach(rec => console.log(`  - ${rec}`));
+          
+          // Write report to file
+          fs.writeFileSync('security-vulnerability-report.json', JSON.stringify(report, null, 2));
+          console.log('\n📄 Detailed report saved to: security-vulnerability-report.json');
+          
+        } catch (error) {
+          console.error('❌ Security vulnerability scan failed:', error.message);
+          process.exit(1);
+        }
+        EOF
+        
+        node run-security-scan.js > security-scan-results.txt 2>&1 || true
+        
+        # Extract information from the scan results and report file
+        if [ -f security-vulnerability-report.json ]; then
+          SCAN_ID=$(node -e "console.log(JSON.parse(require('fs').readFileSync('security-vulnerability-report.json', 'utf8')).scanId)")
+          SECURITY_SCORE=$(node -e "console.log(JSON.parse(require('fs').readFileSync('security-vulnerability-report.json', 'utf8')).securityScore)")
+          CRITICAL_VULNS=$(node -e "console.log(JSON.parse(require('fs').readFileSync('security-vulnerability-report.json', 'utf8')).summary.critical)")
+        else
+          SCAN_ID=$(date +%s)
+          SECURITY_SCORE=$((100 - CRITICAL * 25 - HIGH * 10 - MODERATE * 5 - LOW * 1))
+          CRITICAL_VULNS=${{ steps.npm-audit.outputs.critical }}
+        fi
+        
+        if [ $SECURITY_SCORE -lt 0 ]; then
+          SECURITY_SCORE=0
+        fi
+        
+        echo "scan-id=$SCAN_ID" >> $GITHUB_OUTPUT
+        echo "security-score=$SECURITY_SCORE" >> $GITHUB_OUTPUT
+        echo "critical-vulnerabilities=$CRITICAL_VULNS" >> $GITHUB_OUTPUT
+        
+        echo "🔒 Security Score: $SECURITY_SCORE/100"
+        echo "🚨 Critical Vulnerabilities: $CRITICAL_VULNS"
+
+    - name: Check Security Thresholds
+      id: threshold-check
+      run: |
+        CRITICAL=${{ steps.npm-audit.outputs.critical }}
+        HIGH=${{ steps.npm-audit.outputs.high }}
+        SECURITY_SCORE=${{ steps.scan.outputs.security-score }}
+        
+        # Set failure conditions
+        SHOULD_FAIL=false
+        
+        if [ $CRITICAL -gt 0 ]; then
+          echo "❌ CRITICAL: Found $CRITICAL critical vulnerabilities"
+          SHOULD_FAIL=true
+        fi
+        
+        if [ $HIGH -gt 5 ]; then
+          echo "⚠️ WARNING: Found $HIGH high vulnerabilities (threshold: 5)"
+          SHOULD_FAIL=true
+        fi
+        
+        if [ $SECURITY_SCORE -lt 70 ]; then
+          echo "📉 SECURITY SCORE TOO LOW: $SECURITY_SCORE (minimum: 70)"
+          SHOULD_FAIL=true
+        fi
+        
+        echo "should-fail=$SHOULD_FAIL" >> $GITHUB_OUTPUT
+        
+        if [ "$SHOULD_FAIL" = "true" ]; then
+          echo "🚨 Security check failed - review required!"
+          exit 1
+        else
+          echo "✅ Security check passed!"
+        fi
+
+    - name: Upload Security Scan Results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: security-scan-results
+        path: |
+          npm-audit-results.json
+          security-scan-results.txt
+        retention-days: 30
+
+    - name: Comment on PR with Security Results
+      if: github.event_name == 'pull_request' && always()
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const critical = '${{ steps.npm-audit.outputs.critical }}';
+          const high = '${{ steps.npm-audit.outputs.high }}';
+          const moderate = '${{ steps.npm-audit.outputs.moderate }}';
+          const low = '${{ steps.npm-audit.outputs.low }}';
+          const securityScore = '${{ steps.scan.outputs.security-score }}';
+          const scanId = '${{ steps.scan.outputs.scan-id }}';
+          
+          const body = `## 🔒 Security Scan Results (Scan ID: ${scanId})
+          
+          **Security Score: ${securityScore}/100**
+          
+          ### Vulnerability Summary
+          - 🚨 Critical: ${critical}
+          - ⚠️ High: ${high}
+          - 📋 Moderate: ${moderate}
+          - 📝 Low: ${low}
+          
+          ${critical > 0 ? '❌ **Action Required**: Critical vulnerabilities found!' : ''}
+          ${high > 5 ? '⚠️ **Warning**: High number of high-severity vulnerabilities!' : ''}
+          ${securityScore < 70 ? '📉 **Warning**: Security score below recommended threshold!' : ''}
+          ${critical == 0 && high <= 5 && securityScore >= 70 ? '✅ **All security checks passed!**' : ''}
+          
+          ### Recommendations
+          - Run \`npm audit fix\` to automatically fix vulnerabilities
+          - Review dependencies for security issues
+          - Consider updating vulnerable packages
+          - Check the security scan artifact for detailed results
+          `;
+          
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: body
+          });
+
+  notify-team:
+    name: Notify Team of Security Issues
+    runs-on: ubuntu-latest
+    needs: security-scan
+    if: always() && (needs.security-scan.outputs.critical-vulnerabilities > 0 || needs.security-scan.outputs.security-score < 70)
+    
+    steps:
+    - name: Create Security Issue
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const critical = '${{ needs.security-scan.outputs.critical-vulnerabilities }}';
+          const securityScore = '${{ needs.security-scan.outputs.security-score }}';
+          const scanId = '${{ needs.security-scan.outputs.scan-id }}';
+          const runUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+          
+          const title = `🚨 Security Alert: Critical vulnerabilities detected (Scan ID: ${scanId})`;
+          
+          const body = `## Security Vulnerability Alert
+          
+          **Scan ID**: ${scanId}
+          **Triggered by**: ${context.eventName} on ${context.ref}
+          **Security Score**: ${securityScore}/100
+          **Critical Vulnerabilities**: ${critical}
+          
+          ### Immediate Actions Required
+          
+          ${critical > 0 ? `
+          #### 🚨 CRITICAL VULNERABILITIES FOUND
+          - **Count**: ${critical} critical vulnerabilities
+          - **Action**: Immediate patching required
+          - **Priority**: P0 - Fix within 24 hours
+          ` : ''}
+          
+          ${securityScore < 70 ? `
+          #### 📉 LOW SECURITY SCORE
+          - **Current Score**: ${securityScore}/100
+          - **Target**: Minimum 70/100
+          - **Action**: Review and improve security posture
+          ` : ''}
+          
+          ### Next Steps
+          1. Review the [security scan results](${runUrl})
+          2. Run \`npm audit fix\` to apply automatic fixes
+          3. Update vulnerable dependencies manually if needed
+          4. Re-run security scan to verify fixes
+          5. Close this issue once all critical vulnerabilities are resolved
+          
+          ### Resources
+          - [Security Scan Workflow](${runUrl})
+          - [NPM Audit Documentation](https://docs.npmjs.com/cli/v8/commands/npm-audit)
+          - [Security Best Practices](https://docs.github.com/en/code-security)
+          
+          **Auto-generated by Security Workflow**
+          `;
+          
+          // Check if similar issue already exists
+          const existingIssues = await github.rest.issues.listForRepo({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            labels: 'security,vulnerability',
+            state: 'open'
+          });
+          
+          const hasExistingAlert = existingIssues.data.some(issue => 
+            issue.title.includes('Security Alert') && 
+            issue.created_at > new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+          );
+          
+          if (!hasExistingAlert) {
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: title,
+              body: body,
+              labels: ['security', 'vulnerability', 'P0', 'automated'],
+              assignees: ['Nutonspeed']
+            });
+            
+            console.log('🚨 Security issue created successfully');
+          } else {
+            console.log('⚠️ Recent security issue already exists, skipping creation');
+          }
+
+  # Optional: Send to external notification systems
+  external-notifications:
+    name: External Security Notifications
+    runs-on: ubuntu-latest
+    needs: security-scan
+    if: always() && needs.security-scan.outputs.critical-vulnerabilities > 0
+    
+    steps:
+    - name: Send Slack Notification (if configured)
+      if: env.SLACK_WEBHOOK_URL != ''
+      env:
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+      run: |
+        if [ -n "$SLACK_WEBHOOK_URL" ]; then
+          curl -X POST -H 'Content-type: application/json' \
+            --data "{
+              \"text\": \"🚨 Security Alert: ${{ needs.security-scan.outputs.critical-vulnerabilities }} critical vulnerabilities found in ${GITHUB_REPOSITORY}\",
+              \"blocks\": [
+                {
+                  \"type\": \"section\",
+                  \"text\": {
+                    \"type\": \"mrkdwn\",
+                    \"text\": \"*🚨 Security Alert*\n\n*Repository*: ${GITHUB_REPOSITORY}\n*Critical Vulnerabilities*: ${{ needs.security-scan.outputs.critical-vulnerabilities }}\n*Security Score*: ${{ needs.security-scan.outputs.security-score }}/100\n\n<https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}|View Security Scan Results>\"
+                  }
+                }
+              ]
+            }" \
+            $SLACK_WEBHOOK_URL
+        fi
+
+    - name: Send Email Notification (if configured)
+      if: env.EMAIL_WEBHOOK_URL != ''
+      env:
+        EMAIL_WEBHOOK_URL: ${{ secrets.EMAIL_WEBHOOK_URL }}
+      run: |
+        if [ -n "$EMAIL_WEBHOOK_URL" ]; then
+          curl -X POST -H 'Content-type: application/json' \
+            --data "{
+              \"to\": \"team@example.com\",
+              \"subject\": \"🚨 Security Alert: Critical vulnerabilities in ${GITHUB_REPOSITORY}\",
+              \"text\": \"Critical vulnerabilities found: ${{ needs.security-scan.outputs.critical-vulnerabilities }}. Security score: ${{ needs.security-scan.outputs.security-score }}/100. View details: https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}\"
+            }" \
+            $EMAIL_WEBHOOK_URL
+        fi
