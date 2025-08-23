@@ -1,0 +1,17 @@
+{
+  "nav.home": "Home",
+  "nav.products": "Products",
+  "nav.about": "About Us",
+  "nav.contact": "Contact",
+  "product.addToCart": "Add to Cart",
+  "checkout.total": "Total",
+  "order.status.pending": "Pending",
+  "order.status.confirmed": "Confirmed",
+  "order.status.shipped": "Shipped",
+  "order.status.delivered": "Delivered",
+  "payment.methods.promptpay": "PromptPay",
+  "payment.methods.bank_transfer": "Bank Transfer",
+  "shipping.free": "Free Shipping",
+  "error.network": "Network connection error",
+  "success.orderPlaced": "Order placed successfully"
+}

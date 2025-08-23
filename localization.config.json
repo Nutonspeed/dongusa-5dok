@@ -1,0 +1,24 @@
+{
+  "supportedLocales": ["th", "en", "ms", "zh", "es"],
+  "defaultLocale": "th",
+  "translationPlatform": {
+    "provider": "crowdin",
+    "projectId": "",
+    "apiToken": "",
+    "baseBranch": "main"
+  },
+  "validation": {
+    "requireAllKeys": true,
+    "checkPlaceholders": true,
+    "maxKeyLength": 100,
+    "maxTranslationLength": 500
+  },
+  "directories": {
+    "locales": "./locales",
+    "temp": "./temp/localization"
+  },
+  "fileFormats": {
+    "export": "json",
+    "import": "json"
+  }
+}

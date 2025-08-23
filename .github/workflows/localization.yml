@@ -1,0 +1,309 @@
+name: Localization Management
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'locales/**'
+      - 'localization.config.json'
+      - 'scripts/translation-*.mjs'
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'locales/**'
+      - 'localization.config.json'
+      - 'scripts/translation-*.mjs'
+  schedule:
+    # Run daily at 02:00 UTC to sync translations
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Action to perform'
+        required: true
+        default: 'validate'
+        type: choice
+        options:
+          - validate
+          - sync
+          - upload
+          - download
+          - report
+
+jobs:
+  validate-translations:
+    runs-on: ubuntu-latest
+    name: Validate Translation Files
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Validate translation files
+      run: npm run translations:validate
+    
+    - name: Generate translation report
+      run: npm run translations:report
+      
+    - name: Upload translation report
+      uses: actions/upload-artifact@v4
+      with:
+        name: translation-report
+        path: translation-report.json
+        retention-days: 30
+
+  sync-translations:
+    runs-on: ubuntu-latest
+    name: Sync with Translation Platform
+    needs: validate-translations
+    if: |
+      github.event_name == 'schedule' || 
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'sync') ||
+      (github.event_name == 'push' && github.ref == 'refs/heads/main')
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Configure translation platform
+      run: |
+        # Update config with secrets
+        node -e "
+        const fs = require('fs');
+        const config = JSON.parse(fs.readFileSync('localization.config.json', 'utf8'));
+        config.translationPlatform.projectId = process.env.TRANSLATION_PROJECT_ID || '';
+        config.translationPlatform.apiToken = process.env.TRANSLATION_API_TOKEN || '';
+        fs.writeFileSync('localization.config.json', JSON.stringify(config, null, 2));
+        "
+      env:
+        TRANSLATION_PROJECT_ID: ${{ secrets.TRANSLATION_PROJECT_ID }}
+        TRANSLATION_API_TOKEN: ${{ secrets.TRANSLATION_API_TOKEN }}
+    
+    - name: Upload source files to platform
+      run: npm run translations:upload
+      continue-on-error: true
+    
+    - name: Download latest translations
+      run: npm run translations:download
+      continue-on-error: true
+    
+    - name: Validate downloaded translations
+      run: npm run translations:validate
+      continue-on-error: true
+    
+    - name: Commit updated translations
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add locales/
+        if git diff --staged --quiet; then
+          echo "No translation changes to commit"
+        else
+          git commit -m "chore: update translations from platform [skip ci]"
+          git push
+        fi
+
+  upload-translations:
+    runs-on: ubuntu-latest
+    name: Upload Source Files
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'upload'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Configure translation platform
+      run: |
+        node -e "
+        const fs = require('fs');
+        const config = JSON.parse(fs.readFileSync('localization.config.json', 'utf8'));
+        config.translationPlatform.projectId = process.env.TRANSLATION_PROJECT_ID || '';
+        config.translationPlatform.apiToken = process.env.TRANSLATION_API_TOKEN || '';
+        fs.writeFileSync('localization.config.json', JSON.stringify(config, null, 2));
+        "
+      env:
+        TRANSLATION_PROJECT_ID: ${{ secrets.TRANSLATION_PROJECT_ID }}
+        TRANSLATION_API_TOKEN: ${{ secrets.TRANSLATION_API_TOKEN }}
+    
+    - name: Upload source files
+      run: npm run translations:upload
+
+  download-translations:
+    runs-on: ubuntu-latest
+    name: Download Translations
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'download'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Configure translation platform
+      run: |
+        node -e "
+        const fs = require('fs');
+        const config = JSON.parse(fs.readFileSync('localization.config.json', 'utf8'));
+        config.translationPlatform.projectId = process.env.TRANSLATION_PROJECT_ID || '';
+        config.translationPlatform.apiToken = process.env.TRANSLATION_API_TOKEN || '';
+        fs.writeFileSync('localization.config.json', JSON.stringify(config, null, 2));
+        "
+      env:
+        TRANSLATION_PROJECT_ID: ${{ secrets.TRANSLATION_PROJECT_ID }}
+        TRANSLATION_API_TOKEN: ${{ secrets.TRANSLATION_API_TOKEN }}
+    
+    - name: Download translations
+      run: npm run translations:download
+    
+    - name: Validate translations
+      run: npm run translations:validate
+    
+    - name: Commit updated translations
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add locales/
+        if git diff --staged --quiet; then
+          echo "No translation changes to commit"
+        else
+          git commit -m "chore: download latest translations [skip ci]"
+          git push
+        fi
+
+  check-integrity:
+    runs-on: ubuntu-latest
+    name: Check Translation Integrity
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Check file integrity
+      run: |
+        echo "🔍 Checking translation file integrity..."
+        
+        # Check if all locale files exist
+        for locale in th en ms zh es; do
+          if [ ! -f "locales/${locale}.json" ]; then
+            echo "❌ Missing locale file: ${locale}.json"
+            exit 1
+          fi
+          
+          # Validate JSON syntax
+          if ! jq empty "locales/${locale}.json" 2>/dev/null; then
+            echo "❌ Invalid JSON in: ${locale}.json"
+            exit 1
+          fi
+          
+          echo "✅ ${locale}.json is valid"
+        done
+        
+        echo "🎯 All translation files passed integrity check"
+    
+    - name: Check for consistency
+      run: |
+        echo "🔍 Checking translation consistency..."
+        
+        # Get keys from default locale
+        default_keys=$(jq -r 'keys[]' locales/th.json | sort)
+        
+        for locale in en ms zh es; do
+          locale_keys=$(jq -r 'keys[]' "locales/${locale}.json" | sort)
+          
+          # Check for missing keys
+          missing_keys=$(comm -23 <(echo "$default_keys") <(echo "$locale_keys"))
+          if [ ! -z "$missing_keys" ]; then
+            echo "❌ Missing keys in ${locale}.json:"
+            echo "$missing_keys"
+            exit 1
+          fi
+          
+          # Check for extra keys
+          extra_keys=$(comm -13 <(echo "$default_keys") <(echo "$locale_keys"))
+          if [ ! -z "$extra_keys" ]; then
+            echo "⚠️ Extra keys in ${locale}.json:"
+            echo "$extra_keys"
+          fi
+          
+          echo "✅ ${locale}.json has consistent keys"
+        done
+        
+        echo "🎯 Translation consistency check passed"
+
+  generate-report:
+    runs-on: ubuntu-latest
+    name: Generate Translation Report
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'report'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Generate comprehensive report
+      run: |
+        npm run translations:report
+        npm run translations:validate
+    
+    - name: Upload reports
+      uses: actions/upload-artifact@v4
+      with:
+        name: localization-reports
+        path: |
+          translation-report.json
+        retention-days: 90

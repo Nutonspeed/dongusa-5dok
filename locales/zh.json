@@ -1,0 +1,17 @@
+{
+  "nav.home": "首页",
+  "nav.products": "产品",
+  "nav.about": "关于我们",
+  "nav.contact": "联系",
+  "product.addToCart": "加入购物车",
+  "checkout.total": "总计",
+  "order.status.pending": "待处理",
+  "order.status.confirmed": "已确认",
+  "order.status.shipped": "已发货",
+  "order.status.delivered": "已送达",
+  "payment.methods.promptpay": "PromptPay",
+  "payment.methods.bank_transfer": "银行转账",
+  "shipping.free": "免费送货",
+  "error.network": "网络连接错误",
+  "success.orderPlaced": "订单下单成功"
+}

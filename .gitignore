@@ -50,6 +50,10 @@ out/
 .temp/
 .turbo/
 
+# Localization temp files
+temp/
+translation-report.json
+
 # Misc
 *.pem
 *.p12
