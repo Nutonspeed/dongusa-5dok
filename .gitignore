@@ -7,6 +7,8 @@ node_modules/
 
 # Testing
 coverage/
+eslint-results.json
+test-results.json
 
 # Next.js
 .next/
