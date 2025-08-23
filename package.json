@@ -22,7 +22,7 @@
     "health:node": "node scripts/health-check.mjs",
     "backend:verify": "tsx scripts/backend-verification.ts",
     "build": "next build",
-  "prebuild": "node scripts/check-node-version.js",
+    "prebuild": "node scripts/check-node-version.js",
     "build:analyze": "ANALYZE=true npm run build",
     "build:fallback": "tsx scripts/build-with-fallback.ts",
     "build:fix": "tsx scripts/fix-module-system.ts && npm run build",
@@ -77,8 +77,8 @@
     "test:performance:stress": "tsx lib/comprehensive-performance-testing.ts stress",
     "test:watch": "jest --watch",
     "typecheck": "tsc --noEmit",
-  "validate:deployment": "tsx scripts/validate-production-deployment.ts",
-  "ci:validate-env": "node scripts/ci-validate-env.js",
+    "validate:deployment": "tsx scripts/validate-production-deployment.ts",
+    "ci:validate-env": "node scripts/ci-validate-env.js",
     "validate:input": "tsx lib/input-validation.ts",
     "validate:modules": "tsx scripts/validate-build-system.ts",
     "verify:all": "npm run verify:system && npm run verify:build",
@@ -212,7 +212,8 @@
     "tsx": "^4.16.2",
     "typescript": "^5",
     "vite": "^5.4.9",
-    "vitest": "^3.2.4"
+    "vitest": "^3.2.4",
+    "dotenv": "^16.1.4"
   },
   "engines": {
     "node": ">=18.0.0",
