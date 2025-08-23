@@ -31,5 +31,12 @@ jobs:
         run: pnpm exec tsx scripts/website-health-check.ts
       - name: Build
         run: pnpm run build
+        env:
+          # Set CI environment variables to prevent build failures
+          CI: true
+          SKIP_NODE_VERSION_CHECK: "1"
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL || 'https://mock.supabase.co' }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'mock_key' }}
+          NEXT_PUBLIC_USE_SUPABASE: ${{ secrets.NEXT_PUBLIC_USE_SUPABASE || 'false' }}
       - name: Run tests
         run: pnpm test
