@@ -71,3 +71,9 @@ out/
 # Build output
 .next/
 out/
+
+# Performance test artifacts (keep directory structure)
+docs/performance/reports/*.json
+docs/performance/reports/*.md
+test-site/
+.lighthouseci/

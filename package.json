@@ -20,7 +20,9 @@
     "format": "prettier --write .",
     "type-check": "tsc --noEmit --project tsconfig.build.json",
     "prepare": "husky install",
-    "test": "vitest run"
+    "test": "vitest run",
+    "benchmark": "tsx scripts/run-benchmark-tests.ts",
+    "benchmark:report": "tsx scripts/run-benchmark-tests.ts && echo 'Reports generated in docs/performance/reports/'"
   },
   "dependencies": {
     "@radix-ui/react-checkbox": "^1.0.4",
