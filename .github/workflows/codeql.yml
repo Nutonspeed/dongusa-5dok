@@ -1,0 +1,78 @@
+name: "CodeQL Security Scanning"
+
+on:
+  push:
+    branches: [ "main", "develop" ]
+  pull_request:
+    branches: [ "main" ]
+  schedule:
+    # Run CodeQL scan every Monday at 3 AM Bangkok time
+    - cron: '0 20 * * 0' # Sunday 8 PM UTC = Monday 3 AM Bangkok
+
+permissions:
+  actions: read
+  contents: read
+  security-events: write
+
+jobs:
+  analyze:
+    name: Analyze Code with CodeQL
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [ 'javascript-typescript' ]
+        # Add other languages if needed: 'cpp', 'csharp', 'go', 'java', 'python'
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@v3
+      with:
+        languages: ${{ matrix.language }}
+        # Override default queries with security-focused ones
+        queries: +security-and-quality
+        # You can specify custom query suites or packs
+        # packs: octo-org/security-queries,octo-org/optional-security-queries
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: |
+        npm ci --prefer-offline --no-audit --no-fund
+        
+    # Autobuild attempts to build any compiled languages (C/C++, C#, Go, or Java).
+    # If this step fails, then you should remove it and run the build manually
+    - name: Autobuild
+      uses: github/codeql-action/autobuild@v3
+      # Alternative manual build steps:
+      # - name: Manual build
+      #   run: |
+      #     npm run build
+
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v3
+      with:
+        category: "/language:${{matrix.language}}"
+        
+    - name: Upload SARIF results to GitHub Security tab
+      uses: github/codeql-action/upload-sarif@v3
+      if: always()
+      with:
+        sarif_file: ${{ runner.workspace }}/results
+        
+    # Optional: Save SARIF file as artifact for further analysis
+    - name: Upload SARIF as artifact
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: codeql-sarif-${{ matrix.language }}
+        path: ${{ runner.workspace }}/results
+        retention-days: 30

@@ -1,0 +1,131 @@
+{
+  "security": {
+    "scan": {
+      "schedule": "daily",
+      "thresholds": {
+        "security_score_minimum": 70,
+        "critical_vulnerabilities_max": 0,
+        "high_vulnerabilities_max": 5,
+        "medium_vulnerabilities_max": 20,
+        "low_vulnerabilities_max": 50
+      },
+      "exclude_patterns": [
+        "node_modules/**",
+        "dist/**",
+        "build/**",
+        "*.min.js",
+        "*.map"
+      ],
+      "include_patterns": [
+        "**/*.ts",
+        "**/*.tsx",
+        "**/*.js",
+        "**/*.jsx",
+        "**/package.json",
+        "**/package-lock.json",
+        "**/*.env*"
+      ]
+    },
+    "notifications": {
+      "enabled": true,
+      "channels": {
+        "github_issues": {
+          "enabled": true,
+          "labels": ["security", "vulnerability", "automated"],
+          "assignees": ["Nutonspeed"],
+          "auto_close_when_resolved": true
+        },
+        "slack": {
+          "enabled": false,
+          "webhook_url_env": "SLACK_WEBHOOK_URL",
+          "channel": "#security",
+          "mention_on_critical": ["@channel"],
+          "mention_on_high": ["@team-leads"]
+        },
+        "email": {
+          "enabled": false,
+          "api_key_env": "EMAIL_API_KEY",
+          "recipients": ["team@example.com"],
+          "subject_prefix": "[SECURITY ALERT]"
+        },
+        "teams": {
+          "enabled": false,
+          "webhook_url_env": "TEAMS_WEBHOOK_URL"
+        }
+      }
+    },
+    "dependabot": {
+      "auto_merge": {
+        "enabled": true,
+        "security_updates_only": true,
+        "max_semver_change": "patch"
+      },
+      "grouping": {
+        "security_updates": true,
+        "major_updates": true,
+        "minor_updates": true
+      }
+    },
+    "codeql": {
+      "languages": ["javascript-typescript"],
+      "queries": "security-and-quality",
+      "schedule": "weekly",
+      "on_push": true,
+      "on_pr": true
+    },
+    "policies": {
+      "block_on_critical": true,
+      "block_on_high_count": 10,
+      "require_security_review": true,
+      "auto_fix_enabled": true,
+      "quarantine_vulnerable_deps": false
+    },
+    "reporting": {
+      "formats": ["json", "sarif", "html"],
+      "retention_days": 90,
+      "publish_to_security_tab": true,
+      "generate_badges": true
+    }
+  },
+  "compliance": {
+    "standards": ["OWASP Top 10", "CWE", "SANS Top 25"],
+    "frameworks": ["NIST Cybersecurity Framework", "ISO 27001"],
+    "reporting": {
+      "owasp_compliance": true,
+      "cwe_mapping": true,
+      "security_score": true
+    }
+  },
+  "monitoring": {
+    "real_time": {
+      "enabled": true,
+      "webhook_endpoints": [],
+      "alert_rules": [
+        {
+          "name": "Critical Vulnerability Detected",
+          "condition": "critical_vulnerabilities > 0",
+          "action": "immediate_alert",
+          "escalation": "P0"
+        },
+        {
+          "name": "Security Score Drop",
+          "condition": "security_score < 70",
+          "action": "alert",
+          "escalation": "P1"
+        },
+        {
+          "name": "High Vulnerability Count",
+          "condition": "high_vulnerabilities > 5",
+          "action": "alert",
+          "escalation": "P2"
+        }
+      ]
+    },
+    "metrics": {
+      "track_security_score": true,
+      "track_vulnerability_trends": true,
+      "track_response_times": true,
+      "track_fix_rates": true
+    }
+  }
+}
