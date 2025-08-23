@@ -7,6 +7,13 @@
 
 import { readFileSync, existsSync, readdirSync, statSync } from "fs"
 import { join, extname } from "path"
+import { 
+  readPackageJson, 
+  readNextConfig, 
+  readTsConfig, 
+  checkVersionConflicts, 
+  checkProblematicCombinations 
+} from "./utils/config-utils"
 
 interface ValidationResult {
   success: boolean
@@ -80,15 +87,15 @@ class BuildSystemValidator {
   private async validateDependencies(): Promise<void> {
     console.log("📋 Validating Dependencies...")
 
-    const packageJson = this.readPackageJson()
-    const conflicts = this.checkVersionConflicts(packageJson)
+    const packageJson = readPackageJson(this.projectRoot)
+    const conflicts = checkVersionConflicts(packageJson)
 
     if (conflicts.length > 0) {
       this.results.warnings.push(`Dependency conflicts: ${conflicts.join(", ")}`)
     }
 
     // Check for known problematic combinations
-    const problematicCombos = this.checkProblematicCombinations(packageJson)
+    const problematicCombos = checkProblematicCombinations(packageJson)
     if (problematicCombos.length > 0) {
       this.results.errors.push(`Problematic dependency combinations: ${problematicCombos.join(", ")}`)
       this.results.success = false
@@ -114,13 +121,13 @@ class BuildSystemValidator {
     console.log("⚙️ Validating Build Configuration...")
 
     // Check Next.js config
-    const nextConfig = this.readNextConfig()
-    if (!nextConfig) {
+    const nextConfigExists = readNextConfig(this.projectRoot)
+    if (!nextConfigExists) {
       this.results.warnings.push("Missing next.config.mjs")
     }
 
     // Check TypeScript config
-    const tsConfig = this.readTsConfig()
+    const tsConfig = readTsConfig(this.projectRoot)
     if (!tsConfig) {
       this.results.errors.push("Missing tsconfig.json")
       this.results.success = false
@@ -273,58 +280,6 @@ class BuildSystemValidator {
     return []
   }
 
-  private readPackageJson(): any {
-    try {
-      const content = readFileSync(join(this.projectRoot, "package.json"), "utf-8")
-      return JSON.parse(content)
-    } catch {
-      return null
-    }
-  }
-
-  private checkVersionConflicts(packageJson: any): string[] {
-    const conflicts: string[] = []
-
-    if (!packageJson) return conflicts
-
-    const deps = { ...packageJson.dependencies, ...packageJson.devDependencies }
-
-    // Check React version compatibility
-    if (deps.react && deps["react-dom"]) {
-      const reactVersion = deps.react.replace(/[\^~]/, "")
-      const reactDomVersion = deps["react-dom"].replace(/[\^~]/, "")
-
-      if (reactVersion !== reactDomVersion) {
-        conflicts.push(`React version mismatch: ${reactVersion} vs ${reactDomVersion}`)
-      }
-    }
-
-    // Check AI SDK and Zod compatibility
-    if (deps.ai && deps.zod) {
-      const zodVersion = deps.zod.replace(/[\^~]/, "")
-      if (zodVersion.startsWith("3.23")) {
-        conflicts.push("Zod version 3.23.x may not be compatible with AI SDK 5.x")
-      }
-    }
-
-    return conflicts
-  }
-
-  private checkProblematicCombinations(packageJson: any): string[] {
-    const problems: string[] = []
-
-    if (!packageJson) return problems
-
-    const deps = { ...packageJson.dependencies, ...packageJson.devDependencies }
-
-    // Check for known problematic combinations
-    if (deps.react?.includes("18.0.0") && deps.next?.includes("14.")) {
-      problems.push("React 18.0.0 with Next.js 14.x - should use React 18.2.0+")
-    }
-
-    return problems
-  }
-
   private findEdgeRuntimeFiles(): string[] {
     const edgeFiles: string[] = []
 
@@ -373,24 +328,6 @@ class BuildSystemValidator {
     })
 
     return nodeModuleUsage
-  }
-
-  private readNextConfig(): any {
-    try {
-      const configPath = join(this.projectRoot, "next.config.mjs")
-      return existsSync(configPath)
-    } catch {
-      return false
-    }
-  }
-
-  private readTsConfig(): any {
-    try {
-      const content = readFileSync(join(this.projectRoot, "tsconfig.json"), "utf-8")
-      return JSON.parse(content)
-    } catch {
-      return null
-    }
   }
 
   private generateReport(): void {
