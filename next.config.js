@@ -36,6 +36,15 @@ const nextConfig = {
         os: false,
       }
     }
+
+    // Workaround: some environments and Node versions have an intermittent
+    // WasmHash filesystem cache error during the webpack build (reading
+    // 'length' of undefined). Allow disabling webpack cache via an env var
+    // so CI or local dev can opt-in to avoid the crash without changing
+    // upstream Next/webpack versions here.
+    if (process.env.DISABLE_WASM_HASH_CACHE === '1') {
+      config.cache = false
+    }
     return config
   },
   async rewrites() {
