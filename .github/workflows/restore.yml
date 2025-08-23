@@ -1,0 +1,298 @@
+name: Restore from Backup
+
+on:
+  workflow_dispatch:
+    inputs:
+      backup_id:
+        description: 'Backup ID to restore (timestamp format: YYYY-MM-DD_HH-MM-SS)'
+        required: true
+      restore_type:
+        description: 'Type of restore to perform'
+        required: true
+        default: 'full'
+        type: choice
+        options:
+        - full
+        - source-only
+        - artifacts-only
+      cloud_provider:
+        description: 'Cloud storage provider where backup is stored'
+        required: true
+        default: 'aws-s3'
+        type: choice
+        options:
+        - aws-s3
+        - gcs
+      target_branch:
+        description: 'Branch to restore to (creates new branch if it does not exist)'
+        required: false
+        default: 'restore-backup'
+      verify_integrity:
+        description: 'Verify backup integrity before restore'
+        required: false
+        default: true
+        type: boolean
+
+jobs:
+  restore:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+      
+      - name: Install pnpm
+        run: npm install -g pnpm@10
+      
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile=false
+      
+      - name: Configure AWS credentials
+        if: ${{ github.event.inputs.cloud_provider == 'aws-s3' }}
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION || 'us-east-1' }}
+      
+      - name: Setup Google Cloud SDK
+        if: ${{ github.event.inputs.cloud_provider == 'gcs' }}
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          service_account_key: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+      
+      - name: Download backup from AWS S3
+        if: ${{ github.event.inputs.cloud_provider == 'aws-s3' }}
+        run: |
+          S3_BUCKET="${{ secrets.AWS_S3_BACKUP_BUCKET }}"
+          BACKUP_ID="${{ github.event.inputs.backup_id }}"
+          S3_PREFIX="backups/${{ github.repository }}/${BACKUP_ID}"
+          
+          if [ -z "$S3_BUCKET" ]; then
+            echo "Error: AWS_S3_BACKUP_BUCKET secret not configured"
+            exit 1
+          fi
+          
+          mkdir -p ./restore
+          
+          echo "Downloading backup from S3: s3://${S3_BUCKET}/${S3_PREFIX}/"
+          
+          # Download metadata first
+          aws s3 cp "s3://${S3_BUCKET}/${S3_PREFIX}/dongusa-5dok-backup-${BACKUP_ID}-metadata.json" ./restore/ --no-progress
+          
+          # Download based on restore type
+          if [[ "${{ github.event.inputs.restore_type }}" == "full" || "${{ github.event.inputs.restore_type }}" == "source-only" ]]; then
+            aws s3 cp "s3://${S3_BUCKET}/${S3_PREFIX}/dongusa-5dok-backup-${BACKUP_ID}-source.tar.gz" ./restore/ --no-progress || echo "Source backup not found"
+          fi
+          
+          if [[ "${{ github.event.inputs.restore_type }}" == "full" || "${{ github.event.inputs.restore_type }}" == "artifacts-only" ]]; then
+            aws s3 cp "s3://${S3_BUCKET}/${S3_PREFIX}/dongusa-5dok-backup-${BACKUP_ID}-artifacts.tar.gz" ./restore/ --no-progress || echo "Artifacts backup not found"
+          fi
+      
+      - name: Download backup from Google Cloud Storage
+        if: ${{ github.event.inputs.cloud_provider == 'gcs' }}
+        run: |
+          GCS_BUCKET="${{ secrets.GCS_BACKUP_BUCKET }}"
+          BACKUP_ID="${{ github.event.inputs.backup_id }}"
+          GCS_PREFIX="backups/${{ github.repository }}/${BACKUP_ID}"
+          
+          if [ -z "$GCS_BUCKET" ]; then
+            echo "Error: GCS_BACKUP_BUCKET secret not configured"
+            exit 1
+          fi
+          
+          mkdir -p ./restore
+          
+          echo "Downloading backup from GCS: gs://${GCS_BUCKET}/${GCS_PREFIX}/"
+          
+          # Download metadata first
+          gsutil cp "gs://${GCS_BUCKET}/${GCS_PREFIX}/dongusa-5dok-backup-${BACKUP_ID}-metadata.json" ./restore/
+          
+          # Download based on restore type
+          if [[ "${{ github.event.inputs.restore_type }}" == "full" || "${{ github.event.inputs.restore_type }}" == "source-only" ]]; then
+            gsutil cp "gs://${GCS_BUCKET}/${GCS_PREFIX}/dongusa-5dok-backup-${BACKUP_ID}-source.tar.gz" ./restore/ || echo "Source backup not found"
+          fi
+          
+          if [[ "${{ github.event.inputs.restore_type }}" == "full" || "${{ github.event.inputs.restore_type }}" == "artifacts-only" ]]; then
+            gsutil cp "gs://${GCS_BUCKET}/${GCS_PREFIX}/dongusa-5dok-backup-${BACKUP_ID}-artifacts.tar.gz" ./restore/ || echo "Artifacts backup not found"
+          fi
+      
+      - name: Verify backup integrity
+        if: ${{ github.event.inputs.verify_integrity == 'true' }}
+        run: |
+          BACKUP_ID="${{ github.event.inputs.backup_id }}"
+          METADATA_FILE="./restore/dongusa-5dok-backup-${BACKUP_ID}-metadata.json"
+          
+          if [ ! -f "$METADATA_FILE" ]; then
+            echo "Error: Metadata file not found"
+            exit 1
+          fi
+          
+          echo "Verifying backup integrity..."
+          pnpm backup:verify "$METADATA_FILE"
+      
+      - name: Create restore branch
+        run: |
+          TARGET_BRANCH="${{ github.event.inputs.target_branch || 'restore-backup' }}"
+          
+          # Create and switch to restore branch
+          git checkout -b "$TARGET_BRANCH" || git checkout "$TARGET_BRANCH"
+          
+          echo "RESTORE_BRANCH=${TARGET_BRANCH}" >> $GITHUB_ENV
+      
+      - name: Extract and restore source code
+        if: ${{ github.event.inputs.restore_type == 'full' || github.event.inputs.restore_type == 'source-only' }}
+        run: |
+          BACKUP_ID="${{ github.event.inputs.backup_id }}"
+          SOURCE_ARCHIVE="./restore/dongusa-5dok-backup-${BACKUP_ID}-source.tar.gz"
+          
+          if [ -f "$SOURCE_ARCHIVE" ]; then
+            echo "Extracting source code backup..."
+            
+            # Create backup of current state
+            git add -A && git commit -m "Backup current state before restore" || true
+            
+            # Extract source backup
+            tar -xzf "$SOURCE_ARCHIVE" --exclude='.git' -C ./
+            
+            echo "Source code restored successfully"
+          else
+            echo "Warning: Source backup archive not found"
+          fi
+      
+      - name: Extract and restore build artifacts
+        if: ${{ github.event.inputs.restore_type == 'full' || github.event.inputs.restore_type == 'artifacts-only' }}
+        run: |
+          BACKUP_ID="${{ github.event.inputs.backup_id }}"
+          ARTIFACTS_ARCHIVE="./restore/dongusa-5dok-backup-${BACKUP_ID}-artifacts.tar.gz"
+          
+          if [ -f "$ARTIFACTS_ARCHIVE" ]; then
+            echo "Extracting build artifacts backup..."
+            
+            # Remove existing build artifacts
+            rm -rf .next/ || true
+            
+            # Extract artifacts backup
+            tar -xzf "$ARTIFACTS_ARCHIVE" -C ./
+            
+            echo "Build artifacts restored successfully"
+          else
+            echo "Warning: Artifacts backup archive not found"
+          fi
+      
+      - name: Verify restored files
+        run: |
+          echo "Verifying restored files..."
+          
+          # Check if key files exist
+          if [ -f "package.json" ]; then
+            echo "✅ package.json found"
+          else
+            echo "❌ package.json missing"
+          fi
+          
+          if [ -f "next.config.js" ] || [ -f "next.config.mjs" ]; then
+            echo "✅ Next.js config found"
+          else
+            echo "❌ Next.js config missing"
+          fi
+          
+          # Show restore summary
+          BACKUP_ID="${{ github.event.inputs.backup_id }}"
+          METADATA_FILE="./restore/dongusa-5dok-backup-${BACKUP_ID}-metadata.json"
+          
+          if [ -f "$METADATA_FILE" ]; then
+            echo "📋 Backup Information:"
+            cat "$METADATA_FILE" | jq -r '
+              "  Timestamp: " + .timestamp,
+              "  Commit SHA: " + .commit_sha,
+              "  Branch: " + .branch,
+              "  Backup Type: " + .backup_type,
+              "  Files Count: " + (.files | length | tostring)'
+          fi
+      
+      - name: Install dependencies and test build
+        run: |
+          echo "Installing dependencies..."
+          pnpm install --frozen-lockfile=false
+          
+          echo "Testing build..."
+          NEXT_TELEMETRY_DISABLED=1 \
+          QA_BYPASS_AUTH=1 MAINTENANCE=0 \
+          NEXT_PUBLIC_SUPABASE_URL=http://example.com \
+          NEXT_PUBLIC_SUPABASE_ANON_KEY=dummy \
+          pnpm build
+      
+      - name: Commit restored changes
+        run: |
+          BACKUP_ID="${{ github.event.inputs.backup_id }}"
+          RESTORE_TYPE="${{ github.event.inputs.restore_type }}"
+          
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          
+          git add -A
+          git commit -m "Restore from backup: ${BACKUP_ID} (${RESTORE_TYPE})" || echo "No changes to commit"
+      
+      - name: Push restore branch
+        run: |
+          git push origin "${{ env.RESTORE_BRANCH }}" --force
+      
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ env.RESTORE_BRANCH }}
+          title: "Restore from backup: ${{ github.event.inputs.backup_id }}"
+          body: |
+            ## 🔄 Backup Restoration
+            
+            **Backup ID:** `${{ github.event.inputs.backup_id }}`
+            **Restore Type:** `${{ github.event.inputs.restore_type }}`
+            **Cloud Provider:** `${{ github.event.inputs.cloud_provider }}`
+            **Integrity Verified:** ${{ github.event.inputs.verify_integrity }}
+            
+            ### Changes
+            - Restored from backup created on ${{ github.event.inputs.backup_id }}
+            - Type: ${{ github.event.inputs.restore_type }}
+            
+            ### Notes
+            - Please review the changes carefully before merging
+            - Ensure all tests pass and the application builds successfully
+            - Consider running additional verification tests
+            
+            ---
+            *This PR was created automatically by the backup restoration workflow.*
+          labels: |
+            backup
+            restoration
+            automated
+      
+      - name: Cleanup restore files
+        if: always()
+        run: |
+          rm -rf ./restore
+      
+      - name: Report restore status
+        if: always()
+        run: |
+          if [ "${{ job.status }}" == "success" ]; then
+            echo "✅ Backup restoration completed successfully!"
+            echo "Backup ID: ${{ github.event.inputs.backup_id }}"
+            echo "Restore Type: ${{ github.event.inputs.restore_type }}"
+            echo "Branch: ${{ env.RESTORE_BRANCH }}"
+          else
+            echo "❌ Backup restoration failed!"
+          fi

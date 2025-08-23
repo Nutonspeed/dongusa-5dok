@@ -20,7 +20,14 @@
     "format": "prettier --write .",
     "type-check": "tsc --noEmit --project tsconfig.build.json",
     "prepare": "husky install",
-    "test": "vitest run"
+    "test": "vitest run",
+    "backup:validate": "tsx scripts/backup-cli.ts validate",
+    "backup:verify": "tsx scripts/backup-cli.ts verify",
+    "backup:stats": "tsx scripts/backup-cli.ts stats",
+    "backup:list": "tsx scripts/backup-cli.ts list",
+    "backup:restore": "tsx scripts/backup-cli.ts restore",
+    "backup:cleanup": "tsx scripts/backup-cli.ts cleanup",
+    "backup:notify": "tsx scripts/backup-cli.ts notify"
   },
   "dependencies": {
     "@radix-ui/react-checkbox": "^1.0.4",
@@ -46,6 +53,7 @@
     "autoprefixer": "^10.4.14",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.0.0",
+    "commander": "^12.0.0",
     "date-fns": "^3.6.0",
     "jspdf": "^3.0.1",
     "lucide-react": "^0.294.0",
@@ -62,6 +70,7 @@
     "tailwind-merge": "^2.2.0",
     "tailwindcss": "^3.3.3",
     "tailwindcss-animate": "^1.0.7",
+    "tsx": "^4.7.0",
     "xlsx": "^0.18.5",
     "zod": "^3.22.4"
   },
