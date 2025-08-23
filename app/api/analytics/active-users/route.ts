@@ -1,3 +1,5 @@
+export const runtime = "nodejs"
+
 import { NextResponse } from "next/server"
 import { USE_SUPABASE } from "@/lib/runtime"
 import { logger } from "@/lib/logger"
