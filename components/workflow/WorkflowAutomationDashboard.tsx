@@ -64,7 +64,7 @@ export default function WorkflowAutomationDashboard() {
         setSelectedWorkflow(workflowsData[0])
       }
     } catch (error) {
-      console.error("Error loading workflow data:", error)
+  // console.error("Error loading workflow data:", error)
     } finally {
       setLoading(false)
     }

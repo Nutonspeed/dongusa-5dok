@@ -11,8 +11,7 @@ class DemoCredentialsSecurityValidator {
   private checks: SecurityCheck[] = []
 
   validateProductionSafety(): void {
-    console.log("🔒 Validating Demo Credentials Security")
-    console.log("=".repeat(50))
+
 
     // Check 1: Production mode detection
     this.addCheck({
@@ -60,45 +59,34 @@ class DemoCredentialsSecurityValidator {
   private addCheck(check: SecurityCheck): void {
     this.checks.push(check)
     const icon = check.status === "PASS" ? "✅" : check.status === "WARNING" ? "⚠️" : "❌"
-    console.log(`${icon} ${check.check}: ${check.message}`)
+
     if (check.recommendation) {
-      console.log(`   💡 ${check.recommendation}`)
+
     }
   }
 
   private printResults(): void {
-    console.log("\n" + "=".repeat(50))
-    console.log("📊 SECURITY VALIDATION SUMMARY")
-    console.log("=".repeat(50))
+
 
     const passed = this.checks.filter((c) => c.status === "PASS").length
     const warnings = this.checks.filter((c) => c.status === "WARNING").length
     const failed = this.checks.filter((c) => c.status === "FAIL").length
 
-    console.log(`✅ Passed: ${passed}`)
-    console.log(`⚠️  Warnings: ${warnings}`)
-    console.log(`❌ Failed: ${failed}`)
 
-    console.log("\n🎯 RECOMMENDATION:")
+
+
     if (failed === 0) {
-      console.log("✅ Demo credentials are properly secured")
-      console.log("✅ Safe to keep for development and testing")
-      console.log("✅ Production deployment will hide credentials automatically")
+
     } else {
-      console.log("❌ Security issues found - review before deployment")
+
     }
 
-    console.log("\n📋 DEMO CREDENTIALS STATUS:")
-    console.log("• Customer: user@sofacover.com / user123")
-    console.log("• Admin: admin@sofacover.com / admin123")
-    console.log("• Staff: staff@sofacover.com / staff123")
-    console.log(`• Visibility: ${IS_PRODUCTION ? "HIDDEN (Production)" : "VISIBLE (Development)"}`)
-    console.log(`• Authentication: ${USE_SUPABASE ? "Supabase" : "Mock"}`)
+
   }
 }
 
 // Run validation immediately
-console.log("🚀 Starting Demo Credentials Security Validation...")
+
 const validator = new DemoCredentialsSecurityValidator()
 validator.validateProductionSafety()
-console.log("✅ Validation completed successfully!")
+

@@ -180,7 +180,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const toggleFavorite = async (productId: string) => {
     if (!user) {
-      console.warn("User must be logged in to manage favorites")
+  // console.warn("User must be logged in to manage favorites")
       return
     }
 

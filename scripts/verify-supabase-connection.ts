@@ -9,12 +9,12 @@ interface ConnectionTest {
 }
 
 async function verifySupabaseConnection() {
-  console.log("🔍 Starting Supabase connection verification...\n")
+
 
   const tests: ConnectionTest[] = []
 
   // Test 1: Environment Variables
-  console.log("1. Checking environment variables...")
+
   const envTest = {
     name: "Environment Variables",
     success: false,
@@ -39,10 +39,10 @@ async function verifySupabaseConnection() {
   }
 
   tests.push(envTest)
-  console.log(envTest.success ? "✅" : "❌", envTest.message)
+
 
   // Test 2: Server Client Connection
-  console.log("\n2. Testing server client connection...")
+
   const serverTest = {
     name: "Server Client",
     success: false,
@@ -64,10 +64,10 @@ async function verifySupabaseConnection() {
   }
 
   tests.push(serverTest)
-  console.log(serverTest.success ? "✅" : "❌", serverTest.message)
+
 
   // Test 3: Client Connection
-  console.log("\n3. Testing client connection...")
+
   const clientTest = {
     name: "Client Connection",
     success: false,
@@ -88,10 +88,10 @@ async function verifySupabaseConnection() {
   }
 
   tests.push(clientTest)
-  console.log(clientTest.success ? "✅" : "❌", clientTest.message)
+
 
   // Test 4: Database Schema Check
-  console.log("\n4. Checking database schema...")
+
   const schemaTest = {
     name: "Database Schema",
     success: false,
@@ -121,10 +121,10 @@ async function verifySupabaseConnection() {
   }
 
   tests.push(schemaTest)
-  console.log(schemaTest.success ? "✅" : "❌", schemaTest.message)
+
 
   // Test 5: Create Notes Table (from your instructions)
-  console.log("\n5. Creating notes table for testing...")
+
   const notesTest = {
     name: "Notes Table Creation",
     success: false,
@@ -195,10 +195,10 @@ async function verifySupabaseConnection() {
   }
 
   tests.push(notesTest)
-  console.log(notesTest.success ? "✅" : "❌", notesTest.message)
+
 
   // Test 6: Authentication Test
-  console.log("\n6. Testing authentication system...")
+
   const authTest = {
     name: "Authentication",
     success: false,
@@ -223,32 +223,28 @@ async function verifySupabaseConnection() {
   }
 
   tests.push(authTest)
-  console.log(authTest.success ? "✅" : "❌", authTest.message)
+
 
   // Summary
-  console.log("\n" + "=".repeat(50))
-  console.log("📊 VERIFICATION SUMMARY")
-  console.log("=".repeat(50))
+
 
   const successCount = tests.filter((test) => test.success).length
   const totalTests = tests.length
 
-  console.log(`✅ Passed: ${successCount}/${totalTests} tests`)
-  console.log(`❌ Failed: ${totalTests - successCount}/${totalTests} tests`)
+
 
   if (successCount === totalTests) {
-    console.log("\n🎉 All tests passed! Your Supabase connection is working perfectly.")
+
   } else {
-    console.log("\n⚠️  Some tests failed. Please check the errors above.")
+
   }
 
   // Detailed results
-  console.log("\n📋 DETAILED RESULTS:")
+
   tests.forEach((test) => {
-    console.log(`\n${test.name}: ${test.success ? "✅ PASS" : "❌ FAIL"}`)
-    console.log(`  Message: ${test.message}`)
+
     if (test.data) {
-      console.log(`  Data:`, JSON.stringify(test.data, null, 2))
+
     }
   })
 
@@ -266,10 +262,10 @@ async function verifySupabaseConnection() {
 // Run verification
 verifySupabaseConnection()
   .then((result) => {
-    console.log("\n🏁 Verification completed!")
+
     process.exit(result.success ? 0 : 1)
   })
   .catch((error) => {
-    console.error("💥 Verification failed with error:", error)
+  // Error handled
     process.exit(1)
   })

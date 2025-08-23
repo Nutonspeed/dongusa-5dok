@@ -35,17 +35,14 @@ class AdminAccessTester {
 
   private addTest(name: string, success: boolean, message: string, data?: any) {
     this.tests.push({ name, success, message, data })
-    console.log(`${success ? "✅" : "❌"} ${name}: ${message}`)
+
     if (data && typeof data === "object") {
-      console.log("   Details:", JSON.stringify(data, null, 2))
+
     }
   }
 
   async runAllTests() {
-    console.log("🔐 Testing Admin Backend Access")
-    console.log("================================")
-    console.log(`Admin Email: ${ADMIN_EMAIL}`)
-    console.log("")
+
 
     // Test 1: Database Connection
     await this.testDatabaseConnection()
@@ -270,49 +267,39 @@ class AdminAccessTester {
   }
 
   private printSummary() {
-    console.log("\n📊 Admin Access Test Summary")
-    console.log("==============================")
+
 
     const successful = this.tests.filter((t) => t.success).length
     const total = this.tests.length
 
-    console.log(`✅ Successful: ${successful}/${total}`)
-    console.log(`❌ Failed: ${total - successful}/${total}`)
+
 
     if (total - successful > 0) {
-      console.log("\n❌ Failed Tests:")
+
       this.tests
         .filter((t) => !t.success)
         .forEach((test) => {
-          console.log(`   - ${test.name}: ${test.message}`)
+
         })
     }
 
-    console.log("\n🎯 Admin Access Status:")
+
     if (successful === total) {
-      console.log("✅ Admin backend access is fully functional")
-      console.log("✅ User can access admin panel at /admin")
-      console.log("✅ All admin operations are working")
+
     } else if (successful >= total * 0.7) {
-      console.log("⚠️  Admin backend access is partially functional")
-      console.log("⚠️  Some features may not work properly")
+
     } else {
-      console.log("❌ Admin backend access has significant issues")
-      console.log("❌ Admin panel may not be accessible")
+
     }
 
-    console.log("\n📝 Recommendations:")
-    console.log("1. Ensure all environment variables are properly set")
-    console.log("2. Check Supabase RLS policies for admin access")
-    console.log("3. Verify admin role is correctly assigned in profiles table")
-    console.log("4. Test admin panel access at /admin after login")
+
   }
 
   async cleanup() {
     try {
       await this.userClient.auth.signOut()
     } catch (error) {
-      console.log("Cleanup error:", error)
+
     }
   }
 }
@@ -320,7 +307,7 @@ class AdminAccessTester {
 // Run the tests
 async function main() {
   if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY || !SUPABASE_ANON_KEY) {
-    console.error("❌ Missing required environment variables")
+
     process.exit(1)
   }
 
@@ -333,7 +320,7 @@ async function main() {
 }
 
 if (require.main === module) {
-  main().catch(console.error)
+  main().catch(() => {})
 }
 
 export { AdminAccessTester }

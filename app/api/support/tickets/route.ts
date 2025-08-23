@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
     const { data, error } = await supabase.from("support_tickets").insert(ticketData).select().single()
 
     if (error) {
-      console.error("Failed to create support ticket:", error)
+  // console.error("Failed to create support ticket:", error)
       return NextResponse.json({ error: "Failed to create support ticket" }, { status: 500 })
     }
 
@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
       message: "Support ticket created successfully",
     })
   } catch (error) {
-    console.error("Support ticket creation error:", error)
+  // console.error("Support ticket creation error:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }
@@ -99,7 +99,7 @@ export async function GET(request: NextRequest) {
     const { data, error, count } = await query
 
     if (error) {
-      console.error("Failed to fetch support tickets:", error)
+  // console.error("Failed to fetch support tickets:", error)
       return NextResponse.json({ error: "Failed to fetch support tickets" }, { status: 500 })
     }
 
@@ -114,14 +114,14 @@ export async function GET(request: NextRequest) {
       },
     })
   } catch (error) {
-    console.error("Support tickets fetch error:", error)
+  // console.error("Support tickets fetch error:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }
 
 async function sendTicketConfirmation(email: string, ticketId: string, subject: string): Promise<void> {
   // In a real implementation, this would send an email
-  console.log(`📧 Sending ticket confirmation to ${email} for ticket ${ticketId}`)
+  // console.log(`📧 Sending ticket confirmation to ${email} for ticket ${ticketId}`)
 }
 
 async function notifySupportTeam(ticket: SupportTicket): Promise<void> {
@@ -131,5 +131,5 @@ async function notifySupportTeam(ticket: SupportTicket): Promise<void> {
   // - SMS
   // - Support dashboard notifications
 
-  console.log(`🚨 Notifying support team of ${ticket.priority} priority ticket: ${ticket.subject}`)
+  // console.log(`🚨 Notifying support team of ${ticket.priority} priority ticket: ${ticket.subject}`)
 }

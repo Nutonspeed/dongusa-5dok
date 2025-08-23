@@ -73,7 +73,7 @@ export function SystemStatusDashboard() {
       setStatuses(mockStatuses)
       setLastCheck(new Date())
     } catch (error) {
-      console.error("Failed to check system status:", error)
+  // console.error("Failed to check system status:", error)
     } finally {
       setLoading(false)
     }

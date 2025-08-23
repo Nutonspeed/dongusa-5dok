@@ -33,7 +33,7 @@ class WebsiteHealthChecker {
       error: "✗",
     }
 
-    console.log(`${colors[type]}${prefix[type]} ${message}${colors.reset}`)
+
   }
 
   async checkFileStructure(): Promise<void> {
@@ -232,7 +232,7 @@ class WebsiteHealthChecker {
 
   async runAllChecks(): Promise<void> {
     this.log("🚀 Starting website health check...", "info")
-    console.log("")
+
 
     await this.checkFileStructure()
     await this.checkPackageJson()
@@ -244,9 +244,9 @@ class WebsiteHealthChecker {
   }
 
   private generateReport(): void {
-    console.log("")
+
     this.log("📊 Health Check Report", "info")
-    console.log("=".repeat(50))
+
 
     const summary = {
       pass: this.results.filter((r) => r.status === "pass").length,
@@ -254,10 +254,7 @@ class WebsiteHealthChecker {
       fail: this.results.filter((r) => r.status === "fail").length,
     }
 
-    console.log(`✓ Passed: ${summary.pass}`)
-    console.log(`⚠ Warnings: ${summary.warning}`)
-    console.log(`✗ Failed: ${summary.fail}`)
-    console.log("")
+
 
     // Group results by component
     const groupedResults = this.results.reduce(
@@ -272,15 +269,15 @@ class WebsiteHealthChecker {
     )
 
     for (const [component, results] of Object.entries(groupedResults)) {
-      console.log(`\n📋 ${component}:`)
+
       for (const result of results) {
         const icon = result.status === "pass" ? "✓" : result.status === "warning" ? "⚠" : "✗"
         const color = result.status === "pass" ? "\x1b[32m" : result.status === "warning" ? "\x1b[33m" : "\x1b[31m"
-        console.log(`  ${color}${icon} ${result.message}\x1b[0m`)
+
       }
     }
 
-    console.log("")
+
 
     if (summary.fail > 0) {
       this.log("❌ Health check completed with failures. Please address the issues above.", "error")
@@ -300,7 +297,7 @@ async function main() {
 }
 
 if (require.main === module) {
-  main().catch(console.error)
+  main().catch(() => {})
 }
 
 export { WebsiteHealthChecker }

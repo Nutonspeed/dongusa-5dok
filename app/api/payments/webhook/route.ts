@@ -7,7 +7,7 @@ import { logger } from "@/lib/logger"
 function getStripeInstance(): Stripe | null {
   const apiKey = process.env.STRIPE_SECRET_KEY
   if (!apiKey) {
-    console.log("STRIPE_SECRET_KEY not configured - webhook functionality disabled")
+  // console.log("STRIPE_SECRET_KEY not configured - webhook functionality disabled")
     return null
   }
   return new Stripe(apiKey, {

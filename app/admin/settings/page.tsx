@@ -196,7 +196,7 @@ export default function SettingsPage() {
         throw new Error("Failed to save settings")
       }
     } catch (error) {
-      console.error("Error saving settings:", error)
+  // console.error("Error saving settings:", error)
       alert("เกิดข้อผิดพลาดในการบันทึก")
     }
   }

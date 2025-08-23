@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ sessions: formattedSessions })
   } catch (error) {
-    console.error("Sessions API error:", error)
+  // console.error("Sessions API error:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }

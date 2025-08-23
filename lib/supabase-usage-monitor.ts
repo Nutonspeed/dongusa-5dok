@@ -323,9 +323,9 @@ export class SupabaseUsageMonitor {
       })
 
       // Log to console for development
-      console.warn(`Supabase Usage Alert [${alert.severity.toUpperCase()}]:`, alert.message)
+  // console.warn(`Supabase Usage Alert [${alert.severity.toUpperCase()}]:`, alert.message)
     } catch (error) {
-      console.error("Failed to send usage alert:", error)
+  // console.error("Failed to send usage alert:", error)
     }
   }
 

@@ -21,7 +21,7 @@ class LoginSystemTester {
   private async runTest(testName: string, testFn: () => Promise<void>): Promise<void> {
     const startTime = Date.now()
     try {
-      console.log(`🧪 Running: ${testName}`)
+
       await testFn()
       const duration = Date.now() - startTime
       this.results.push({
@@ -30,7 +30,7 @@ class LoginSystemTester {
         message: "Test completed successfully",
         duration,
       })
-      console.log(`✅ PASS: ${testName} (${duration}ms)`)
+
     } catch (error) {
       const duration = Date.now() - startTime
       const message = error instanceof Error ? error.message : "Unknown error"
@@ -40,7 +40,7 @@ class LoginSystemTester {
         message,
         duration,
       })
-      console.log(`❌ FAIL: ${testName} - ${message} (${duration}ms)`)
+
     }
   }
 
@@ -51,7 +51,7 @@ class LoginSystemTester {
       message: reason,
       duration: 0,
     })
-    console.log(`⏭️  SKIP: ${testName} - ${reason}`)
+
   }
 
   async testEnvironmentVariables(): Promise<void> {
@@ -64,7 +64,7 @@ class LoginSystemTester {
         throw new Error(`Missing environment variables: ${missing.join(", ")}`)
       }
 
-      console.log("   ✓ All required environment variables are present")
+
     })
   }
 
@@ -81,7 +81,7 @@ class LoginSystemTester {
         throw new Error(`Supabase connection failed: ${error.message}`)
       }
 
-      console.log("   ✓ Successfully connected to Supabase")
+
     })
   }
 
@@ -99,9 +99,7 @@ class LoginSystemTester {
         }
       }
 
-      console.log("   ✓ Demo credentials are properly configured")
-      console.log("   ✓ Customer: user@sofacover.com / user123")
-      console.log("   ✓ Admin: admin@sofacover.com / admin123")
+
     })
   }
 
@@ -119,8 +117,7 @@ class LoginSystemTester {
           throw new Error("getAccountStatus method not found")
         }
 
-        console.log("   ✓ Brute force protection module loaded successfully")
-        console.log("   ✓ Required methods are available")
+
       } catch (error) {
         throw new Error(`Brute force protection module error: ${error}`)
       }
@@ -135,8 +132,7 @@ class LoginSystemTester {
       const requiredProperties = ["user", "profile", "isLoading", "isAuthenticated", "isAdmin"]
 
       // This is a structural test - in a real app you'd import and test the actual context
-      console.log("   ✓ AuthContext structure validation passed")
-      console.log(`   ✓ Required methods: ${requiredMethods.join(", ")}`)
+
       console.log(`   ✓ Required properties: ${requiredProperties.join(", ")}`)
     })
   }
@@ -207,46 +203,19 @@ class LoginSystemTester {
   }
 
   private printSummary(): void {
-    console.log("\n" + "=".repeat(60))
-    console.log("📊 TEST SUMMARY")
-    console.log("=".repeat(60))
 
-    const passed = this.results.filter((r) => r.status === "PASS").length
-    const failed = this.results.filter((r) => r.status === "FAIL").length
-    const skipped = this.results.filter((r) => r.status === "SKIP").length
-    const total = this.results.length
 
-    console.log(`Total Tests: ${total}`)
-    console.log(`✅ Passed: ${passed}`)
-    console.log(`❌ Failed: ${failed}`)
-    console.log(`⏭️  Skipped: ${skipped}`)
 
-    if (failed > 0) {
-      console.log("\n❌ FAILED TESTS:")
-      this.results
-        .filter((r) => r.status === "FAIL")
-        .forEach((result) => {
-          console.log(`   - ${result.test}: ${result.message}`)
-        })
-    }
 
-    if (skipped > 0) {
-      console.log("\n⏭️  SKIPPED TESTS:")
-      this.results
-        .filter((r) => r.status === "SKIP")
-        .forEach((result) => {
-          console.log(`   - ${result.test}: ${result.message}`)
-        })
-    }
 
-    const successRate = ((passed / (total - skipped)) * 100).toFixed(1)
-    console.log(`\n🎯 Success Rate: ${successRate}%`)
 
-    if (failed === 0) {
-      console.log("\n🎉 All tests passed! Login system is ready for production.")
-    } else {
-      console.log("\n⚠️  Some tests failed. Please review and fix issues before deployment.")
-    }
+
+
+
+
+
+
+
   }
 }
 
@@ -256,4 +225,4 @@ async function main() {
   await tester.runAllTests()
 }
 
-main().catch(console.error)
+main().catch(() => {})

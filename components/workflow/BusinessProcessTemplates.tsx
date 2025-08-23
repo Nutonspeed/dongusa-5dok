@@ -63,7 +63,7 @@ export default function BusinessProcessTemplates() {
       const templatesData = await enhancedWorkflowEngine.getBusinessProcessTemplates()
       setTemplates(templatesData)
     } catch (error) {
-      console.error("Error loading templates:", error)
+  // console.error("Error loading templates:", error)
     } finally {
       setLoading(false)
     }
@@ -96,7 +96,7 @@ export default function BusinessProcessTemplates() {
       const workflow = await enhancedWorkflowEngine.deployBusinessProcess(processId, {})
       alert(`Business process "${workflow.name}" deployed successfully!`)
     } catch (error) {
-      console.error("Error deploying process:", error)
+  // console.error("Error deploying process:", error)
       alert("Failed to deploy business process")
     }
   }

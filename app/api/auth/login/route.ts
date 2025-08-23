@@ -176,7 +176,7 @@ export async function POST(request: NextRequest) {
       )
     }
   } catch (error) {
-    console.error("Login API error:", error)
+  // console.error("Login API error:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }

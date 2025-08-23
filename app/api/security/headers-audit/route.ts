@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
       timestamp: new Date().toISOString(),
     })
   } catch (error) {
-    console.error("Security headers audit error:", error)
+  // console.error("Security headers audit error:", error)
 
     return NextResponse.json({ error: "Failed to audit security headers" }, { status: 500 })
   }
@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
       timestamp: new Date().toISOString(),
     })
   } catch (error) {
-    console.error("Security headers validation error:", error)
+  // console.error("Security headers validation error:", error)
 
     return NextResponse.json({ error: "Failed to validate security headers" }, { status: 500 })
   }

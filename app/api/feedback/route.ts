@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
     const { data, error } = await supabase.from("user_feedback").insert(feedbackData).select().single()
 
     if (error) {
-      console.error("Failed to create feedback:", error)
+  // console.error("Failed to create feedback:", error)
       return NextResponse.json({ error: "Failed to create feedback" }, { status: 500 })
     }
 
@@ -81,7 +81,7 @@ export async function POST(request: NextRequest) {
       message: "Feedback submitted successfully",
     })
   } catch (error) {
-    console.error("Feedback submission error:", error)
+  // console.error("Feedback submission error:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }
@@ -118,7 +118,7 @@ export async function GET(request: NextRequest) {
     const { data, error, count } = await query
 
     if (error) {
-      console.error("Failed to fetch feedback:", error)
+  // console.error("Failed to fetch feedback:", error)
       return NextResponse.json({ error: "Failed to fetch feedback" }, { status: 500 })
     }
 
@@ -137,7 +137,7 @@ export async function GET(request: NextRequest) {
       },
     })
   } catch (error) {
-    console.error("Feedback fetch error:", error)
+  // console.error("Feedback fetch error:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }
@@ -200,7 +200,7 @@ async function calculateFeedbackStats(supabase: any) {
       recentTrend,
     }
   } catch (error) {
-    console.error("Failed to calculate feedback stats:", error)
+  // console.error("Failed to calculate feedback stats:", error)
     return {
       totalFeedback: 0,
       averageRating: 0,
@@ -217,5 +217,5 @@ async function notifyTeamOfCriticalFeedback(feedback: UserFeedback): Promise<voi
   // - Email
   // - Support ticket system
 
-  console.log(`🚨 Critical feedback received: ${feedback.title} (Rating: ${feedback.rating}/5)`)
+  // console.log(`🚨 Critical feedback received: ${feedback.title} (Rating: ${feedback.rating}/5)`)
 }

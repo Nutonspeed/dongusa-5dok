@@ -35,10 +35,10 @@ export default function TestDashboard() {
         setResults(data.results)
         setSummary(data.summary)
       } else {
-        console.error("Test failed:", data.error)
+  // console.error("Test failed:", data.error)
       }
     } catch (error) {
-      console.error("Failed to run tests:", error)
+  // console.error("Failed to run tests:", error)
     } finally {
       setIsLoading(false)
     }

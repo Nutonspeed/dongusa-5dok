@@ -56,7 +56,7 @@ export default function VoiceCommerceInterface() {
       const newSessionId = await voiceCommerce.startVoiceSession("user_123")
       setSessionId(newSessionId)
     } catch (error) {
-      console.error("Error initializing voice commerce:", error)
+  // console.error("Error initializing voice commerce:", error)
     }
   }
 
@@ -103,7 +103,7 @@ export default function VoiceCommerceInterface() {
       }
 
       recognitionRef.current.onerror = (event: any) => {
-        console.error("Speech recognition error:", event.error)
+  // console.error("Speech recognition error:", event.error)
         setIsListening(false)
       }
 
@@ -113,7 +113,7 @@ export default function VoiceCommerceInterface() {
 
       recognitionRef.current.start()
     } catch (error) {
-      console.error("Error starting voice recognition:", error)
+  // console.error("Error starting voice recognition:", error)
       setIsListening(false)
     }
   }
@@ -153,7 +153,7 @@ export default function VoiceCommerceInterface() {
         setCommandHistory((prev) => [...prev, latestCommand].slice(-10))
       }
     } catch (error) {
-      console.error("Error processing voice command:", error)
+  // console.error("Error processing voice command:", error)
     } finally {
       setIsProcessing(false)
     }
@@ -170,21 +170,21 @@ export default function VoiceCommerceInterface() {
 
       case "add_product":
         // Add product to cart (simulate)
-        console.log("Adding product to cart:", action.payload)
+  // console.log("Adding product to cart:", action.payload)
         break
 
       case "show_results":
         // Show search results (simulate)
-        console.log("Showing search results:", action.payload)
+  // console.log("Showing search results:", action.payload)
         break
 
       case "display_info":
         // Display product information (simulate)
-        console.log("Displaying info:", action.payload)
+  // console.log("Displaying info:", action.payload)
         break
 
       default:
-        console.log("Unknown action:", action)
+  // console.log("Unknown action:", action)
     }
   }
 
@@ -193,7 +193,7 @@ export default function VoiceCommerceInterface() {
       setIsSpeaking(true)
       await voiceCommerce.textToSpeech(text)
     } catch (error) {
-      console.error("Error speaking response:", error)
+  // console.error("Error speaking response:", error)
     } finally {
       setIsSpeaking(false)
     }

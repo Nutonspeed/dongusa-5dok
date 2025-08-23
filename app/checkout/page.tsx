@@ -100,7 +100,7 @@ export default function CheckoutPage() {
           user ? fetch("/api/user/profile", { method: "HEAD" }) : Promise.resolve(),
         ])
       } catch (error) {
-        console.error("Error preloading checkout data:", error)
+  // console.error("Error preloading checkout data:", error)
       }
     }
 
@@ -120,7 +120,7 @@ export default function CheckoutPage() {
       try {
         await fetch("/api/payment/validate", { method: "HEAD" })
       } catch (error) {
-        console.error("Error preloading payment resources:", error)
+  // console.error("Error preloading payment resources:", error)
       }
     }
     preloadPaymentResources()

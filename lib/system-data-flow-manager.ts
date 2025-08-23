@@ -184,7 +184,7 @@ export class SystemDataFlowManager {
             .single()
           
           if (dbError) {
-            console.error(`[${connection.target_module}] Connection failed:`, dbError)
+            // console.error(`[${connection.target_module}] Connection failed:`, dbError)
             throw new Error(`Database connection error: ${dbError.message}`)
           }
           success = true
@@ -195,7 +195,7 @@ export class SystemDataFlowManager {
             await this.redis.ping()
             success = true
           } catch (error) {
-            console.error(`[${connection.target_module}] Redis ping failed:`, error)
+            // console.error(`[${connection.target_module}] Redis ping failed:`, error)
             throw new Error(`Redis connection error: ${error instanceof Error ? error.message : 'Unknown error'}`)
           }
           break
@@ -226,7 +226,7 @@ export class SystemDataFlowManager {
             
             success = response.ok
           } catch (error) {
-            console.error(`[${connection.target_module}] Grok API error:`, error)
+            // console.error(`[${connection.target_module}] Grok API error:`, error)
             throw new Error(`Grok API connection failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
           }
           break
@@ -234,17 +234,17 @@ export class SystemDataFlowManager {
         default:
           // สำหรับ internal services ให้ถือว่าเชื่อมต่อได้
           success = true
-          console.log(`[${connection.target_module}] Internal service connection assumed successful`)
+          // console.log(`[${connection.target_module}] Internal service connection assumed successful`)
           break
       }
 
       const duration = Date.now() - startTime
-      console.log(`[${connection.target_module}] Connection test ${success ? 'succeeded' : 'failed'} in ${duration}ms`)
+  // console.log(`[${connection.target_module}] Connection test ${success ? 'succeeded' : 'failed'} in ${duration}ms`)
       
       return success
       
     } catch (error) {
-      console.error(`[${connection.target_module}] Connection test failed:`, error)
+  // console.error(`[${connection.target_module}] Connection test failed:`, error)
       return false
     }
   }

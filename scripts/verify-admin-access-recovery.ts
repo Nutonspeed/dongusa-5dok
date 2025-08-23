@@ -29,14 +29,14 @@ class AdminAccessVerification {
   private addResult(test: string, status: "PASS" | "FAIL" | "WARNING", message: string, details?: any) {
     this.results.push({ test, status, message, details })
     const icon = status === "PASS" ? "✅" : status === "FAIL" ? "❌" : "⚠️"
-    console.log(`${icon} ${test}: ${message}`)
+
     if (details) {
-      console.log(`   Details: ${JSON.stringify(details, null, 2)}`)
+
     }
   }
 
   async verifyEnvironmentSetup(): Promise<void> {
-    console.log("🔧 Verifying Environment Setup...")
+
 
     const requiredVars = ["NEXT_PUBLIC_SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_ANON_KEY", "SUPABASE_SERVICE_ROLE_KEY"]
 
@@ -68,7 +68,7 @@ class AdminAccessVerification {
   }
 
   async verifyAdminUserExists(): Promise<void> {
-    console.log("👤 Verifying Admin User Exists...")
+
 
     const adminEmail = "nuttapong161@gmail.com"
 
@@ -123,7 +123,7 @@ class AdminAccessVerification {
   }
 
   async verifyLoginFlow(): Promise<void> {
-    console.log("🔐 Verifying Login Flow...")
+
 
     const adminEmail = "nuttapong161@gmail.com"
     const adminPassword = "127995803"
@@ -179,7 +179,7 @@ class AdminAccessVerification {
   }
 
   async verifyMiddlewareProtection(): Promise<void> {
-    console.log("🛡️ Verifying Middleware Protection...")
+
 
     // This is a basic check - in a real scenario, you'd make HTTP requests to test routes
     try {
@@ -205,7 +205,7 @@ class AdminAccessVerification {
   }
 
   async verifyServiceStatusHidden(): Promise<void> {
-    console.log("🔍 Verifying Service Status Panel...")
+
 
     // Check if MockServiceIndicator is configured to hide in production
     try {
@@ -229,8 +229,7 @@ class AdminAccessVerification {
   }
 
   async runFullVerification(): Promise<void> {
-    console.log("🚀 Starting Admin Access Recovery Verification")
-    console.log("=".repeat(60))
+
 
     await this.verifyEnvironmentSetup()
     await this.verifyAdminUserExists()
@@ -239,69 +238,53 @@ class AdminAccessVerification {
     await this.verifyServiceStatusHidden()
 
     // Generate summary report
-    console.log("\n📊 VERIFICATION SUMMARY")
-    console.log("=".repeat(60))
+
 
     const passed = this.results.filter((r) => r.status === "PASS").length
     const failed = this.results.filter((r) => r.status === "FAIL").length
     const warnings = this.results.filter((r) => r.status === "WARNING").length
 
-    console.log(`✅ Passed: ${passed}`)
-    console.log(`❌ Failed: ${failed}`)
-    console.log(`⚠️ Warnings: ${warnings}`)
-    console.log(`📊 Total Tests: ${this.results.length}`)
+
 
     const successRate = Math.round((passed / this.results.length) * 100)
-    console.log(`🎯 Success Rate: ${successRate}%`)
 
-    console.log("\n💡 RECOMMENDATIONS:")
-    console.log("=".repeat(60))
+
+
 
     if (failed === 0 && warnings === 0) {
-      console.log("🎉 EXCELLENT! All systems are working perfectly.")
-      console.log("✅ Admin access recovery is complete and functional.")
-      console.log("🚀 You should now be able to access the admin dashboard.")
+
     } else {
       if (failed > 0) {
-        console.log("🚨 CRITICAL ISSUES FOUND:")
+
         this.results
           .filter((r) => r.status === "FAIL")
           .forEach((result) => {
-            console.log(`   • ${result.test}: ${result.message}`)
+
           })
       }
 
       if (warnings > 0) {
-        console.log("⚠️ WARNINGS:")
+
         this.results
           .filter((r) => r.status === "WARNING")
           .forEach((result) => {
-            console.log(`   • ${result.test}: ${result.message}`)
+
           })
       }
 
-      console.log("\n🔧 NEXT STEPS:")
+
       if (failed > 0) {
-        console.log("1. Address critical issues before proceeding")
-        console.log("2. Run the admin access recovery script if needed")
-        console.log("3. Check Supabase dashboard for user status")
+
       }
-      console.log("4. Test login through the web interface")
-      console.log("5. Verify admin dashboard access")
+
     }
 
-    console.log("\n🎯 QUICK TEST INSTRUCTIONS:")
-    console.log("1. Go to your website login page")
-    console.log("2. Login with: nuttapong161@gmail.com")
-    console.log("3. Use your password")
-    console.log("4. You should be redirected to /admin")
-    console.log("5. Service Status panel should be hidden in production")
 
-    console.log("\n" + "=".repeat(60))
-    console.log("Verification completed at:", new Date().toLocaleString())
+
+
   }
 }
 
 // Run verification
 const verification = new AdminAccessVerification()
-verification.runFullVerification().catch(console.error)
+verification.runFullVerification().catch(() => {})

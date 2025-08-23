@@ -476,7 +476,7 @@ class TaskManagementSystem {
         await emailService.sendBulkEmail([task.assigned_to], subject, content)
       }
     } catch (error) {
-      console.error("Failed to send task notification:", error)
+  // console.error("Failed to send task notification:", error)
     }
   }
 
@@ -504,7 +504,7 @@ class TaskManagementSystem {
         const updatedTask = await this.updateTask(taskId, updates)
         updatedTasks.push(updatedTask)
       } catch (error) {
-        console.error(`Failed to update task ${taskId}:`, error)
+  // console.error(`Failed to update task ${taskId}:`, error)
       }
     }
 
@@ -516,7 +516,7 @@ class TaskManagementSystem {
       try {
         await this.deleteTask(taskId)
       } catch (error) {
-        console.error(`Failed to delete task ${taskId}:`, error)
+  // console.error(`Failed to delete task ${taskId}:`, error)
       }
     }
   }

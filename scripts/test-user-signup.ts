@@ -41,18 +41,14 @@ class SignupTester {
 
   private addResult(step: string, success: boolean, message: string, data?: any) {
     this.results.push({ step, success, message, data })
-    console.log(`${success ? "✅" : "❌"} ${step}: ${message}`)
+
     if (data) {
-      console.log("   Data:", JSON.stringify(data, null, 2))
+
     }
   }
 
   async testUserSignup() {
-    console.log("🧪 Testing User Signup Process")
-    console.log("================================")
-    console.log(`Email: ${TEST_USER.email}`)
-    console.log(`Role: ${TEST_USER.role}`)
-    console.log("")
+
 
     // Step 1: Check if user already exists
     await this.checkExistingUser()
@@ -329,38 +325,30 @@ class SignupTester {
   }
 
   private printSummary() {
-    console.log("\n📊 Test Summary")
-    console.log("================")
+
 
     const successful = this.results.filter((r) => r.success).length
     const total = this.results.length
 
-    console.log(`✅ Successful: ${successful}/${total}`)
-    console.log(`❌ Failed: ${total - successful}/${total}`)
+
 
     if (total - successful > 0) {
-      console.log("\n❌ Failed Tests:")
+
       this.results
         .filter((r) => !r.success)
         .forEach((result) => {
-          console.log(`   - ${result.step}: ${result.message}`)
+
         })
     }
 
-    console.log("\n🎯 Next Steps:")
-    console.log("1. If signup was successful, try logging in at /auth/login")
-    console.log("2. After login, try accessing /admin to test admin access")
-    console.log("3. Check email for verification if needed")
-    console.log(`4. Test credentials: ${TEST_USER.email} / ${TEST_USER.password}`)
+
   }
 }
 
 // Run the test
 async function main() {
   if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
-    console.error("❌ Missing required environment variables:")
-    console.error("   - SUPABASE_URL or NEXT_PUBLIC_SUPABASE_URL")
-    console.error("   - SUPABASE_SERVICE_ROLE_KEY")
+
     process.exit(1)
   }
 
@@ -369,7 +357,7 @@ async function main() {
 }
 
 if (require.main === module) {
-  main().catch(console.error)
+  main().catch(() => {})
 }
 
 export { SignupTester }

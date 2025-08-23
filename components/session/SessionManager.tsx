@@ -39,7 +39,7 @@ export function SessionManager() {
         setSessions(data.sessions || [])
       }
     } catch (error) {
-      console.error("Failed to load sessions:", error)
+  // console.error("Failed to load sessions:", error)
     }
   }
 
@@ -72,7 +72,7 @@ export function SessionManager() {
         await loadSessions()
       }
     } catch (error) {
-      console.error("Failed to terminate session:", error)
+  // console.error("Failed to terminate session:", error)
     } finally {
       setIsLoading(false)
     }
@@ -89,7 +89,7 @@ export function SessionManager() {
         await loadSessions()
       }
     } catch (error) {
-      console.error("Failed to terminate sessions:", error)
+  // console.error("Failed to terminate sessions:", error)
     } finally {
       setIsLoading(false)
     }

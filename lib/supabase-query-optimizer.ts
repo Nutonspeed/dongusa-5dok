@@ -119,14 +119,14 @@ class SupabaseQueryOptimizer {
       if (error) throw error
 
       const executionTime = performance.now() - startTime
-      console.log(`Products query executed in ${executionTime.toFixed(2)}ms`)
+  // console.log(`Products query executed in ${executionTime.toFixed(2)}ms`)
 
       // Cache for 10 minutes
       this.setCache(cacheKey, data, 600000)
 
       return data
     } catch (error) {
-      console.error("Optimized products query failed:", error)
+  // console.error("Optimized products query failed:", error)
       throw error
     }
   }
@@ -199,14 +199,14 @@ class SupabaseQueryOptimizer {
       if (error) throw error
 
       const executionTime = performance.now() - startTime
-      console.log(`Orders query executed in ${executionTime.toFixed(2)}ms`)
+  // console.log(`Orders query executed in ${executionTime.toFixed(2)}ms`)
 
       // Cache for 2 minutes (orders change frequently)
       this.setCache(cacheKey, data, 120000)
 
       return data
     } catch (error) {
-      console.error("Optimized orders query failed:", error)
+  // console.error("Optimized orders query failed:", error)
       throw error
     }
   }
@@ -251,14 +251,14 @@ class SupabaseQueryOptimizer {
       }
 
       const executionTime = performance.now() - startTime
-      console.log(`Dashboard stats query executed in ${executionTime.toFixed(2)}ms`)
+  // console.log(`Dashboard stats query executed in ${executionTime.toFixed(2)}ms`)
 
       // Cache for 1 minute
       this.setCache(cacheKey, stats, 60000)
 
       return stats
     } catch (error) {
-      console.error("Dashboard stats query failed:", error)
+  // console.error("Dashboard stats query failed:", error)
       throw error
     }
   }
@@ -282,11 +282,11 @@ class SupabaseQueryOptimizer {
       this.clearCacheByPattern("dashboard:")
 
       const executionTime = performance.now() - startTime
-      console.log(`Batch update executed in ${executionTime.toFixed(2)}ms`)
+  // console.log(`Batch update executed in ${executionTime.toFixed(2)}ms`)
 
       return results.map((result) => result.data).filter(Boolean)
     } catch (error) {
-      console.error("Batch update failed:", error)
+  // console.error("Batch update failed:", error)
       throw error
     }
   }
@@ -327,13 +327,13 @@ class SupabaseQueryOptimizer {
 
       // Log slow queries
       if (executionTime > 100) {
-        console.warn(`Slow query detected: ${queryName} took ${executionTime.toFixed(2)}ms`)
+  // console.warn(`Slow query detected: ${queryName} took ${executionTime.toFixed(2)}ms`)
       }
 
       return result
     } catch (error) {
       const executionTime = performance.now() - startTime
-      console.error(`Query failed: ${queryName} after ${executionTime.toFixed(2)}ms`, error)
+  // console.error(`Query failed: ${queryName} after ${executionTime.toFixed(2)}ms`, error)
       throw error
     }
   }

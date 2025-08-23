@@ -19,7 +19,7 @@ export default async function AdminPage() {
         }
       }
     } catch (e) {
-      console.error("admin summary error", e)
+  // console.error("admin summary error", e)
     }
   } else {
     summary = { orders: 3, revenue: 12345.5 }

@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
       terminatedSessions: terminatedCount,
     })
   } catch (error) {
-    console.error("Bulk session termination error:", error)
+  // console.error("Bulk session termination error:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }

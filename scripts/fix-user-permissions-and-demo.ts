@@ -133,7 +133,7 @@ function checkDemoCredentialsVisibility() {
     return true
   }
 }
-;(async function runDiagnostics() {
+(async function runDiagnostics() {
   console.log("[v0] =================================")
   console.log("[v0] User Permissions & Demo Fix")
   console.log("[v0] =================================")

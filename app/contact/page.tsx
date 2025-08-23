@@ -71,7 +71,7 @@ ${formData.message}
 
       setTimeout(() => setIsSubmitted(false), 5000)
     } catch (error) {
-      console.error("Form submission error:", error)
+  // console.error("Form submission error:", error)
       alert(language === "th" ? "เกิดข้อผิดพลาด กรุณาลองใหม่" : "An error occurred. Please try again")
     } finally {
       setIsSubmitting(false)

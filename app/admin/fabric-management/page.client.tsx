@@ -12,7 +12,7 @@ export default function FabricManagementClient({
   autoName = true,
 }: FabricManagementClientProps) {
   const handleFabricProcessed = (fabric: unknown) => {
-    console.log("Fabric processed:", fabric)
+  // console.log("Fabric processed:", fabric)
   }
 
   return (

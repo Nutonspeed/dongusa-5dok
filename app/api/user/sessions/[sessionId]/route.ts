@@ -40,7 +40,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { sessi
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error("Session termination error:", error)
+  // console.error("Session termination error:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }

@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
       data: response,
     })
   } catch (error) {
-    console.error("Error in voice processing API:", error)
+  // console.error("Error in voice processing API:", error)
     return NextResponse.json({ error: "Failed to process voice command" }, { status: 500 })
   }
 }

@@ -34,7 +34,7 @@ class BuildSystemValidator {
   }
 
   async validate(): Promise<ValidationResult> {
-    console.log("🔍 Starting Build System Validation...\n")
+
 
     // 1. Validate module exports and imports
     await this.validateModuleSystem()
@@ -55,7 +55,7 @@ class BuildSystemValidator {
   }
 
   private async validateModuleSystem(): Promise<void> {
-    console.log("📦 Validating Module System...")
+
 
     const modules = this.scanModules()
     const importMap = this.buildImportMap(modules)
@@ -74,11 +74,11 @@ class BuildSystemValidator {
       this.results.warnings.push(`Circular dependencies detected: ${circularDeps.join(", ")}`)
     }
 
-    console.log("✅ Module system validation complete\n")
+
   }
 
   private async validateDependencies(): Promise<void> {
-    console.log("📋 Validating Dependencies...")
+
 
     const packageJson = this.readPackageJson()
     const conflicts = this.checkVersionConflicts(packageJson)
@@ -94,11 +94,11 @@ class BuildSystemValidator {
       this.results.success = false
     }
 
-    console.log("✅ Dependency validation complete\n")
+
   }
 
   private async validateRuntimeEnvironments(): Promise<void> {
-    console.log("🌐 Validating Runtime Environments...")
+
 
     const edgeRuntimeFiles = this.findEdgeRuntimeFiles()
     const nodeModuleUsage = this.findNodeModuleUsage(edgeRuntimeFiles)
@@ -107,11 +107,11 @@ class BuildSystemValidator {
       this.results.warnings.push(`Node.js modules in Edge Runtime: ${nodeModuleUsage.join(", ")}`)
     }
 
-    console.log("✅ Runtime environment validation complete\n")
+
   }
 
   private async validateBuildConfiguration(): Promise<void> {
-    console.log("⚙️ Validating Build Configuration...")
+
 
     // Check Next.js config
     const nextConfig = this.readNextConfig()
@@ -126,7 +126,7 @@ class BuildSystemValidator {
       this.results.success = false
     }
 
-    console.log("✅ Build configuration validation complete\n")
+
   }
 
   private scanModules(): ModuleExport[] {
@@ -394,36 +394,27 @@ class BuildSystemValidator {
   }
 
   private generateReport(): void {
-    console.log("📊 Build System Validation Report")
-    console.log("================================\n")
+
 
     if (this.results.success) {
-      console.log("✅ Overall Status: PASSED\n")
+
     } else {
-      console.log("❌ Overall Status: FAILED\n")
+
     }
 
     if (this.results.errors.length > 0) {
-      console.log("🚨 Errors:")
-      this.results.errors.forEach((error) => console.log(`  - ${error}`))
-      console.log()
+
     }
 
     if (this.results.warnings.length > 0) {
-      console.log("⚠️  Warnings:")
-      this.results.warnings.forEach((warning) => console.log(`  - ${warning}`))
-      console.log()
+
     }
 
     if (this.results.errors.length === 0 && this.results.warnings.length === 0) {
-      console.log("🎉 No issues found!")
+
     }
 
-    console.log("\n💡 Recommendations:")
-    console.log("  - Run this validation before each deployment")
-    console.log("  - Add to CI/CD pipeline as a pre-build step")
-    console.log("  - Fix all errors before deploying")
-    console.log("  - Address warnings to improve system stability")
+
   }
 }
 

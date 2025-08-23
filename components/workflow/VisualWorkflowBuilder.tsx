@@ -205,7 +205,7 @@ export default function VisualWorkflowBuilder() {
     if (!workflow) return
 
     // In real implementation, save to backend
-    console.log("Saving workflow:", workflow)
+  // console.log("Saving workflow:", workflow)
     alert("Workflow saved successfully!")
   }
 
@@ -213,7 +213,7 @@ export default function VisualWorkflowBuilder() {
     if (!workflow) return
 
     // In real implementation, execute workflow
-    console.log("Testing workflow:", workflow)
+  // console.log("Testing workflow:", workflow)
     alert("Workflow test started!")
   }
 

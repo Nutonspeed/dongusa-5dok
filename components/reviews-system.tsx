@@ -61,7 +61,7 @@ export function ReviewsSystem({ productId }: ReviewsSystemProps) {
 
       setReviews(data || [])
     } catch (error) {
-      console.error("Error loading reviews:", error)
+  // console.error("Error loading reviews:", error)
     } finally {
       setIsLoading(false)
     }

@@ -123,7 +123,7 @@ ${bill.customMessage || "กรุณาตรวจสอบรายละเ�
 
       return "Message sent successfully"
     } catch (error) {
-      console.error("Error sending message:", error)
+  // console.error("Error sending message:", error)
       // Fallback to URL method
       return this.createMessengerUrl(message)
     }

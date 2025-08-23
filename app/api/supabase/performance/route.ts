@@ -13,7 +13,7 @@ export async function GET() {
       timestamp: new Date().toISOString(),
     })
   } catch (error) {
-    console.error("Performance report error:", error)
+  // console.error("Performance report error:", error)
     return NextResponse.json({ success: false, error: "Failed to generate performance report" }, { status: 500 })
   }
 }
@@ -23,7 +23,7 @@ export async function POST() {
     const result = await performanceOptimizer.optimizeDatabase()
     return NextResponse.json({ success: true, result })
   } catch (error) {
-    console.error("Performance optimization error:", error)
+  // console.error("Performance optimization error:", error)
     return NextResponse.json({ success: false, error: "Failed to execute performance optimization" }, { status: 500 })
   }
 }
