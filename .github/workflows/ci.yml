@@ -22,8 +22,10 @@ jobs:
       - name: Validate required envs
         run: node scripts/ci-validate-env.js
         env:
-          # Intentionally empty here; secrets should be configured in repo/org settings or environment.
-          # The script will exit non-zero if required env vars are missing.
+          # CI will fail fast if these are not set. Configure them in repo secrets or organization secrets.
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          NEXT_PUBLIC_USE_SUPABASE: ${{ secrets.NEXT_PUBLIC_USE_SUPABASE }}
           CI: true
       - name: Run health checks
         run: pnpm exec tsx scripts/website-health-check.ts
