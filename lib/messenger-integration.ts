@@ -78,7 +78,7 @@ ${bill.customMessage || "กรุณาตรวจสอบรายละเ�
   }
 
   // สร้าง URL สำหรับเปิด Messenger
-  private createMessengerUrl(message: string): string {
+  public createMessengerUrl(message: string): string {
     const encodedMessage = encodeURIComponent(message)
     return `https://m.me/${this.config.pageId}?text=${encodedMessage}`
   }
