@@ -49,7 +49,13 @@ export async function POST(request: NextRequest) {
 
     if (USE_SUPABASE) {
       try {
-        const supabase = createClient()
+        // ใช้ environment variables สำหรับ Supabase
+        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL as string
+        const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY as string
+        if (!supabaseUrl || !supabaseAnonKey) {
+          throw new Error("Missing Supabase environment variables")
+        }
+        const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
         // Insert message records for each order
         const messageRecords = orderIds.map((orderId) => ({
