@@ -40,4 +40,4 @@ import('vitest').then(({ beforeAll }) => {
 });
 
 // include existing setup for env vars/cleanup if present
-import './setup.ts';
+import './setup';

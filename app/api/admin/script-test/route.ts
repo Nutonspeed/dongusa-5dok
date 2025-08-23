@@ -13,19 +13,8 @@ export async function GET() {
       timestamp: new Date().toISOString(),
     }
 
-    // Test basic script execution capability
-    try {
-      const testScript = `
-        console.log('[v0] Script execution test successful');
-        return { success: true, message: 'Test script executed' };
-      `
-
-      // Simulate script execution test
-      eval(`(function() { ${testScript} })()`)
-      testResults.canExecuteScripts = true
-    } catch {
-      testResults.canExecuteScripts = false
-    }
+  // Script execution test disabled for security
+  testResults.canExecuteScripts = false
 
     return NextResponse.json({
       success: true,
