@@ -89,15 +89,15 @@ export async function POST(request: NextRequest) {
     const supabaseAnon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY
 
     if (USE_SUPABASE && supabaseUrl && supabaseAnon) {
-      // Collect cookies set by Supabase to attach to our JSON response
+      // Provide get and set methods for cookies as required by @supabase/ssr
       const cookiesToSet: Array<{ name: string; value: string; options?: any }> = []
       const supabase = createServerClient(supabaseUrl, supabaseAnon, {
         cookies: {
-          getAll() {
-            return request.cookies.getAll()
+          get(name: string) {
+            return request.cookies.get(name)?.value
           },
-          setAll(items) {
-            items.forEach((c) => cookiesToSet.push(c))
+          set(name: string, value: string, options?: any) {
+            cookiesToSet.push({ name, value, options })
           },
         },
       })
