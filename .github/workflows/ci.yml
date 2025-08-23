@@ -1,0 +1,116 @@
+# Continuous Integration Workflow
+# This workflow runs linting and testing on every push and pull request
+# to ensure code quality and catch issues early in the development process
+
+name: Continuous Integration
+
+# Trigger Conditions:
+# - Runs on push events to any branch
+# - Runs on pull request events (opened, synchronized, reopened)
+on:
+  push:
+    branches: ["**"]  # Trigger on push to any branch
+  pull_request:
+    # Runs on pull request events by default (opened, synchronized, reopened)
+
+# Define the CI job
+jobs:
+  ci:
+    name: "Lint and Test"
+    runs-on: ubuntu-latest  # Use Ubuntu latest runner environment
+    
+    # Set timeout to prevent jobs from running too long
+    timeout-minutes: 30
+    
+    steps:
+      # Step 1: Checkout the repository code
+      - name: "📥 Checkout Repository"
+        uses: actions/checkout@v4
+        with:
+          # Fetch full history for better diff analysis
+          fetch-depth: 0
+      
+      # Step 2: Setup Node.js environment
+      - name: "⚙️ Setup Node.js"
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"  # Use Node.js 18 as specified in package.json engines
+          cache: "npm"        # Cache npm dependencies for faster builds
+      
+      # Step 3: Install project dependencies
+      - name: "📦 Install Dependencies"
+        run: |
+          npm ci --prefer-offline --no-audit
+          # Install jsdom for vitest testing
+          npm install --save-dev jsdom
+      
+      # Step 4: Run linting to ensure code adheres to standards
+      - name: "🔍 Run Linting (ESLint)"
+        run: |
+          # Run ESLint and save results to file for artifacts
+          npm run lint -- --format=json --output-file=eslint-results.json || true
+          # Also run with default format for console output
+          npm run lint
+        continue-on-error: false  # Fail the workflow if linting fails
+      
+      # Step 5: Run TypeScript type checking
+      - name: "🔧 TypeScript Type Check"
+        run: npm run type-check
+        continue-on-error: false
+      
+      # Step 6: Run unit tests and generate coverage
+      - name: "🧪 Run Tests"
+        run: |
+          # Run tests with coverage and save results
+          npm test -- --coverage --reporter=json --outputFile=test-results.json || true
+          # Run tests again with verbose output for CI logs
+          npm test
+        continue-on-error: false
+      
+      # Step 7: Generate test report summary
+      - name: "📊 Generate Test Summary"
+        if: always()  # Run even if previous steps fail
+        run: |
+          echo "## 🔍 Linting Results" >> $GITHUB_STEP_SUMMARY
+          if [ -f "eslint-results.json" ]; then
+            # Count linting issues
+            ERRORS=$(cat eslint-results.json | jq '[.[] | .messages[] | select(.severity == 2)] | length')
+            WARNINGS=$(cat eslint-results.json | jq '[.[] | .messages[] | select(.severity == 1)] | length')
+            echo "- ❌ Errors: $ERRORS" >> $GITHUB_STEP_SUMMARY
+            echo "- ⚠️ Warnings: $WARNINGS" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- ✅ No linting results file generated" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## 🧪 Test Results" >> $GITHUB_STEP_SUMMARY
+          if [ -f "test-results.json" ]; then
+            echo "- 📝 Test results saved to artifacts" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- ⚠️ Test results file not generated" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## 📈 Build Status" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ All CI checks completed" >> $GITHUB_STEP_SUMMARY
+      
+      # Step 8: Save test results and linting reports as artifacts
+      - name: "📁 Upload Test and Lint Artifacts"
+        uses: actions/upload-artifact@v4
+        if: always()  # Upload artifacts even if tests fail
+        with:
+          name: ci-results-${{ github.sha }}
+          path: |
+            eslint-results.json
+            test-results.json
+            coverage/
+          retention-days: 30  # Keep artifacts for 30 days
+          
+      # Step 9: Upload coverage reports (if coverage directory exists)
+      - name: "📊 Upload Coverage Reports"
+        uses: actions/upload-artifact@v4
+        if: always() && hashFiles('coverage/**/*') != ''
+        with:
+          name: coverage-report-${{ github.sha }}
+          path: coverage/
+          retention-days: 30
