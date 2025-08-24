@@ -432,14 +432,14 @@ Response should be:
     // Minimal implementation for build-time: return empty array when no real DB
     return []
   }
-  private async getCustomerProfile(conversationId: string) {
-    /* Implementation */
+  private async getCustomerProfile(conversationId: string): Promise<any> {
+    return {}
   }
-  private async getCustomerOrders(conversationId: string) {
-    /* Implementation */
+  private async getCustomerOrders(conversationId: string): Promise<any[]> {
+    return []
   }
-  private async getCustomerInteractions(conversationId: string) {
-    /* Implementation */
+  private async getCustomerInteractions(conversationId: string): Promise<any[]> {
+    return []
   }
   private calculateAvgResponseTime(messages: any[]) {
     return 0
