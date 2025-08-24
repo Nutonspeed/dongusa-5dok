@@ -1,8 +1,40 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
+import { featureFlags } from "@/utils/featureFlags"
+import { mockDatabaseService } from "@/lib/mock-database"
+import { mockEmailService } from "@/lib/mock-email"
+import { mockUploadService } from "@/lib/mock-upload"
 
 export async function GET() {
   try {
+    if (featureFlags.ENABLE_MOCK_SERVICES) {
+      return NextResponse.json({
+        database: "mock",
+        email: "mock",
+        payment: "mock",
+        shipping: "mock",
+        storage: "mock",
+        mockServices: {
+          database: {
+            status: "active",
+            products: (await mockDatabaseService.getProducts()).length,
+            customers: (await mockDatabaseService.getCustomers()).length,
+            orders: (await mockDatabaseService.getOrders()).length,
+          },
+          email: {
+            status: "active",
+            stats: await mockEmailService.getEmailStatistics(),
+          },
+          upload: {
+            status: "active",
+            stats: await mockUploadService.getUploadStatistics(),
+          },
+        },
+        mode: "development",
+        timestamp: new Date().toISOString(),
+      })
+    }
+
     const supabase = await createClient()
 
     // Check database connection
