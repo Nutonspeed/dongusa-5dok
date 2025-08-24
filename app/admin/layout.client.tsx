@@ -28,9 +28,9 @@ import {
   Facebook,
   HelpCircle,
   Activity,
-  type LucideIcon,
 } from "lucide-react"
-import { useAuth } from "../contexts/AuthContext"
+import type { LucideIcon } from "lucide-react"
+import { useAuth } from "@/app/contexts/AuthContext"
 
 interface NavItem {
   name: string
@@ -233,4 +233,5 @@ function AdminLayoutClient({
   )
 }
 
+export { AdminLayoutClient }
 export default AdminLayoutClient

@@ -3,7 +3,7 @@ import { logger } from "@/lib/logger"
 
 import type React from "react"
 import { createContext, useContext, useState, useEffect } from "react"
-import { supabase } from "@/lib/supabase/client"
+import { createClient } from "@/lib/supabase/client"
 import { useAuth } from "./AuthContext"
 
 interface CartItem {
@@ -43,7 +43,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true)
   const [isMounted, setIsMounted] = useState(false)
   const { user } = useAuth()
-  // Use the shared supabase instance
+  const supabase = createClient()
 
   useEffect(() => {
     setIsMounted(true)
@@ -180,7 +180,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const toggleFavorite = async (productId: string) => {
     if (!user) {
-  // console.warn("User must be logged in to manage favorites")
+      // console.warn("User must be logged in to manage favorites")
       return
     }
 

@@ -2,9 +2,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   experimental: {
+    serverComponentsExternalPackages: ['@supabase/supabase-js', '@supabase/ssr'],
   },
   eslint: {
-    ignoreDuringBuilds: true,
+    ignoreDuringBuilds: false,
   },
   typescript: {
     ignoreBuildErrors: false,
@@ -17,7 +18,6 @@ const nextConfig = {
       '@ai-sdk/gateway/v4': '@ai-sdk/gateway',
     }
     if (!isServer) {
-      // Provide fallbacks for Node.js modules in client-side bundles
       config.resolve.fallback = {
         ...config.resolve.fallback,
         fs: false,
@@ -28,9 +28,19 @@ const nextConfig = {
         util: false,
         path: false,
         os: false,
+        child_process: false,
+        worker_threads: false,
       }
     }
+    
+    if (isServer) {
+      config.externals = [...(config.externals || []), 'pg-native']
+    }
+    
     return config
+  },
+  experimental: {
+    serverComponentsExternalPackages: ['@supabase/supabase-js', '@supabase/ssr', 'pg'],
   },
   images: {
     remotePatterns: [
