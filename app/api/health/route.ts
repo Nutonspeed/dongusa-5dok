@@ -1,5 +1,6 @@
 import { USE_SUPABASE, supabaseEnvInfo } from "@/lib/runtime"
 import { createClient } from "@/lib/supabase/server"
+import { featureFlags } from "@/utils/featureFlags"
 
 export const runtime = "nodejs"
 
@@ -7,6 +8,35 @@ export async function GET() {
   const bypass = process.env.QA_BYPASS_AUTH === "1"
   const info = supabaseEnvInfo()
   const tables: string[] = []
+
+  if (featureFlags.ENABLE_MOCK_SERVICES) {
+    // Mock database tables are always available
+    tables.push("products", "categories", "customers", "orders", "order_items")
+
+    return Response.json({
+      ok: true,
+      bypass,
+      mode: "mock",
+      tables,
+      mockServices: {
+        database: "active",
+        email: "active",
+        upload: "active",
+        payment: "active",
+      },
+      env: {
+        mockMode: true,
+        hasPublicUrl: false,
+        hasPublicAnon: false,
+        hasServerUrl: false,
+        hasServerAnon: false,
+        hasServiceRole: false,
+        publicAnonLen: 0,
+        serverAnonLen: 0,
+      },
+    })
+  }
+
   if (USE_SUPABASE) {
     const supabase = await createClient()
     const checkTables = ["products", "categories", "customers", "orders", "order_items"]

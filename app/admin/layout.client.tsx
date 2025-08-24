@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
@@ -28,9 +27,9 @@ import {
   Facebook,
   HelpCircle,
   Activity,
-  type LucideIcon,
 } from "lucide-react"
-import { useAuth } from "../contexts/AuthContext"
+import type { LucideIcon } from "lucide-react"
+import { useAuth } from "@/app/contexts/AuthContext"
 
 interface NavItem {
   name: string
@@ -59,11 +58,7 @@ const navigation: NavItem[] = [
   { name: "Demo", href: "/admin/demo", icon: TestTube },
 ]
 
-function AdminLayoutClient({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export default function AdminLayoutClient({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const router = useRouter()
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -102,7 +97,6 @@ function AdminLayoutClient({
     )
   }
 
-  // Show loading or redirect if not authenticated/authorized
   if (!isAuthenticated || !isAdmin) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
@@ -232,5 +226,3 @@ function AdminLayoutClient({
     </div>
   )
 }
-
-export default AdminLayoutClient

@@ -17,7 +17,6 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
 // Export createClient function for contexts
 export { createClient }
 
-// Re-export from new locations for backward compatibility
+// Re-export from client only for build compatibility
 export { supabase as default } from "@/lib/supabase/client"
 export * from "@/lib/supabase/client"
-export * from "@/lib/supabase/server"
