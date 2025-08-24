@@ -428,8 +428,9 @@ Response should be:
   private async updateMessageAnalysis(messageId: string, analysis: any) {
     /* Implementation */
   }
-  private async getRecentMessages(conversationId: string, limit: number) {
-    /* Implementation */
+  private async getRecentMessages(conversationId: string, limit: number): Promise<any[]> {
+    // Minimal implementation for build-time: return empty array when no real DB
+    return []
   }
   private async getCustomerProfile(conversationId: string) {
     /* Implementation */
