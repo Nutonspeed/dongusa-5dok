@@ -1,13 +1,17 @@
 {
   "version": 2,
   "buildCommand": "npm run build",
-  "installCommand": "npm install",
+  "installCommand": "npm ci --legacy-peer-deps",
   "outputDirectory": ".next",
   "framework": "nextjs",
   "functions": {
     "app/api/**/*.ts": {
       "maxDuration": 30
     }
+  },
+  "env": {
+    "NODE_ENV": "production",
+    "SKIP_ENV_VALIDATION": "true"
   },
   "headers": [
     {
