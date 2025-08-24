@@ -1,8 +1,7 @@
-// NOTE: Boundary fix only. Do NOT restructure or remove existing UI.
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   experimental: {
-    serverComponentsExternalPackages: ['@supabase/supabase-js', '@supabase/ssr'],
+    serverComponentsExternalPackages: ['@supabase/supabase-js', '@supabase/ssr', 'pg'],
   },
   eslint: {
     ignoreDuringBuilds: false,
@@ -17,6 +16,8 @@ const nextConfig = {
       'zod/v4': 'zod',
       '@ai-sdk/gateway/v4': '@ai-sdk/gateway',
     }
+    
+    // Client-side fallbacks
     if (!isServer) {
       config.resolve.fallback = {
         ...config.resolve.fallback,
@@ -33,14 +34,12 @@ const nextConfig = {
       }
     }
     
+    // Server-side externals
     if (isServer) {
       config.externals = [...(config.externals || []), 'pg-native']
     }
     
     return config
-  },
-  experimental: {
-    serverComponentsExternalPackages: ['@supabase/supabase-js', '@supabase/ssr', 'pg'],
   },
   images: {
     remotePatterns: [
@@ -79,7 +78,6 @@ const nextConfig = {
       {
         source: '/(.*)',
         headers: [
-          // Content Security Policy
           {
             key: 'Content-Security-Policy',
             value: [
@@ -97,32 +95,26 @@ const nextConfig = {
               "upgrade-insecure-requests"
             ].join('; ')
           },
-          // HTTP Strict Transport Security
           {
             key: 'Strict-Transport-Security',
             value: 'max-age=31536000; includeSubDomains; preload'
           },
-          // Prevent clickjacking
           {
             key: 'X-Frame-Options',
             value: 'DENY'
           },
-          // Prevent MIME type sniffing
           {
             key: 'X-Content-Type-Options',
             value: 'nosniff'
           },
-          // XSS Protection
           {
             key: 'X-XSS-Protection',
             value: '1; mode=block'
           },
-          // Referrer Policy
           {
             key: 'Referrer-Policy',
             value: 'strict-origin-when-cross-origin'
           },
-          // Permissions Policy
           {
             key: 'Permissions-Policy',
             value: [
@@ -134,7 +126,6 @@ const nextConfig = {
               'usb=()'
             ].join(', ')
           },
-          // Cross-Origin Policies - Relaxed for better compatibility
           {
             key: 'Cross-Origin-Embedder-Policy',
             value: 'unsafe-none'
@@ -149,7 +140,6 @@ const nextConfig = {
           }
         ]
       },
-      // API routes specific headers
       {
         source: '/api/(.*)',
         headers: [

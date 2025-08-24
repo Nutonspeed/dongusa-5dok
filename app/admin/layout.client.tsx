@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
@@ -59,11 +58,7 @@ const navigation: NavItem[] = [
   { name: "Demo", href: "/admin/demo", icon: TestTube },
 ]
 
-function AdminLayoutClient({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+const AdminLayoutClient: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const pathname = usePathname()
   const router = useRouter()
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -102,7 +97,6 @@ function AdminLayoutClient({
     )
   }
 
-  // Show loading or redirect if not authenticated/authorized
   if (!isAuthenticated || !isAdmin) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
@@ -233,5 +227,4 @@ function AdminLayoutClient({
   )
 }
 
-export { AdminLayoutClient }
 export default AdminLayoutClient
