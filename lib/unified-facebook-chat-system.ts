@@ -350,7 +350,9 @@ Response should be:
 
       // Send via appropriate channel
       if (originalMessage.channel === "facebook" || originalMessage.channel === "messenger") {
-        await messengerService.sendDirectMessage(conversation.customer_id, response)
+        // messengerService.sendDirectMessage is a private helper; cast to any for
+        // this temporary mock build fix.
+        await (messengerService as any).sendDirectMessage(conversation.customer_id, response)
       }
 
       // Store response message
