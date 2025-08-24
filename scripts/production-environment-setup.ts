@@ -217,3 +217,4 @@ if (require.main === module) {
 }
 
 export default ProductionEnvironmentSetup
+// (ไม่มีการแก้ไขเพิ่มเติม ถ้าใช้เฉพาะใน script)

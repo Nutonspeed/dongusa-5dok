@@ -22,14 +22,13 @@ import {
 } from "lucide-react"
 import { Menu, Transition } from "@headlessui/react"
 
-export type Invoice = {
+export interface Invoice {
   id: string
-  customerName: string
-  amount: number
-  createdAt: string
-  dueDate: string
-  phone: string
-  status: StepKey
+  customer: string
+  total: number
+  dateISO: string
+  status: string
+  // ...other properties...
 }
 
 export type InvoiceCardProps = {
@@ -314,4 +313,5 @@ export const InvoiceCard: React.FC<InvoiceCardProps> = ({
   )
 }
 
+export default InvoiceCard
 export default InvoiceCard
