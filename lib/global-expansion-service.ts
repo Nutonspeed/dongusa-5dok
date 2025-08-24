@@ -437,19 +437,19 @@ export class GlobalExpansionService {
   }
 
   // Legal compliance
-  getLegalRequirements(countryCode?: string) {
+  getLegalRequirements(countryCode?: string): Partial<CountryConfig["legalRequirements"]> {
     const country = countryCode ? this.getCountry(countryCode) : this.getCurrentCountry()
     return country?.legalRequirements || {}
   }
 
   isGDPRRequired(countryCode?: string): boolean {
     const requirements = this.getLegalRequirements(countryCode)
-    return requirements.gdpr || false
+    return Boolean(requirements.gdpr ?? false)
   }
 
   getDataRetentionPeriod(countryCode?: string): number {
     const requirements = this.getLegalRequirements(countryCode)
-    return requirements.dataRetention || 365
+    return requirements.dataRetention ?? 365
   }
 
   // Analytics and reporting

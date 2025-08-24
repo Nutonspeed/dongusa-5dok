@@ -10,7 +10,10 @@ if (!stripeSecretKey) {
 
 const stripe = stripeSecretKey
   ? new Stripe(stripeSecretKey, {
-      apiVersion: "2024-06-20",
+      // The Stripe TypeScript defs in this workspace type apiVersion as a
+      // narrow literal union. Cast to any to keep the runtime value while
+      // satisfying the compiler.
+      apiVersion: "2024-06-20" as any,
     })
   : null
 

@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js"
-import { performanceOptimizer } from "./supabase-performance-optimizer"
+import { performanceOptimizer } from "./performance-optimizer"
+import { performanceOptimizer as supabasePerformanceOptimizer } from "./supabase-performance-optimizer"
 import { cacheService } from "./performance/cache-service"
 
 interface FreePlanLimits {
@@ -134,16 +135,18 @@ export class SupabaseFreePlanOptimizer {
           await optimization.implementation()
           this.optimizationResults.push({ name: optimization.name, success: true, message: "Optimization successful" })
         } catch (error) {
+          const _msg = error instanceof Error ? error.message : String(error)
           this.optimizationResults.push({
             name: optimization.name,
             success: false,
-            message: `Optimization failed: ${error.message}`,
+            message: `Optimization failed: ${_msg}`,
           })
         }
       }
 
-      console.log("Running advanced performance optimization...")
-      const performanceResult = await performanceOptimizer.optimizeDatabase()
+  console.log("Running advanced performance optimization...")
+  // use the supabase-specific optimizer for DB-heavy optimizations
+  const performanceResult = await supabasePerformanceOptimizer.optimizeDatabase()
 
       return {
         success: true,
@@ -153,11 +156,12 @@ export class SupabaseFreePlanOptimizer {
       }
     } catch (error) {
       console.error("Optimization strategy failed:", error)
+      const _msg = error instanceof Error ? error.message : String(error)
       return {
         success: false,
         optimizations: [],
         performanceImprovements: null,
-        recommendations: [`Optimization failed: ${error.message}`],
+        recommendations: [`Optimization failed: ${_msg}`],
       }
     }
   }

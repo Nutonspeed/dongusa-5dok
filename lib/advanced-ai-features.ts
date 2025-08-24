@@ -401,4 +401,3 @@ class AdvancedAIFeatures {
 }
 
 export const advancedAI = new AdvancedAIFeatures()
-export type { NLPAnalysis, ComputerVisionAnalysis, PersonalizedRecommendation, CustomerInsight }

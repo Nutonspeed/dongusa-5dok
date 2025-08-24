@@ -102,7 +102,7 @@ export default function LoginForm() {
     }
   }
 
-  const isLocked = lockoutUntil && Date.now() < lockoutUntil
+  const isLocked = !!lockoutUntil && Date.now() < lockoutUntil
 
   return (
     <div className="w-full max-w-md space-y-8">

@@ -1,6 +1,9 @@
 #!/usr/bin/env tsx
 
-import { createServerClient } from "@/lib/supabase"
+// Use the synchronous client factory from the repo's supabase client helper.
+// In FORCE_MOCK_SUPABASE mode this returns a mock synchronously which avoids
+// async/Promise type mismatches during build.
+import { createClient } from "@/lib/supabase/client"
 
 interface VerificationResult {
   component: string
@@ -14,7 +17,9 @@ class BackendVerifier {
 
   async verifyDatabase(): Promise<void> {
     try {
-      const supabase = createClient()
+  // Use the repo-provided client factory. In mock mode this returns a
+  // synchronous mock client so the script can run safely during builds.
+  const supabase = createClient()
 
       // Test basic connection
       const { data: connectionTest, error: connectionError } = await supabase.from("products").select("count").limit(1)

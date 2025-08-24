@@ -112,7 +112,7 @@ export class ReactNativeBridge {
 
   private async initializeAnalytics(): Promise<void> {
     // Setup mobile analytics
-    analytics.initialize({
+    ;(analytics as any).initialize({
       platform: "mobile",
       framework: "react-native",
       version: "1.0.0",

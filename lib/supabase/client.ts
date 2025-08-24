@@ -1,13 +1,16 @@
 import { createBrowserClient } from "@supabase/ssr"
+import type { SupabaseClient } from "@supabase/supabase-js"
 
 // Lightweight mock used when DB access must be disabled.
-function makeMockSupabase() {
-  const noop = () => ({ data: null, error: null })
+function makeMockSupabase(): SupabaseClient<any> {
+  const noop = async () => ({ data: null, error: null })
+  const query = () => ({ select: noop, insert: noop, update: noop, delete: noop, eq: () => query(), single: noop, range: noop, limit: noop, order: () => query(), rpc: noop })
   return {
-    from: () => ({ select: noop, insert: noop, update: noop, delete: noop, eq: noop, single: noop, range: noop, limit: noop, order: noop, rpc: noop }),
-    rpc: noop,
-    auth: { getUser: async () => null, signIn: async () => ({ data: null, error: null }) },
-  } as any
+    from: () => query() as any,
+    rpc: noop as any,
+    auth: { getUser: async () => ({ data: null, error: null }), signIn: async () => ({ data: null, error: null }) } as any,
+    channel: () => ({ on: () => ({ subscribe: async () => ({ data: null, error: null }) }) }),
+  } as unknown as SupabaseClient<any>
 }
 
 const FORCE_MOCK = !!process.env.FORCE_MOCK_SUPABASE || process.env.NODE_ENV === "test"
@@ -22,4 +25,4 @@ export function createClient(supabaseUrl?: string, supabaseAnonKey?: string) {
   return createBrowserClient(url, key)
 }
 
-export const supabase = createClient()
+export const supabase: SupabaseClient<any> = createClient()

@@ -163,7 +163,7 @@ export class SupabasePerformanceOptimizer {
         const cached = cacheService.get(options!.cacheKey!)
         if (cached) {
           this.updateMetrics("cache_hit", performance.now() - startTime)
-          return cached
+          return cached as T
         }
       }
 
@@ -279,12 +279,13 @@ export class SupabasePerformanceOptimizer {
 
       return result
     } catch (error) {
-      console.error("Database optimization failed:", error)
+      const _msg = error instanceof Error ? error.message : String(error)
+      console.error("Database optimization failed:", _msg)
       return {
         success: false,
         improvements,
         recommendations: [],
-        warnings: [`Optimization failed: ${error.message}`],
+        warnings: [`Optimization failed: ${_msg}`],
       }
     }
   }
@@ -343,7 +344,8 @@ export class SupabasePerformanceOptimizer {
           optimizations.push(`Created optimized index: ${query.split("idx_")[1]?.split(" ")[0]}`)
           improvement += 5 // 5% improvement per index
         } catch (error) {
-          console.warn(`Index creation failed: ${error.message}`)
+          const _msg = error instanceof Error ? error.message : String(error)
+          console.warn(`Index creation failed: ${_msg}`)
         }
       }
 
@@ -361,9 +363,10 @@ export class SupabasePerformanceOptimizer {
       improvement += 10
 
       return { improvement, details: optimizations }
-    } catch (error) {
+      } catch (error) {
       console.error("Index optimization failed:", error)
-      return { improvement: 0, details: [`Index optimization failed: ${error.message}`] }
+      const _msg = error instanceof Error ? error.message : String(error)
+      return { improvement: 0, details: [`Index optimization failed: ${_msg}`] }
     }
   }
 
@@ -392,7 +395,8 @@ export class SupabasePerformanceOptimizer {
       return { improvement, details: optimizations }
     } catch (error) {
       console.error("Connection pooling optimization failed:", error)
-      return { improvement: 0, details: [`Connection pooling failed: ${error.message}`] }
+      const _msg = error instanceof Error ? error.message : String(error)
+      return { improvement: 0, details: [`Connection pooling failed: ${_msg}`] }
     }
   }
 
@@ -426,8 +430,9 @@ export class SupabasePerformanceOptimizer {
 
       return { improvement, details: optimizations }
     } catch (error) {
-      console.error("Cache optimization failed:", error)
-      return { improvement: 0, details: [`Cache optimization failed: ${error.message}`] }
+      const _msg = error instanceof Error ? error.message : String(error)
+      console.error("Cache optimization failed:", _msg)
+      return { improvement: 0, details: [`Cache optimization failed: ${_msg}`] }
     }
   }
 
@@ -478,7 +483,8 @@ export class SupabasePerformanceOptimizer {
           optimizations.push(`Created materialized view: ${viewName}`)
           improvement += 8 // 8% improvement per view
         } catch (error) {
-          console.warn(`Materialized view creation failed: ${error.message}`)
+          const _msg = error instanceof Error ? error.message : String(error)
+          console.warn(`Materialized view creation failed: ${_msg}`)
         }
       }
 
@@ -494,14 +500,16 @@ export class SupabasePerformanceOptimizer {
           await this.supabase.rpc("execute_sql", { query: indexQuery })
           optimizations.push("Created materialized view indexes")
         } catch (error) {
-          console.warn(`Materialized view index creation failed: ${error.message}`)
+          const _msg = error instanceof Error ? error.message : String(error)
+          console.warn(`Materialized view index creation failed: ${_msg}`)
         }
       }
 
       return { improvement, details: optimizations }
     } catch (error) {
       console.error("Materialized view setup failed:", error)
-      return { improvement: 0, details: [`Materialized view setup failed: ${error.message}`] }
+      const _msg = error instanceof Error ? error.message : String(error)
+      return { improvement: 0, details: [`Materialized view setup failed: ${_msg}`] }
     }
   }
 
@@ -524,8 +532,9 @@ export class SupabasePerformanceOptimizer {
 
       return { improvement, details: optimizations }
     } catch (error) {
-      console.error("Read replica configuration failed:", error)
-      return { improvement: 0, details: [`Read replica configuration failed: ${error.message}`] }
+      const _msg = error instanceof Error ? error.message : String(error)
+      console.error("Read replica configuration failed:", _msg)
+      return { improvement: 0, details: [`Read replica configuration failed: ${_msg}`] }
     }
   }
 

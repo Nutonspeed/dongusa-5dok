@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
     // Create feedback entry
     const feedbackData: Partial<UserFeedback> = {
       id: `feedback_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      email,
+      email,ilikedre build pf 
       page_url,
       feedback_type,
       rating,

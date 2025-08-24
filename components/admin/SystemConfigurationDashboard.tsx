@@ -123,7 +123,8 @@ export default function SystemConfigurationDashboard() {
         [service]: result.status === "healthy" ? "connected" : "error",
       }))
     } catch (error) {
-      setTestResults((prev) => ({ ...prev, [service]: { status: "error", error: error.message } }))
+      const message = error instanceof Error ? error.message : String(error)
+      setTestResults((prev) => ({ ...prev, [service]: { status: "error", error: message } }))
     } finally {
       setLoading(false)
     }

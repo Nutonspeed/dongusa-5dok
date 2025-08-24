@@ -26,7 +26,7 @@ ${customerMessage || `สนใจลายผ้าทั้ง ${fabrics.lengt
     // Create messenger URL
     const messengerUrl = messengerService.createMessengerUrl(bulkMessage)
 
-    // Track bulk selection
+    // Track bulk selection (server-side)
     await conversionTracker.trackEvent({
       eventType: "fabric_select" as any,
       userId: ConversionTrackingService.getUserId(),
@@ -38,7 +38,6 @@ ${customerMessage || `สนใจลายผ้าทั้ง ${fabrics.lengt
         fabric_ids: fabrics.map((f: any) => f.id),
         fabric_names: fabrics.map((f: any) => f.name),
         collections: [...new Set(fabrics.map((f: any) => f.collectionName))],
-        source: "bulk_api",
       },
     })
 

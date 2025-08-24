@@ -20,7 +20,8 @@
     "prepare": "husky install",
     "start": "next start",
     "test": "vitest run",
-    "type-check": "tsc --noEmit --project tsconfig.build.json"
+    "type-check": "tsc --noEmit --project tsconfig.build.json",
+    "auto-build": "powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/auto-build.ps1"
   },
   "browserslist": {
     "production": [
@@ -140,5 +141,5 @@
     "engines": {
       "node": ">=18.0.0"
     },
-    "packageManager": "pnpm@10"
+  "packageManager": "pnpm@10.0.0"
 }

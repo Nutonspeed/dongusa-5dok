@@ -138,7 +138,7 @@ class EnhancedBusinessIntelligence {
         type: "correlation",
         confidence: 82,
         impact_score: 7,
-        data_points: products.top_performers.map((product) => ({
+        data_points: products.top_performers.map((product: any) => ({
           name: product.name,
           sales: product.sales,
           revenue: product.revenue,

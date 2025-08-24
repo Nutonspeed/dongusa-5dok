@@ -391,7 +391,9 @@ export class MobileAPIOptimizer {
     // Limit cache size
     if (this.cache.size > 100) {
       const oldestKey = this.cache.keys().next().value
-      this.cache.delete(oldestKey)
+      if (typeof oldestKey === "string") {
+        this.cache.delete(oldestKey)
+      }
     }
   }
 

@@ -1,5 +1,12 @@
 export interface ConversionEvent {
-  eventType: "fabric_view" | "fabric_select" | "bill_create" | "bill_view" | "payment_complete" | "messenger_click"
+  eventType:
+    | "fabric_view"
+    | "fabric_select"
+    | "bill_create"
+    | "bill_view"
+    | "bill_share"
+    | "payment_complete"
+    | "messenger_click"
   userId?: string
   sessionId: string
   timestamp: Date
@@ -292,6 +299,16 @@ export class ConversionTrackingService {
   // สร้าง session ID
   static generateSessionId(): string {
     return `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+  }
+
+  // Instance helpers so callers can call on the exported instance without using `.constructor`
+  getUserId(): string {
+    // delegate to the static implementation
+    return (this.constructor as typeof ConversionTrackingService).getUserId()
+  }
+
+  generateSessionId(): string {
+    return (this.constructor as typeof ConversionTrackingService).generateSessionId()
   }
 
   clearEvents(): void {

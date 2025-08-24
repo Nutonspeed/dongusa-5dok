@@ -356,4 +356,3 @@ export class IntegrationTestSuite {
 }
 
 export const integrationTestSuite = new IntegrationTestSuite()
-export type { TestResult, TestSuite }

@@ -76,7 +76,7 @@ export class AIEnhancedChatSystem {
         throw new Error("No messages found for conversation")
       }
 
-      const conversationText = messages.map((m) => `${m.sender_name}: ${m.content}`).join("\n")
+  const conversationText = messages.map((m: any) => `${m.sender_name}: ${m.content}`).join("\n")
       // Simple heuristic mock analysis
       const lowered = conversationText.toLowerCase()
       const sentiment: AIConversationAnalysis["sentiment"] = lowered.includes("ขอบคุณ")

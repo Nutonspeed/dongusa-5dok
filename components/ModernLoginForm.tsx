@@ -134,7 +134,7 @@ export default function ModernLoginForm() {
     })
   }
 
-  const isLocked = lockoutUntil && Date.now() < lockoutUntil
+  const isLocked = !!lockoutUntil && Date.now() < lockoutUntil
 
   const SecurityIndicator = () => (
     <div className="flex items-center space-x-2 text-xs">

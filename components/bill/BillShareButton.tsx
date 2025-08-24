@@ -5,7 +5,7 @@ import { Copy, MessageCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/hooks/use-toast"
 import { messengerService } from "@/lib/messenger-integration"
-import { conversionTracker, ConversionTrackingService } from "@/lib/conversion-tracking"
+import { conversionTracker } from "@/lib/conversion-tracking"
 
 interface Bill {
   id: string
@@ -22,7 +22,7 @@ interface BillShareButtonProps {
 export default function BillShareButton({ bill, className = "" }: BillShareButtonProps) {
   const { toast } = useToast()
   const [isLoading, setIsLoading] = useState(false)
-  const sessionId = ConversionTrackingService.generateSessionId()
+  const sessionId = conversionTracker.generateSessionId()
 
   const handleShareToMessenger = async () => {
     setIsLoading(true)
@@ -31,14 +31,13 @@ export default function BillShareButton({ bill, className = "" }: BillShareButto
       // Track conversion event
       await conversionTracker.trackEvent({
         eventType: "bill_share",
-        userId: ConversionTrackingService.getUserId(),
+        userId: conversionTracker.getUserId(),
         sessionId,
-        timestamp: new Date(),
+        source: "messenger",
         data: {
           billId: bill.id,
           customerName: bill.customerName,
           amount: bill.totalAmount,
-          source: "direct",
         },
       })
 
@@ -86,14 +85,13 @@ export default function BillShareButton({ bill, className = "" }: BillShareButto
       // Track link copy event
       await conversionTracker.trackEvent({
         eventType: "bill_view",
-        userId: ConversionTrackingService.getUserId(),
+        userId: conversionTracker.getUserId(),
         sessionId,
-        timestamp: new Date(),
+        source: "web",
         data: {
           billId: bill.id,
           customerName: bill.customerName,
           amount: bill.totalAmount,
-          source: "direct",
           action: "copy_link",
         },
       })

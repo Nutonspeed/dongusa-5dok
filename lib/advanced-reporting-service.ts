@@ -738,4 +738,3 @@ class AdvancedReportingService {
 }
 
 export const advancedReportingService = new AdvancedReportingService()
-export type { ReportTemplate, ReportExecution, ExportOptions, ScheduleConfig }

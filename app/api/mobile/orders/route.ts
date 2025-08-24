@@ -81,7 +81,7 @@ export async function GET(request: NextRequest) {
       order_items?: OrderItem[]
     }
 
-    const optimizedOrders = (orders as OrderRow[] | undefined)?.map((order) => ({
+  const optimizedOrders = (orders as unknown as OrderRow[] | undefined)?.map((order) => ({
       id: order.id,
       status: order.status,
       total: order.total,

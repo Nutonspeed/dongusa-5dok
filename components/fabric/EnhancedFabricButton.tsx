@@ -5,7 +5,7 @@ import { ExternalLink, Heart, Share2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/hooks/use-toast"
 import { messengerService } from "@/lib/messenger-integration"
-import { conversionTracker, ConversionTrackingService } from "@/lib/conversion-tracking"
+import { conversionTracker } from "@/lib/conversion-tracking"
 
 interface FabricPattern {
   id: string
@@ -31,7 +31,7 @@ export default function EnhancedFabricButton({
 }: EnhancedFabricButtonProps) {
   const { toast } = useToast()
   const [isLoading, setIsLoading] = useState(false)
-  const sessionId = ConversionTrackingService.generateSessionId()
+  const sessionId = conversionTracker.generateSessionId()
 
   const handleFabricSelect = async () => {
     setIsLoading(true)
@@ -40,15 +40,14 @@ export default function EnhancedFabricButton({
       // Track conversion event
       await conversionTracker.trackEvent({
         eventType: "fabric_select",
-        userId: ConversionTrackingService.getUserId(),
+        userId: conversionTracker.getUserId(),
         sessionId,
-        timestamp: new Date(),
         data: {
           fabricId: fabric.id,
           fabricName: fabric.name,
           collectionName: fabric.collectionName,
-          source: "gallery",
         },
+        source: "web",
       })
 
       // Send to messenger
@@ -84,15 +83,14 @@ export default function EnhancedFabricButton({
     // Track fabric view event
     await conversionTracker.trackEvent({
       eventType: "fabric_view",
-      userId: ConversionTrackingService.getUserId(),
+      userId: conversionTracker.getUserId(),
       sessionId,
-      timestamp: new Date(),
       data: {
         fabricId: fabric.id,
         fabricName: fabric.name,
         collectionName: fabric.collectionName,
-        source: "gallery",
       },
+      source: "web",
     })
   }
 

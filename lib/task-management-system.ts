@@ -523,4 +523,3 @@ class TaskManagementSystem {
 }
 
 export const taskManagement = new TaskManagementSystem()
-export type { TaskFilter, TaskBoard, TaskColumn }

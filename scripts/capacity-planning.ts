@@ -40,8 +40,8 @@ async function generateCapacityPlan(): Promise<CapacityPlan> {
     projected_metrics: {
       capacity: currentReport.projected_capacity,
       required_instances: Math.ceil(currentReport.projected_capacity / 1000),
-      storage_requirements: resourceRequirements.storage,
-      bandwidth_requirements: resourceRequirements.bandwidth,
+  storage_requirements: resourceRequirements.storage_gb,
+  bandwidth_requirements: resourceRequirements.bandwidth_mbps,
     },
     resource_requirements: resourceRequirements,
     cost_projections: costProjections,

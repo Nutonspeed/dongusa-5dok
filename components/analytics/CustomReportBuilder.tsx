@@ -94,15 +94,25 @@ export default function CustomReportBuilder() {
     }
 
     try {
-      await customReportBuilder.saveReport({
-        name: reportName,
-        type: "custom",
+      // Build parameters object to match the CustomReport shape expected by the service
+      const params = {
+        date_range:
+          dateRange.start && dateRange.end
+            ? dateRange
+            : { start: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(), end: new Date().toISOString() },
+        metrics: selectedMetrics,
         filters: filters.reduce((acc, filter) => {
           acc[filter.field] = { operator: filter.operator, value: filter.value }
           return acc
         }, {} as any),
-        metrics: selectedMetrics,
-        visualization: visualizationType,
+        grouping: (groupBy && groupBy.length > 0 ? (groupBy[0] as any) : "daily") as any,
+      }
+
+      await customReportBuilder.saveReport({
+        name: reportName,
+        type: "custom",
+        parameters: params,
+        format: "json",
       })
       alert("บันทึกรายงานเรียบร้อยแล้ว")
     } catch (error) {

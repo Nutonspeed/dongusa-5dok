@@ -126,14 +126,16 @@ export class SupabaseUsageMonitor {
     }
 
     // Get historical data for trend analysis
-    const previousMetrics = cacheService.get("storage_history") || []
+    const previousMetrics: Array<{ value: number; timestamp: number }> = (cacheService.get("storage_history") as
+      | Array<{ value: number; timestamp: number }>
+      | null) || []
     const currentTime = Date.now()
     previousMetrics.push({ value: totalEstimatedMB, timestamp: currentTime })
 
     // Keep only last 24 hours of data
     const oneDayAgo = currentTime - 24 * 60 * 60 * 1000
-    const recentMetrics = previousMetrics.filter((m: any) => m.timestamp > oneDayAgo)
-    cacheService.set("storage_history", recentMetrics, 86400) // 24 hours
+  const recentMetrics = previousMetrics.filter((m) => m.timestamp > oneDayAgo)
+  cacheService.set("storage_history", recentMetrics, 86400) // 24 hours
 
     const trend = this.calculateTrend(recentMetrics)
 
@@ -172,20 +174,22 @@ export class SupabaseUsageMonitor {
     }
   }
 
-  private async getApiMetrics() {
+  private async getApiMetrics(): Promise<{ hourly: number; daily: number; trend: "increasing" | "decreasing" | "stable" }> {
     // Get API request metrics from cache or estimate
-    const cachedRequests = cacheService.get("api_request_count") || 0
+    const cachedRequests = Number(cacheService.get("api_request_count") || 0)
     const hourlyRequests = cachedRequests
     const dailyRequests = hourlyRequests * 24
 
     // Get historical data for trend analysis
-    const previousMetrics = cacheService.get("api_history") || []
+    const previousMetrics: Array<{ value: number; timestamp: number }> = (cacheService.get("api_history") as
+      | Array<{ value: number; timestamp: number }>
+      | null) || []
     const currentTime = Date.now()
     previousMetrics.push({ value: hourlyRequests, timestamp: currentTime })
 
     // Keep only last 24 hours of data
     const oneDayAgo = currentTime - 24 * 60 * 60 * 1000
-    const recentMetrics = previousMetrics.filter((m: any) => m.timestamp > oneDayAgo)
+    const recentMetrics = previousMetrics.filter((m) => m.timestamp > oneDayAgo)
     cacheService.set("api_history", recentMetrics, 86400) // 24 hours
 
     const trend = this.calculateTrend(recentMetrics)
@@ -426,10 +430,10 @@ ${this.generateRecommendations(metrics)
 
   // Public methods for dashboard
   async getCurrentMetrics(): Promise<UsageMetrics> {
-    const cached = cacheService.get("supabase_usage_metrics")
-    if (cached) return cached
+  const cached = cacheService.get<UsageMetrics>("supabase_usage_metrics") as UsageMetrics | null
+  if (cached) return cached
 
-    return await this.collectMetrics()
+  return await this.collectMetrics()
   }
 
   async getUsageHistory(days = 7): Promise<any[]> {

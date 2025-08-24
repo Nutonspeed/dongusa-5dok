@@ -268,8 +268,9 @@ class CustomReportBuilder {
   }
 
   // Save custom report
-  async saveReport(report: Omit<CustomReport, "id" | "created_at" | "last_generated">): Promise<CustomReport> {
-    return await advancedAnalytics.createCustomReport(report)
+  // The service expects a report config without `id`, `data`, or `generated_at`.
+  async saveReport(report: Omit<CustomReport, "id" | "data" | "generated_at">): Promise<CustomReport> {
+    return await advancedAnalytics.generateCustomReport(report)
   }
 
   // Generate report templates
@@ -277,19 +278,25 @@ class CustomReportBuilder {
     id: string
     name: string
     description: string
-    config: Partial<CustomReport>
+    // templates may provide partial config in a simplified shape; keep flexible
+    config: any
   }> {
     return [
       {
         id: "daily_sales",
         name: "รายงานยอดขายรายวัน",
         description: "สรุปยอดขายและคำสั่งซื้อรายวัน",
-        config: {
-          type: "sales",
-          metrics: ["total_revenue", "order_count", "avg_order_value"],
-          filters: {},
-          visualization: "dashboard",
-        },
+          config: {
+            type: "sales",
+            parameters: {
+              date_range: { start: "", end: "" },
+              metrics: ["total_revenue", "order_count", "avg_order_value"],
+              filters: {},
+              grouping: "daily",
+            },
+            format: "json",
+            visualization: "dashboard",
+          },
       },
       {
         id: "customer_analysis",
@@ -297,8 +304,13 @@ class CustomReportBuilder {
         description: "วิเคราะห์พฤติกรรมและมูลค่าลูกค้า",
         config: {
           type: "customers",
-          metrics: ["customer_count", "avg_order_value", "conversion_rate"],
-          filters: {},
+          parameters: {
+            date_range: { start: "", end: "" },
+            metrics: ["customer_count", "avg_order_value", "conversion_rate"],
+            filters: {},
+            grouping: "daily",
+          },
+          format: "json",
           visualization: "dashboard",
         },
       },
@@ -308,8 +320,13 @@ class CustomReportBuilder {
         description: "วิเคราะห์ยอดขายและความนิยมของสินค้า",
         config: {
           type: "products",
-          metrics: ["product_sales", "total_revenue"],
-          filters: {},
+          parameters: {
+            date_range: { start: "", end: "" },
+            metrics: ["product_sales", "total_revenue"],
+            filters: {},
+            grouping: "daily",
+          },
+          format: "json",
           visualization: "chart",
         },
       },
@@ -319,8 +336,13 @@ class CustomReportBuilder {
         description: "สรุปรายได้ กำไร และค่าใช้จ่ายรายเดือน",
         config: {
           type: "financial",
-          metrics: ["total_revenue", "order_count"],
-          filters: {},
+          parameters: {
+            date_range: { start: "", end: "" },
+            metrics: ["total_revenue", "order_count"],
+            filters: {},
+            grouping: "monthly",
+          },
+          format: "json",
           visualization: "dashboard",
         },
       },
@@ -361,4 +383,3 @@ class CustomReportBuilder {
 }
 
 export const customReportBuilder = new CustomReportBuilder()
-export type { ReportFilter, ReportMetric, ReportVisualization }

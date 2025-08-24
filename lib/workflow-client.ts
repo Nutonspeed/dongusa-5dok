@@ -8,6 +8,13 @@ export interface Workflow {
   created_by: string
   created_at: string
   updated_at: string
+  // UI expects nodes and execution_stats to be present
+  nodes: any[]
+  execution_stats: {
+    total_executions: number
+    successful_executions: number
+    average_duration: number
+  }
 }
 
 export interface WorkflowExecution {

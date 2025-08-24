@@ -386,8 +386,10 @@ export class ECommerceService {
         `)
         .eq("user_id", userId)
 
-      if (error) throw error
-      return (data || []).map((item) => item.product).filter(Boolean)
+  if (error) throw error
+  // data items use generated types; cast to any to extract product safely during mock builds
+  const products = (data || []).map((item: any) => item.product).filter(Boolean)
+  return products as Product[]
     } catch (error) {
       logger.error("Error fetching wishlist:", error)
       return []

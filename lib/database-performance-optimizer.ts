@@ -298,8 +298,10 @@ class DatabasePerformanceOptimizer {
   private setCache(key: string, data: any, ttl: number): void {
     // Implement LRU eviction if cache is full
     if (this.queryCache.size >= this.config.maxCacheSize) {
-      const oldestKey = this.queryCache.keys().next().value
-      this.queryCache.delete(oldestKey)
+      const maybeOldest = this.queryCache.keys().next().value
+      if (typeof maybeOldest === 'string' && maybeOldest.length > 0) {
+        this.queryCache.delete(maybeOldest)
+      }
     }
 
     this.queryCache.set(key, {

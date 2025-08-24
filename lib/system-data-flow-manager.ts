@@ -293,11 +293,14 @@ export class SystemDataFlowManager {
       )
 
       const bottlenecks = Object.entries(moduleStats)
-        .map(([module, stats]) => ({
-          module,
-          avg_time: stats.total_time / stats.count,
-          operation_count: stats.count,
-        }))
+        .map(([module, stats]) => {
+          const s = stats as { total_time: number; count: number }
+          return {
+            module,
+            avg_time: s.count > 0 ? s.total_time / s.count : 0,
+            operation_count: s.count,
+          }
+        })
         .sort((a, b) => b.avg_time - a.avg_time)
         .slice(0, 5)
 
@@ -317,11 +320,14 @@ export class SystemDataFlowManager {
       )
 
       const errorPatternsArray = Object.entries(errorPatterns)
-        .map(([error, stats]) => ({
-          error,
-          count: stats.count,
-          modules: Array.from(stats.modules),
-        }))
+        .map(([error, stats]) => {
+          const s = stats as { count: number; modules: Set<string> }
+          return {
+            error,
+            count: s.count,
+            modules: Array.from(s.modules) as string[],
+          }
+        })
         .sort((a, b) => b.count - a.count)
         .slice(0, 10)
 

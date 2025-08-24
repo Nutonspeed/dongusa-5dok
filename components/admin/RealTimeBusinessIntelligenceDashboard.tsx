@@ -92,13 +92,13 @@ const RealTimeBusinessIntelligenceDashboard: React.FC = () => {
   ]
 
   const salesData: ChartData[] = [
-    { name: "จ", revenue: 12000, orders: 45, customers: 120, conversion: 3.2 },
-    { name: "อ", revenue: 15000, orders: 52, customers: 135, conversion: 3.5 },
-    { name: "พ", revenue: 18000, orders: 61, customers: 148, conversion: 3.8 },
-    { name: "พฤ", revenue: 22000, orders: 68, customers: 162, conversion: 4.1 },
-    { name: "ศ", revenue: 25000, orders: 75, customers: 178, conversion: 4.3 },
-    { name: "ส", revenue: 28000, orders: 82, customers: 195, conversion: 4.5 },
-    { name: "อา", revenue: 32000, orders: 89, customers: 210, conversion: 4.8 },
+    { name: "จ", value: 12000, revenue: 12000, orders: 45, customers: 120, conversion: 3.2 },
+    { name: "อ", value: 15000, revenue: 15000, orders: 52, customers: 135, conversion: 3.5 },
+    { name: "พ", value: 18000, revenue: 18000, orders: 61, customers: 148, conversion: 3.8 },
+    { name: "พฤ", value: 22000, revenue: 22000, orders: 68, customers: 162, conversion: 4.1 },
+    { name: "ศ", value: 25000, revenue: 25000, orders: 75, customers: 178, conversion: 4.3 },
+    { name: "ส", value: 28000, revenue: 28000, orders: 82, customers: 195, conversion: 4.5 },
+    { name: "อา", value: 32000, revenue: 32000, orders: 89, customers: 210, conversion: 4.8 },
   ]
 
   const productData: ChartData[] = [
@@ -251,7 +251,7 @@ const RealTimeBusinessIntelligenceDashboard: React.FC = () => {
                       outerRadius={80}
                       fill="#8884d8"
                       dataKey="value"
-                      label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                      label={({ name, percent }) => `${name} ${((percent ?? 0) * 100).toFixed(0)}%`}
                     >
                       {productData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />

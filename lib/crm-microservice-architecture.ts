@@ -627,7 +627,7 @@ class CRMMicroserviceArchitect {
   }
 
   generateOpenAPISpec(): any {
-    const openApiSpec = {
+    const openApiSpec: any = {
       openapi: "3.0.0",
       info: {
         title: "CRM Microservice API",
@@ -673,7 +673,7 @@ class CRMMicroserviceArchitect {
   }
 
   private generateParameters(endpoint: APIEndpoint): any[] {
-    const parameters = []
+  const parameters: any[] = []
 
     // Path parameters
     const pathParams = endpoint.path.match(/:(\w+)/g)
@@ -764,7 +764,7 @@ class CRMMicroserviceArchitect {
     console.log(`Executing migration phase ${phaseNumber}: ${phase.name}`)
     const results = []
 
-    for (const step of phase.steps) {
+  for (const step of phase.steps) {
       try {
         console.log(`Executing step: ${step.description}`)
 
@@ -794,10 +794,12 @@ class CRMMicroserviceArchitect {
           }
         }
 
+        const errMsg = error instanceof Error ? error.message : String(error)
+
         results.push({
           step_id: step.id,
           success: false,
-          error: error.message,
+          error: errMsg,
         })
 
         return { success: false, results }

@@ -24,10 +24,10 @@ import {
   List,
   EyeOff,
   MoreHorizontal,
-  ImageIcon,
   FolderPlus,
   FileImage,
 } from "lucide-react"
+import Image from "next/image"
 import { useToast } from "@/hooks/use-toast"
 
 interface FabricCollection {
@@ -566,12 +566,8 @@ export default function AdvancedFabricManagementDashboard() {
           {collections.map((collection) => (
             <Card key={collection.id} className="fabric-card-interactive admin-fabric-shadow">
               <CardContent className="p-4">
-                <div className="aspect-video bg-muted rounded-lg mb-3 overflow-hidden">
-                  <ImageIcon
-                    src={collection.thumbnail || "/placeholder.svg"}
-                    alt={collection.name}
-                    className="w-full h-full object-cover"
-                  />
+                <div className="aspect-video bg-muted rounded-lg mb-3 overflow-hidden relative">
+                  <Image src={collection.thumbnail || "/placeholder.svg"} alt={collection.name} fill className="object-cover" />
                 </div>
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
@@ -687,12 +683,8 @@ export default function AdvancedFabricManagementDashboard() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {filteredFabrics.map((fabric) => (
                 <div key={fabric.id} className="fabric-card-interactive border rounded-lg overflow-hidden">
-                  <div className="aspect-square bg-muted relative">
-                    <ImageIcon
-                      src={fabric.imageUrl || "/placeholder.svg"}
-                      alt={fabric.name}
-                      className="w-full h-full object-cover"
-                    />
+            <div className="aspect-square bg-muted relative">
+              <Image src={fabric.imageUrl || "/placeholder.svg"} alt={fabric.name} fill className="object-cover" />
                     <div className="absolute top-2 left-2">
                       <Checkbox
                         checked={selectedFabrics.includes(fabric.id)}
@@ -781,11 +773,9 @@ export default function AdvancedFabricManagementDashboard() {
                         />
                       </td>
                       <td className="py-4 px-4">
-                        <ImageIcon
-                          src={fabric.imageUrl || "/placeholder.svg"}
-                          alt={fabric.name}
-                          className="w-12 h-12 object-cover rounded"
-                        />
+                        <div className="w-12 h-12 relative rounded overflow-hidden">
+                          <Image src={fabric.imageUrl || "/placeholder.svg"} alt={fabric.name} fill className="object-cover" />
+                        </div>
                       </td>
                       <td className="py-4 px-4">
                         <div>

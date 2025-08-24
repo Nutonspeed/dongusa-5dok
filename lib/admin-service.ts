@@ -96,8 +96,8 @@ export class AdminService {
       const customers = customersResult.data || []
       const products = productsResult.data || []
 
-      const totalRevenue = orders.reduce((sum, order) => sum + (order.total_amount || 0), 0)
-      const lowStockProducts = products.filter((p) => p.stock_quantity <= 10).length
+  const totalRevenue = orders.reduce((sum: number, order: any) => sum + (order.total_amount || 0), 0)
+  const lowStockProducts = products.filter((p: any) => p.stock_quantity <= 10).length
 
       // Calculate monthly growth (mock data for now)
       const monthlyGrowth = {
@@ -259,7 +259,7 @@ export class AdminService {
       // Process customer data to calculate stats
       const customers = (data || []).map((customer: any) => {
         const orders = customer.orders || []
-        const totalSpent = orders.reduce((sum: number, order: any) => sum + (order.total_amount || 0), 0)
+  const totalSpent = orders.reduce((sum: number, order: any) => sum + (order.total_amount || 0), 0)
         const lastOrderDate = orders.length > 0 ? orders[orders.length - 1].created_at : null
 
         return {
@@ -277,7 +277,7 @@ export class AdminService {
         }
       })
 
-      return customers
+  return customers as AdminCustomer[]
     } catch (error) {
       logger.error("Error fetching customers:", error)
       return []
@@ -368,12 +368,12 @@ export class AdminService {
       const products = productsResult.data || []
 
       // Calculate analytics
-      const totalRevenue = orders.reduce((sum, order) => sum + (order.total_amount || 0), 0)
+  const totalRevenue = orders.reduce((sum: number, order: any) => sum + (order.total_amount || 0), 0)
       const averageOrderValue = orders.length > 0 ? totalRevenue / orders.length : 0
       const conversionRate = customers.length > 0 ? (orders.length / customers.length) * 100 : 0
 
       // Group orders by date for chart data
-      const dailyRevenue = orders.reduce((acc: any, order) => {
+  const dailyRevenue = orders.reduce((acc: any, order: any) => {
         const date = new Date(order.created_at).toISOString().split("T")[0]
         acc[date] = (acc[date] || 0) + (order.total_amount || 0)
         return acc
@@ -389,7 +389,7 @@ export class AdminService {
           date,
           revenue,
         })),
-        topProducts: products.sort((a, b) => (b.sold_quantity || 0) - (a.sold_quantity || 0)).slice(0, 10),
+  topProducts: products.sort((a: any, b: any) => (b.sold_quantity || 0) - (a.sold_quantity || 0)).slice(0, 10),
       }
     } catch (error) {
       logger.error("Error fetching analytics:", error)

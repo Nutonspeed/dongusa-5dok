@@ -11,7 +11,9 @@ function getStripeInstance(): Stripe | null {
     return null
   }
   return new Stripe(apiKey, {
-    apiVersion: "2024-06-20",
+    // See other payment routes: cast to any to satisfy the local Stripe type
+    // definitions while keeping the runtime apiVersion.
+    apiVersion: "2024-06-20" as any,
   })
 }
 

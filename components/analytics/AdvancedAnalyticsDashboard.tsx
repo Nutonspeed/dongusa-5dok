@@ -144,16 +144,16 @@ export default function AdvancedAnalyticsDashboard() {
         </div>
       </div>
 
-      {/* Critical Alerts */}
-      {intelligence?.kpi_alerts.filter((alert) => alert.status === "critical").length > 0 && (
-        <Alert className="border-red-200 bg-red-50">
-          <AlertTriangle className="h-4 w-4 text-red-600" />
-          <AlertDescription className="text-red-800">
-            <strong>แจ้งเตือนเร่งด่วน:</strong>{" "}
-            {intelligence.kpi_alerts.find((alert) => alert.status === "critical")?.message}
-          </AlertDescription>
-        </Alert>
-      )}
+          {/* Critical Alerts */}
+          {(intelligence?.kpi_alerts ?? []).filter((alert) => alert.status === "critical").length > 0 && (
+            <Alert className="border-red-200 bg-red-50">
+              <AlertTriangle className="h-4 w-4 text-red-600" />
+              <AlertDescription className="text-red-800">
+                <strong>แจ้งเตือนเร่งด่วน:</strong>{" "}
+                {(intelligence?.kpi_alerts ?? []).find((alert) => alert.status === "critical")?.message}
+              </AlertDescription>
+            </Alert>
+          )}
 
       {/* Key Metrics */}
       {metrics && (
@@ -315,7 +315,7 @@ export default function AdvancedAnalyticsDashboard() {
                       cy="50%"
                       outerRadius={100}
                       dataKey="value"
-                      label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                      label={({ name, percent }) => `${name} ${((percent ?? 0) * 100).toFixed(0)}%`}
                     >
                       {[
                         { name: "ลูกค้าใหม่", value: 45, color: "#ec4899" },

@@ -765,11 +765,4 @@ export class EnhancedWorkflowEngine {
 }
 
 export const enhancedWorkflowEngine = new EnhancedWorkflowEngine()
-export type {
-  WorkflowTemplate,
-  WorkflowNode,
-  WorkflowConnection,
-  WorkflowVariable,
-  ApprovalRequest,
-  BusinessProcessTemplate,
-}
+

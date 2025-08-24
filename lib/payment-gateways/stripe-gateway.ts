@@ -12,7 +12,7 @@ export class StripeGateway {
     }
 
     this.stripe = new Stripe(apiKey, {
-      apiVersion: "2024-06-20",
+      apiVersion: "2024-06-20" as any,
     })
   }
 

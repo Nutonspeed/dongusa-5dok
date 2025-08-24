@@ -379,6 +379,46 @@ class MarketingAutomationService {
     return { success: true, messageId: `sms_${Date.now()}` }
   }
 
+  // Thin wrapper to support personalized emails from automation flows.
+  // Kept intentionally small and defensive: it converts the provided template + emailData
+  // into a subject/html payload and forwards to the shared emailService.
+  async sendPersonalizedEmail(customer: any, template: string, emailData: Record<string, any>) {
+    try {
+      const recipient = customer?.email ? [customer.email] : []
+      if (recipient.length === 0) {
+        console.warn('sendPersonalizedEmail: no recipient email for customer', customer?.id)
+        return
+      }
+
+      // Use explicit subject/html if provided by the automation layer, otherwise fall back.
+      const subject = (emailData && typeof emailData.subject === 'string' && emailData.subject.length > 0)
+        ? emailData.subject
+        : `Notification - ${template}`
+
+      const html = (emailData && typeof emailData.html === 'string' && emailData.html.length > 0)
+        ? emailData.html
+        : (() => {
+            // Create a minimal HTML fallback from the payload keys (safe, reversible)
+            try {
+              const rows: string[] = []
+              for (const k of Object.keys(emailData || {})) {
+                if (k === 'subject' || k === 'html') continue
+                const v = emailData[k]
+                rows.push(`<p><strong>${k}</strong>: ${String(v)}</p>`)
+              }
+              return `<div>${rows.join('\n') || '<p>No content</p>'}</div>`
+            } catch (err) {
+              return `<div><pre>${String(emailData)}</pre></div>`
+            }
+          })()
+
+      await emailService.sendBulkEmail(recipient, subject, html)
+    } catch (error) {
+      console.error('marketingAutomation.sendPersonalizedEmail failed:', error)
+      throw error
+    }
+  }
+
   // Campaign Management
   async createCampaign(campaign: Omit<Campaign, "id" | "created_at" | "metrics">) {
     const newCampaign: Campaign = {

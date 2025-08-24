@@ -264,13 +264,14 @@ class FeedbackBugManager {
       "were",
     ]
 
-    return words
+    const counts = words
       .filter((word) => word.length > 3 && !stopWords.includes(word))
       .reduce((acc: { [key: string]: number }, word) => {
         acc[word] = (acc[word] || 0) + 1
         return acc
-      }, {})
-      .entries()
+      }, {} as { [key: string]: number })
+
+    return Object.entries(counts)
       .sort(([, a], [, b]) => b - a)
       .slice(0, 5)
       .map(([word]) => word)

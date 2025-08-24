@@ -260,9 +260,10 @@ export default function AdvancedSystemConfigurationDashboard() {
         [service]: result.status === "healthy" ? "connected" : "error",
       }))
     } catch (error) {
+      const message = error instanceof Error ? error.message : String(error)
       setTestResults((prev) => ({
         ...prev,
-        [service]: { status: "error", error: error.message },
+        [service]: { status: "error", error: message },
       }))
     } finally {
       setLoading(false)

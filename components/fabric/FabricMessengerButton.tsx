@@ -34,8 +34,8 @@ export default function FabricMessengerButton({
     setIsLoading(true)
 
     try {
-      // สร้าง session ID สำหรับติดตาม
-      const sessionId = conversionTracker.constructor.generateSessionId()
+  // สร้าง session ID สำหรับติดตาม
+  const sessionId = conversionTracker.generateSessionId()
 
       // ติดตามการดูลายผ้า
       await conversionTracker.trackFabricView(fabricId, fabricName, collectionName, sessionId)

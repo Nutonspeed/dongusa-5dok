@@ -251,7 +251,8 @@ class ComprehensivePerformanceTester {
         results.push({ name: benchmark.name, ...result })
       } catch (error) {
         console.error(`❌ ${benchmark.name} failed:`, error)
-        results.push({ name: benchmark.name, error: error.message })
+        const message = error instanceof Error ? error.message : String(error)
+        results.push({ name: benchmark.name, error: message })
       }
     }
 
@@ -303,11 +304,12 @@ class ComprehensivePerformanceTester {
           status: "success",
         })
       } catch (error) {
+        const message = error instanceof Error ? error.message : String(error)
         results.push({
           endpoint,
           responseTime: 0,
           status: "error",
-          error: error.message,
+          error: message,
         })
       }
     }

@@ -203,7 +203,8 @@ class CRMServiceClient {
         console.error(`CRM Service request failed (attempt ${attempt}):`, error)
 
         if (attempt >= this.config.retryAttempts) {
-          throw new CRMServiceError(`Failed after ${this.config.retryAttempts} attempts: ${error.message}`, error)
+          const errMsg = error instanceof Error ? error.message : String(error)
+          throw new CRMServiceError(`Failed after ${this.config.retryAttempts} attempts: ${errMsg}`, error instanceof Error ? error : undefined)
         }
 
         // Wait before retrying

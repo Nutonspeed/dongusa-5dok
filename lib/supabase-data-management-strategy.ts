@@ -165,6 +165,7 @@ export class SupabaseDataManagementStrategy {
       }
     } catch (error) {
       console.error("Data management strategy failed:", error)
+      const _msg = error instanceof Error ? error.message : String(error)
       return {
         success: false,
         cleanupResults: {
@@ -172,10 +173,10 @@ export class SupabaseDataManagementStrategy {
           totalRecordsDeleted: 0,
           totalSpaceSaved: 0,
           tablesProcessed: [],
-          errors: [error.message],
+          errors: [_msg],
         },
         archiveResults: [],
-        backupResults: { success: false, error: error.message },
+        backupResults: { success: false, error: _msg },
       }
     }
   }
@@ -208,7 +209,8 @@ export class SupabaseDataManagementStrategy {
         }
       } catch (error) {
         console.error(`Cleanup failed for table ${policy.tableName}:`, error)
-        errors.push(`${policy.tableName}: ${error.message}`)
+        const _msg = error instanceof Error ? error.message : String(error)
+        errors.push(`${policy.tableName}: ${_msg}`)
       }
     }
 
@@ -276,7 +278,8 @@ export class SupabaseDataManagementStrategy {
         spaceSaved += this.estimateCompressionSavings(policy.tableName)
       }
     } catch (error) {
-      errors.push(`Cleanup error: ${error.message}`)
+      const _msg = error instanceof Error ? error.message : String(error)
+      errors.push(`Cleanup error: ${_msg}`)
     }
 
     return { recordsProcessed, recordsDeleted, spaceSaved, errors }
@@ -298,12 +301,13 @@ export class SupabaseDataManagementStrategy {
         results.push(result)
       } catch (error) {
         console.error(`Archiving failed for table ${policy.tableName}:`, error)
+        const _msg = error instanceof Error ? error.message : String(error)
         results.push({
           tableName: policy.tableName,
           recordsArchived: 0,
           recordsDeleted: 0,
           spaceSaved: 0,
-          errors: [error.message],
+          errors: [_msg],
         })
       }
     }
@@ -365,7 +369,8 @@ export class SupabaseDataManagementStrategy {
 
       console.log(`Archived ${recordsArchived} records from ${policy.tableName}`)
     } catch (error) {
-      errors.push(`Archiving error: ${error.message}`)
+      const _msg = error instanceof Error ? error.message : String(error)
+      errors.push(`Archiving error: ${_msg}`)
     }
 
     return { tableName: policy.tableName, recordsArchived, recordsDeleted, spaceSaved, errors }
@@ -428,7 +433,7 @@ export class SupabaseDataManagementStrategy {
     console.log("Executing backup strategy...")
 
     try {
-      const backupResult = {
+      const backupResult: { type: string; timestamp: string; tables: any[]; success: boolean; size: number } = {
         type: this.backupStrategy.type,
         timestamp: new Date().toISOString(),
         tables: [],
@@ -446,10 +451,11 @@ export class SupabaseDataManagementStrategy {
           backupResult.size += tableBackup.size
         } catch (error) {
           console.error(`Backup failed for table ${tableName}:`, error)
+          const _msg = error instanceof Error ? error.message : String(error)
           backupResult.tables.push({
             tableName,
             success: false,
-            error: error.message,
+            error: _msg,
             size: 0,
           })
         }
@@ -461,15 +467,17 @@ export class SupabaseDataManagementStrategy {
       return backupResult
     } catch (error) {
       console.error("Backup strategy failed:", error)
-      return { success: false, error: error.message }
+      const _msg = error instanceof Error ? error.message : String(error)
+      return { success: false, error: _msg }
     }
   }
 
   private async backupTable(tableName: string): Promise<any> {
     // Simulate table backup
-    const { count } = await this.supabase.from(tableName).select("*", { count: "exact", head: true })
+  const _countRes: any = await this.supabase.from(tableName).select("*", { count: "exact", head: true })
+  const count = _countRes.count
 
-    const estimatedSize = this.estimateTableSize(tableName, count || 0)
+  const estimatedSize = this.estimateTableSize(tableName, count || 0)
 
     return {
       tableName,
@@ -511,7 +519,8 @@ export class SupabaseDataManagementStrategy {
 
       // Calculate total estimated size
       for (const policy of this.dataLifecyclePolicies) {
-        const { count } = await this.supabase.from(policy.tableName).select("*", { count: "exact", head: true })
+        const _res: any = await this.supabase.from(policy.tableName).select("*", { count: "exact", head: true })
+        const count = _res.count
         stats.totalEstimatedSize += this.estimateTableSize(policy.tableName, count || 0)
       }
 
@@ -541,8 +550,9 @@ export class SupabaseDataManagementStrategy {
   private estimateCompressionSavings(tableName: string): number {
     // Estimate 20-30% compression savings
     const compressionRatio = 0.25
-    const { count } = this.supabase.from(tableName).select("*", { count: "exact", head: true })
-    const tableSize = this.estimateTableSize(tableName, count || 0)
+  const _res: any = this.supabase.from(tableName).select("*", { count: "exact", head: true })
+  const count = (_res && _res.count) || 0
+  const tableSize = this.estimateTableSize(tableName, count || 0)
     return tableSize * compressionRatio
   }
 
@@ -563,7 +573,7 @@ export class SupabaseDataManagementStrategy {
 
   // Public methods for management
   async getDataManagementReport(): Promise<string> {
-    const stats = cacheService.get("storage_statistics") || {}
+  const stats: any = cacheService.get("storage_statistics") || {}
 
     return `
 # Supabase Data Management Strategy Report

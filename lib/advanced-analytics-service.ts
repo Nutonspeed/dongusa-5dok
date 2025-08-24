@@ -84,7 +84,7 @@ interface BusinessIntelligence {
 interface CustomReport {
   id: string
   name: string
-  type: "sales" | "customers" | "products" | "financial" | "operational"
+  type: "sales" | "customers" | "products" | "financial" | "operational" | "custom"
   parameters: {
     date_range: { start: string; end: string }
     metrics: string[]

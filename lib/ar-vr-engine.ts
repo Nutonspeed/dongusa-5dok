@@ -455,4 +455,3 @@ class ARVREngine {
 }
 
 export const arvrEngine = new ARVREngine()
-export type { ARSession, VREnvironment, Product3DModel, ARPlacementResult }

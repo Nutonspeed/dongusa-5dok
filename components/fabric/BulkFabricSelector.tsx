@@ -54,22 +54,22 @@ export default function BulkFabricSelector({ fabrics, onSelectionChange, classNa
     setIsLoading(true)
 
     try {
-      const sessionId = conversionTracker.constructor.generateSessionId()
+      const sessionId = conversionTracker.generateSessionId()
       const selectedFabricData = fabrics.filter((f) => selectedFabrics.includes(f.id))
 
       // Track bulk selection
       await conversionTracker.trackEvent({
         eventType: "fabric_select" as any,
-        userId: conversionTracker.constructor.getUserId(),
+        userId: conversionTracker.getUserId(),
         sessionId,
-        timestamp: new Date(),
+        // timestamp will be added by the tracker itself
         data: {
           bulk_selection: true,
           fabric_count: selectedFabrics.length,
           fabric_ids: selectedFabrics,
           fabric_names: selectedFabricData.map((f) => f.name),
-          source: "bulk_selector",
         },
+        source: "web",
       })
 
       // Send to messenger API

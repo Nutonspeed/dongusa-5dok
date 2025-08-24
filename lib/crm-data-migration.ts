@@ -241,7 +241,8 @@ class CRMDataMigration {
           errors.push(...batchResult.errors)
         } catch (error) {
           console.error(`Batch ${batch + 1} failed for ${tableName}:`, error)
-          errors.push(`Batch ${batch + 1}: ${error.message}`)
+          const errMsg = error instanceof Error ? error.message : String(error)
+          errors.push(`Batch ${batch + 1}: ${errMsg}`)
           failedRows += this.config.batch_size
         }
       }
@@ -258,13 +259,14 @@ class CRMDataMigration {
       }
     } catch (error) {
       console.error(`Failed to migrate table ${tableName}:`, error)
+      const errMsg = error instanceof Error ? error.message : String(error)
       return {
         table: tableName,
         total_rows: 0,
         migrated_rows: 0,
         failed_rows: 0,
         duration: Date.now() - startTime,
-        errors: [error.message],
+        errors: [errMsg],
       }
     }
   }

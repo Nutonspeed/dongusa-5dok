@@ -443,4 +443,3 @@ export class SystemHealthMonitor {
 }
 
 export const systemHealthMonitor = new SystemHealthMonitor()
-export type { SystemHealth, HealthCheckResult }

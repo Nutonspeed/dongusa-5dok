@@ -73,7 +73,7 @@ class RealTimePerformanceOptimizer {
     const entries = performance.getEntriesByType("navigation") as PerformanceNavigationTiming[]
     if (entries.length === 0) return 0
 
-    const loadTime = entries[0].loadEventEnd - entries[0].navigationStart
+  const loadTime = entries[0].loadEventEnd - entries[0].startTime
     return loadTime
   }
 

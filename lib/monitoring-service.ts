@@ -295,16 +295,18 @@ export class MonitoringService {
     top_errors: Array<{ message: string; count: number }>
     slow_queries: Array<{ query: string; avg_time: number }>
   }> {
-    const { data: logs } = await this.supabase
+  const { data: logs } = await this.supabase
       .from("system_logs")
       .select("*")
       .gte("created_at", this.getTimeRangeStart(timeRange))
+  // logs can be any shape coming from the DB; treat as any[] for aggregation
+  const _logs: any[] = (logs as any) || []
 
-    const totalRequests = logs?.length || 0
-    const errorLogs = logs?.filter((log) => log.level === "error") || []
-    const errorCount = errorLogs.length
+  const totalRequests = _logs.length || 0
+  const errorLogs = _logs.filter((log) => log.level === "error") || []
+  const errorCount = errorLogs.length
 
-    const responseTimes = logs?.map((log) => log.response_time).filter(Boolean) || []
+  const responseTimes = _logs.map((log) => log.response_time).filter(Boolean) || []
     const avgResponseTime =
       responseTimes.length > 0 ? responseTimes.reduce((a, b) => a + b, 0) / responseTimes.length : 0
 
@@ -318,15 +320,15 @@ export class MonitoringService {
     )
 
     const topErrors = Object.entries(errorMessages)
-      .sort(([, a], [, b]) => b - a)
+      .sort(([, a], [, b]) => (Number(b as any) - Number(a as any)))
       .slice(0, 10)
-      .map(([message, count]) => ({ message, count }))
+      .map(([message, count]) => ({ message, count: Number(count as any) }))
 
-    // Find slow queries
-    const slowQueries = logs
-      ?.filter((log) => log.query && log.response_time > 1000)
+    // Find slow queries using typed _logs
+    const slowQueries = _logs
+      .filter((log: any) => log.query && log.response_time > 1000)
       .reduce(
-        (acc, log) => {
+        (acc: Record<string, { total_time: number; count: number }>, log: any) => {
           if (!acc[log.query]) {
             acc[log.query] = { total_time: 0, count: 0 }
           }

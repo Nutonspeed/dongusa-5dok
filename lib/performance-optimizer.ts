@@ -78,7 +78,7 @@ class PerformanceOptimizer {
     return async (...args: any[]) => {
       const start = performance.now()
       try {
-        const result = await fn.apply(this, args)
+  const result = await (fn as any)(...args)
         const duration = performance.now() - start
 
         // Log slow operations
@@ -160,7 +160,7 @@ export function debounce<T extends (...args: any[]) => any>(func: T, wait: numbe
   let timeout: NodeJS.Timeout
   return (...args: Parameters<T>) => {
     clearTimeout(timeout)
-    timeout = setTimeout(() => func.apply(this, args), wait)
+  timeout = setTimeout(() => (func as any)(...args), wait)
   }
 }
 
@@ -168,7 +168,7 @@ export function throttle<T extends (...args: any[]) => any>(func: T, limit: numb
   let inThrottle: boolean
   return (...args: Parameters<T>) => {
     if (!inThrottle) {
-      func.apply(this, args)
+  (func as any)(...args)
       inThrottle = true
       setTimeout(() => (inThrottle = false), limit)
     }

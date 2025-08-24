@@ -45,11 +45,12 @@ export default async function Notes() {
       </div>
     )
   } catch (error) {
+    const message = error instanceof Error ? error.message : String(error)
     return (
       <div className="container mx-auto p-8">
         <h1 className="text-2xl font-bold mb-4">Notes</h1>
         <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-          <p className="text-red-800">Connection error: {error.message}</p>
+          <p className="text-red-800">Connection error: {message}</p>
         </div>
       </div>
     )
