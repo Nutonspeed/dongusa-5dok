@@ -14,12 +14,12 @@
   "author": "Your Name <your.email@example.com>",
   "scripts": {
     "build": "next build",
-    "clean": "rm -rf .next node_modules package-lock.json",
+    "clean": "rm -rf .next node_modules pnpm-lock.yaml",
     "dev": "next dev",
     "format": "prettier --write .",
     "lint": "next lint",
     "prepare": "husky install",
-    "reinstall": "npm run clean && npm install",
+    "reinstall": "pnpm run clean && pnpm install",
     "start": "next start",
     "test": "vitest run",
     "type-check": "tsc --noEmit --project tsconfig.build.json"
@@ -152,9 +152,9 @@
     "typescript": "^5",
     "vitest": "^3.2.4"
   },
-  "packageManager": "npm@10.0.0",
+  "packageManager": "pnpm@10.0.0",
   "engines": {
-    "node": "20.18.0",
-    "npm": ">=10.0.0"
+    "node": ">=20.0.0 <21.0.0",
+    "pnpm": ">=10.0.0"
   }
 }
