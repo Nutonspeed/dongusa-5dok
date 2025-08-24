@@ -1,12 +1,13 @@
 import React from "react"
 
 export type SegmentedTabsProps = {
-  tabs: { key: string; label: string }[]
+  tabs: { key: string; label: string; count?: number }[]
   value: string
   onChange: (key: string) => void
   className?: string
 }
 
+// Usage note: The prop for changing value is named `onChange`, not `onValueChange`.
 export const SegmentedTabs: React.FC<SegmentedTabsProps> = ({ tabs, value, onChange, className }) => {
   const containerRef = React.useRef<HTMLDivElement>(null)
 
@@ -43,7 +44,7 @@ export const SegmentedTabs: React.FC<SegmentedTabsProps> = ({ tabs, value, onCha
           <button
             key={t.key}
             role="tab"
-            aria-selected={active ? "true" : "false"}
+            aria-selected={active}
             tabIndex={active ? 0 : -1}
             onClick={() => onChange(t.key)}
             className={[
@@ -54,7 +55,12 @@ export const SegmentedTabs: React.FC<SegmentedTabsProps> = ({ tabs, value, onCha
                 : "text-neutral-700 dark:text-neutral-200 hover:bg-white/70 dark:hover:bg-neutral-800/50",
             ].join(" ")}
           >
-            {t.label}
+            <span>{t.label}</span>
+            {typeof t.count === "number" && (
+              <span className="ml-2 inline-block min-w-[1.5em] text-xs rounded-full bg-neutral-200 dark:bg-neutral-700 px-2 py-0.5 align-middle">
+                {t.count}
+              </span>
+            )}
           </button>
         )
       })}

@@ -73,7 +73,7 @@ class VoiceCommerceEngine {
   }
 
   async startVoiceSession(userId?: string): Promise<string> {
-    const sessionId = `voice_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+    const sessionId = `voice_${Date.now()}_${Math.random().toString(36).substr(2, 9}`
 
     const session: VoiceSession = {
       session_id: sessionId,
@@ -134,6 +134,53 @@ class VoiceCommerceEngine {
       return {
         text: "เกิดข้อผิดพลาดในการประมวลผลคำสั่งเสียง กรุณาลองใหม่อีกครั้ง",
         actions: [],
+        confidence: 0.1,
+      }
+    }
+  }
+
+  // Server-safe voice processing: does not use browser-only APIs.
+  // Use from server routes when browser features are not available.
+  async processVoiceCommandServer(sessionId: string, audioBlob?: any | null, transcript?: string): Promise<VoiceResponse> {
+    try {
+      const session = this.sessions.get(sessionId)
+      if (!session) throw new Error("Session not found")
+
+      const finalTranscript = (transcript || "").trim()
+      if (!finalTranscript) {
+        return {
+          text: "ขออภัยค่ะ ไม่ได้รับคำสั่งเป็นข้อความ กรุณาลองพูดหรือพิมพ์คำสั่งอีกครั้ง",
+          actions: [],
+          follow_up_questions: ["กรุณาพิมพ์คำสั่งหรืออัปโหลดไฟล์เสียงที่ถอดเป็นข้อความแล้ว"],
+          confidence: 0.1,
+        }
+      }
+
+      // Reuse existing analyzer/generator (advancedAI used inside analyzeVoiceCommand)
+      const command = await this.analyzeVoiceCommand(finalTranscript, session.context)
+
+      // Update session and timestamp
+      session.commands.push(command)
+      session.last_activity = new Date().toISOString()
+
+      // Generate response (server-safe: no speech synthesis)
+      const response = await this.generateVoiceResponse(command, session)
+
+      // Update context (search history, cart, preferences)
+      await this.updateSessionContext(session, command, response)
+
+      return response
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : "unknown error"
+      try {
+        // optional logger; safe-guarded
+        // @ts-ignore
+        logger?.error?.("processVoiceCommandServer error:", msg)
+      } catch {}
+      return {
+        text: "ขออภัยค่ะ เกิดข้อผิดพลาดในการประมวลผลคำสั่ง กรุณาลองใหม่อีกครั้ง",
+        actions: [],
+        follow_up_questions: [],
         confidence: 0.1,
       }
     }
@@ -516,6 +563,9 @@ class VoiceCommerceEngine {
   endSession(sessionId: string): boolean {
     return this.sessions.delete(sessionId)
   }
+}
+
+export const voiceCommerce = new VoiceCommerceEngine()
 }
 
 export const voiceCommerce = new VoiceCommerceEngine()

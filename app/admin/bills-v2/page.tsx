@@ -178,8 +178,8 @@ export default function BillsV2Page() {
               value={tab} 
               onValueChange={setTab as any}
               tabs={[
-                { value: 'bills', label: 'บิลทั้งหมด', count: items.length },
-                { value: 'orders', label: 'คำสั่งซื้อ', count: items.filter(i => i.status !== 'draft').length },
+                { key: 'bills', label: 'บิลทั้งหมด', count: items.length },
+                { key: 'orders', label: 'คำสั่งซื้อ', count: items.filter(i => i.status !== 'draft').length },
               ]} 
             />
             <div className="relative w-full md:w-64">

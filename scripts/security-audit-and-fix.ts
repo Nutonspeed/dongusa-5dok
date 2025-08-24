@@ -1,4 +1,20 @@
-import { createClient } from "@/lib/supabase/server"
+// Replace direct imports with a safe loader to avoid runtime errors when aliases are not available
+async function getSupabaseClient() {
+  try {
+    // prefer project alias
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const mod = await import("@/lib/supabase/server").catch(() => null)
+    if (mod && typeof mod.createClient === "function") return mod.createClient()
+  } catch {}
+  try {
+    // fallback to runtime require by path if present
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const mod = require(join(process.cwd(), "lib", "supabase", "server"))
+    if (mod && typeof mod.createClient === "function") return mod.createClient()
+  } catch {}
+  return null
+}
+
 import { USE_SUPABASE, IS_PRODUCTION, QA_BYPASS_AUTH } from "@/lib/runtime"
 
 interface SecurityIssue {
@@ -55,36 +71,64 @@ async function runSecurityAudit(): Promise<{
   let databaseConnected = false
   try {
     if (USE_SUPABASE) {
-      const supabase = createClient()
-      const { data, error } = await supabase.from("profiles").select("count").limit(1)
-
-      if (!error) {
-        databaseConnected = true
-        authTests.push({
-          testName: "Database Connection",
-          status: "pass",
-          details: "Successfully connected to Supabase database",
-        })
-      } else {
+      const supabase = await getSupabaseClient()
+      if (!supabase) {
         authTests.push({
           testName: "Database Connection",
           status: "fail",
-          details: `Database connection failed: ${error.message}`,
-          recommendations: [
-            "Check SUPABASE_URL and SUPABASE_ANON_KEY environment variables",
-            "Verify Supabase project is active and accessible",
-            "Check network connectivity and firewall settings",
-          ],
+          details: "Supabase client not available in runtime",
+          recommendations: ["Ensure lib/supabase/server exports createClient or set USE_SUPABASE=false"],
         })
-
         issues.push({
           severity: "critical",
           category: "Database",
-          issue: "Supabase connection failed",
+          issue: "Supabase client not available",
           impact: "Users cannot authenticate or access data",
-          recommendation: "Fix Supabase configuration and environment variables",
+          recommendation: "Provide a working Supabase client implementation",
           status: "detected",
         })
+      } else {
+        // safe attempt: try simple query if method exists
+        try {
+          const { data, error } = await supabase.from?.("profiles")?.select("id")?.limit(1)
+          if (!error) {
+            databaseConnected = true
+            authTests.push({
+              testName: "Database Connection",
+              status: "pass",
+              details: "Successfully connected to Supabase database",
+            })
+          } else {
+            authTests.push({
+              testName: "Database Connection",
+              status: "fail",
+              details: `Database connection failed: ${error?.message || "unknown"}`,
+              recommendations: ["Check SUPABASE_URL and SUPABASE_ANON_KEY environment variables"],
+            })
+            issues.push({
+              severity: "critical",
+              category: "Database",
+              issue: "Supabase connection failed",
+              impact: "Users cannot authenticate or access data",
+              recommendation: "Fix Supabase configuration and environment variables",
+              status: "detected",
+            })
+          }
+        } catch (e) {
+          authTests.push({
+            testName: "Database Connection",
+            status: "fail",
+            details: `Connection attempt failed: ${e instanceof Error ? e.message : "unknown"}`,
+          })
+          issues.push({
+            severity: "critical",
+            category: "Database",
+            issue: "Supabase RPC/query failed",
+            impact: "Cannot verify DB",
+            recommendation: "Investigate DB connectivity",
+            status: "detected",
+          })
+        }
       }
     } else {
       authTests.push({
@@ -122,7 +166,7 @@ async function runSecurityAudit(): Promise<{
   let authenticationWorking = false
   try {
     if (USE_SUPABASE) {
-      const supabase = createClient()
+      const supabase = await getSupabaseClient()
 
       // Test invalid login (should fail gracefully)
       const { error } = await supabase.auth.signInWithPassword({
@@ -166,7 +210,7 @@ async function runSecurityAudit(): Promise<{
   console.log("[v0] Testing admin access controls...")
   try {
     if (USE_SUPABASE) {
-      const supabase = createClient()
+      const supabase = await getSupabaseClient()
 
       // Check if profiles table has proper RLS
       const { data, error } = await supabase.from("profiles").select("role").limit(1)

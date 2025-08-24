@@ -90,8 +90,9 @@ class CodeQualityAnalyzer {
   private parseTypeScriptErrors(output: string): void {
     const lines = output.split("\n")
 
+    // match tsc lines like: path/to/file.ts:12:5 - error TS2322: ...
     for (const line of lines) {
-      const match = line.match(/^(.+?)$$(\d+),(\d+)$$: (error|warning) TS(\d+): (.+)$/)
+      const match = line.match(/^(.+?):(\d+):(\d+)\s-\s(error|warning)\sTS(\d+):\s(.+)$/)
       if (match) {
         const [, file, lineNum, column, severity, code, message] = match
 
@@ -99,7 +100,7 @@ class CodeQualityAnalyzer {
           file: file.replace(this.projectRoot + "/", ""),
           line: Number.parseInt(lineNum),
           column: Number.parseInt(column),
-          severity: severity as "error" | "warning",
+          severity: severity === "error" ? "error" : "warning",
           rule: `TS${code}`,
           message,
           category: "typescript",

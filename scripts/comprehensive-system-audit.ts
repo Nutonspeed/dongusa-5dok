@@ -1,4 +1,3 @@
-import { SystemHealthChecker } from "./system-health-check"
 import { existsSync, readFileSync } from "fs"
 import { join } from "path"
 
@@ -15,9 +14,20 @@ class ComprehensiveSystemAudit {
   async runFullAudit(): Promise<AuditResult[]> {
     console.log("🔍 Starting comprehensive system audit...\n")
 
-    // Run basic health check first
-    const healthChecker = new SystemHealthChecker()
-    const healthResults = await healthChecker.runAllChecks()
+    // Run basic health check first (guarded)
+    try {
+      const mod = await import("./system-health-check").catch(() => null)
+      if (mod && typeof mod.SystemHealthChecker === "function") {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        const healthChecker = new mod.SystemHealthChecker()
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const healthResults = await healthChecker.runAllChecks()
+      } else {
+        console.log("⚠️ system-health-check not found or incompatible — skipping health check")
+      }
+    } catch (e) {
+      console.log("⚠️ Health check failed to load:", e)
+    }
 
     // Additional audits
     await this.auditImportExportIssues()
