@@ -4,31 +4,31 @@ import { processServerCommand } from "@/lib/voice-commerce-server"
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData()
-    const sessionId = (formData.get("session_id") as string) || ""
-    const transcript = (formData.get("transcript") as string) || ""
-    const audioBlob = (formData.get("audio") as File | null) ?? null
+    const sessionId = String(formData.get("session_id") || "")
+    const transcript = String(formData.get("transcript") || "")
+    const audioBlob = (formData.get("audio") as File) ?? null
 
     if (!sessionId) {
       return NextResponse.json({ error: "Session ID is required" }, { status: 400 })
     }
 
-    // Best-effort build audio blob (not required when transcript is provided)
-    let audioBuffer: any | undefined
+    // Best-effort: convert uploaded File to Blob for server wrapper (optional)
+    let audioBuffer: Blob | null = null
     if (audioBlob) {
       try {
         const arrayBuffer = await audioBlob.arrayBuffer()
         audioBuffer = new Blob([arrayBuffer], { type: audioBlob.type })
       } catch {
-        audioBuffer = undefined
+        audioBuffer = null
       }
     }
 
-    const response = await processServerCommand(sessionId, transcript, audioBuffer ?? null)
-
+    const response = await processServerCommand(sessionId, transcript, audioBuffer)
     return NextResponse.json({ success: true, data: response })
   } catch (error) {
     return NextResponse.json({ error: "Failed to process voice command" }, { status: 500 })
   }
+}
 }
 }
 }
