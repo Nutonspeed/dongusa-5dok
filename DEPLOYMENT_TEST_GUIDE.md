@@ -125,11 +125,13 @@ tsx scripts/execute-deployment-test.ts
    - Updated `vercel.json` to use `--no-frozen-lockfile`
    - Added `.npmrc` for better dependency resolution
    - Created deployment fix script
+   - **[NEW]** Remove built-in Node.js modules from dependencies (\`fs\`, \`path\`, \`crypto\`, etc.)
 
 2. **Build Configuration**
    - Multiple fallback configurations
    - Relaxed security headers for compatibility
    - Optimized image handling
+   - **[NEW]** Use \`pnpm install --no-frozen-lockfile\` or \`npm install\` for Vercel build
 
 3. **Validation Pipeline**
    - Pre and post-deployment checks
@@ -143,6 +145,7 @@ tsx scripts/execute-deployment-test.ts
 - ✅ Valid Next.js configuration
 - ✅ Successful build completion
 - ✅ Environment variables present
+- ✅ **Vercel build passes with fallback install command**
 
 ### Post-Deployment
 - ✅ Homepage loads (200 status)

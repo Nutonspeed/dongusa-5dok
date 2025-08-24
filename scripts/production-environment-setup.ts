@@ -105,14 +105,15 @@ class ProductionEnvironmentSetup {
       await execAsync("vercel --version")
       console.log("✅ Vercel CLI is available")
 
-      // Set production environment variables
+      // Set production environment variables (non-interactive)
       const envVarsToSet = this.requiredEnvVars
         .filter((env) => env.required && process.env[env.name])
         .map((env) => ({ name: env.name, value: process.env[env.name]! }))
 
       for (const { name, value } of envVarsToSet) {
         try {
-          await execAsync(`vercel env add ${name} production`, { input: value })
+          // Use --yes and echo value | vercel env add ... for non-interactive
+          await execAsync(`echo "${value}" | vercel env add ${name} production --yes`)
           console.log(`✅ Set ${name} in Vercel production environment`)
         } catch (error) {
           console.log(`⚠️  ${name} may already exist in Vercel environment`)
@@ -201,6 +202,11 @@ Generated on: ${new Date().toISOString()}
     await this.generateEnvironmentDocumentation()
 
     console.log("\n✅ Production environment setup completed successfully!")
+    console.log("\n🚀 ขั้นตอนถัดไป:")
+    console.log("1. git add . && git commit -m \"setup: production env ready for Vercel\"")
+    console.log("2. git push")
+    console.log("3. ตรวจสอบผลที่ https://vercel.com/dashboard หรือรอ build อัตโนมัติ")
+    console.log("4. หาก build ไม่ผ่าน ดู log และตรวจสอบ .env/next.config.mjs/package.json ตามคู่มือ")
   }
 }
 

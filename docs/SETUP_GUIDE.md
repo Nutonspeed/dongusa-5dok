@@ -207,6 +207,11 @@ npm run type-check
 # แก้ไข type errors ตามที่แสดง
 \`\`\`
 
+### หมายเหตุสำหรับ Vercel Deploy
+- หาก build ไม่ผ่าน ให้เปลี่ยน build command เป็น `pnpm install --no-frozen-lockfile && pnpm run build` หรือ `npm install && npm run build`
+- ตรวจสอบว่า environment variables ถูกตั้งค่าครบใน Vercel Dashboard
+- หากพบ error เกี่ยวกับ dependencies ให้ลบ dependencies ที่เป็น built-in Node.js modules เช่น `fs`, `path`, `crypto` ออกจาก package.json
+
 ### การตรวจสอบสถานะระบบ
 
 \`\`\`bash

@@ -119,6 +119,12 @@ WHERE (now() - pg_stat_activity.query_start) > interval '5 minutes';
    - Upgrade Supabase plan temporarily
    - Add read replicas if available
 
+5. **Vercel Deploy Fails (Build/Env)**
+   - ตรวจสอบว่า environment variables ถูกตั้งค่าครบใน Vercel Dashboard
+   - ใช้ `pnpm install --no-frozen-lockfile` หรือ `npm install` แทน `npm ci` ใน build command
+   - ตรวจสอบว่าไม่มี dependencies ที่เป็น built-in Node.js modules ใน package.json
+   - ตรวจสอบ next.config.js ว่าไม่มี syntax error หรือ experimental config ที่ไม่รองรับ
+
 ### 3. Authentication Problems
 
 #### Symptoms

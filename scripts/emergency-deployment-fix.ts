@@ -104,8 +104,8 @@ class EmergencyDeploymentFixer {
     const vercelPath = join(this.projectRoot, "vercel.json")
 
     const vercelConfig = {
-      buildCommand: "pnpm install --no-frozen-lockfile && pnpm run build",
-      installCommand: "pnpm install --no-frozen-lockfile --prefer-offline",
+      buildCommand: "pnpm install --no-frozen-lockfile || npm install && pnpm run build || npm run build",
+      installCommand: "pnpm install --no-frozen-lockfile --prefer-offline || npm install",
       framework: "nextjs",
       regions: ["iad1"],
       functions: {
