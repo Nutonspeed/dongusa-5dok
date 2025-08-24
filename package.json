@@ -121,7 +121,8 @@
     "util": "latest",
     "vaul": "latest",
     "xlsx": "latest",
-    "zod": "^3.22.4"
+    "zod": "^3.22.4",
+    "@headlessui/react": "^1.7.18"
   },
   "devDependencies": {
     "@edge-runtime/vm": "^5.0.0",
