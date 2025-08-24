@@ -58,7 +58,7 @@ const navigation: NavItem[] = [
   { name: "Demo", href: "/admin/demo", icon: TestTube },
 ]
 
-const AdminLayoutClient: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export default function AdminLayoutClient({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const router = useRouter()
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -226,5 +226,3 @@ const AdminLayoutClient: React.FC<{ children: React.ReactNode }> = ({ children }
     </div>
   )
 }
-
-export default AdminLayoutClient

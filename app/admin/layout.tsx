@@ -1,5 +1,5 @@
 import type React from "react"
-import AdminLayoutClient from "./layout.client.tsx"
+import AdminLayoutClient from "./layout.client" // removed .tsx extension from import path to fix TypeScript error
 import { USE_SUPABASE } from "@/lib/runtime"
 
 export const runtime = "nodejs"
