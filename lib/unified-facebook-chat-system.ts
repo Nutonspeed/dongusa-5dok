@@ -82,8 +82,9 @@ export class UnifiedFacebookChatSystem {
       // Determine response strategy
       const responseStrategy = await this.determineResponseStrategy(conversation, unifiedMessage, analysis)
 
-      // Execute response based on strategy
-      return await this.executeResponseStrategy(responseStrategy, conversation, unifiedMessage)
+  // Execute response based on strategy
+  const execResult = await this.executeResponseStrategy(responseStrategy, conversation, unifiedMessage)
+  return execResult as { success: boolean; response?: string; escalated?: boolean }
     } catch (error) {
       logger.error("[Unified Facebook Chat] Message processing failed:", error)
       return { success: false }
