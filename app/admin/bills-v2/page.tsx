@@ -264,13 +264,3 @@ export default function BillsV2Page() {
 function formatTHB(value: number) {
   return value.toLocaleString('th-TH', { style: 'currency', currency: 'THB' })
 }
-
-// แก้ไขหรือเพิ่ม interface Invoice ให้รองรับ customer
-interface Invoice {
-  id: string
-  customer: string // เพิ่มบรรทัดนี้
-  total: number
-  dateISO: string
-  status: string
-  // ...property อื่นๆ (ถ้ามี)...
-}
