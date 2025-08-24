@@ -403,7 +403,8 @@ export class UnifiedCommunicationHub {
         return { templates: [], categories: [] }
       }
 
-      const templates = (data ?? []) as Array<{ category: string }>
+  // The query returns full template objects; cast to Template[] for TS
+  const templates = (data ?? []) as Template[]
       const categories = [...new Set(templates.map((t) => t.category))]
 
       return { templates, categories }
