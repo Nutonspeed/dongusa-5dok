@@ -73,7 +73,7 @@ class VoiceCommerceEngine {
   }
 
   async startVoiceSession(userId?: string): Promise<string> {
-    const sessionId = `voice_${Date.now()}_${Math.random().toString(36).substr(2, 9}`
+    const sessionId = `voice_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
 
     const session: VoiceSession = {
       session_id: sessionId,
@@ -563,9 +563,6 @@ class VoiceCommerceEngine {
   endSession(sessionId: string): boolean {
     return this.sessions.delete(sessionId)
   }
-}
-
-export const voiceCommerce = new VoiceCommerceEngine()
 }
 
 export const voiceCommerce = new VoiceCommerceEngine()

@@ -25,5 +25,4 @@ export async function processServerCommand(
 export async function createServerSession(userId?: string): Promise<string> {
   return await voiceCommerce.startVoiceSession(userId)
 }
-  return await voiceCommerce.startVoiceSession(userId)
-}
+ 
