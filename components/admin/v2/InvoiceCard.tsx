@@ -314,4 +314,3 @@ export const InvoiceCard: React.FC<InvoiceCardProps> = ({
 }
 
 export default InvoiceCard
-export default InvoiceCard

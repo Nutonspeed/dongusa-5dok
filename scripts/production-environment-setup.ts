@@ -217,4 +217,4 @@ if (require.main === module) {
 }
 
 export default ProductionEnvironmentSetup
-// (ไม่มีการแก้ไขเพิ่มเติม ถ้าใช้เฉพาะใน script)
+// (ไฟล์นี้สมบูรณ์ ไม่ต้องแก้ไขเพิ่มเติม)

@@ -150,32 +150,24 @@ export default function BillsV2Page() {
         {/* Stats Cards */}
         <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <StatCard 
-            title="บิลทั้งหมด" 
+            label="บิลทั้งหมด" 
             value={items.length.toString()} 
-            icon={FileText}
-            trend="up"
-            trendValue="12%"
+            icon={<FileText />} 
           />
           <StatCard 
-            title="ยอดขายรวม" 
+            label="ยอดขายรวม" 
             value={formatTHB(items.reduce((sum, item) => sum + item.total, 0))}
-            icon={CreditCard}
-            trend="up"
-            trendValue="8%"
+            icon={<CreditCard />} 
           />
           <StatCard 
-            title="รอชำระเงิน" 
+            label="รอชำระเงิน" 
             value={items.filter(i => i.status === 'ordered').length.toString()}
-            icon={ShoppingCart}
-            trend="down"
-            trendValue="5%"
+            icon={<ShoppingCart />} 
           />
           <StatCard 
-            title="กำลังดำเนินการ" 
+            label="กำลังดำเนินการ" 
             value={items.filter(i => ['sewing', 'shipped'].includes(i.status)).length.toString()}
-            icon={Scissors}
-            trend="up"
-            trendValue="15%"
+            icon={<Scissors />} 
           />
         </div>
 

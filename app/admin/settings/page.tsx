@@ -531,6 +531,8 @@ export default function SettingsPage() {
                           value={settings.payment.bankName}
                           onChange={(e) => handleInputChange("payment", "bankName", e.target.value)}
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                          placeholder="ชื่อธนาคาร"
+                          aria-label="ชื่อธนาคาร"
                         />
                       </div>
                       <div>
@@ -540,6 +542,8 @@ export default function SettingsPage() {
                           value={settings.payment.bankAccount}
                           onChange={(e) => handleInputChange("payment", "bankAccount", e.target.value)}
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                          placeholder="เลขที่บัญชี"
+                          aria-label="เลขที่บัญชี"
                         />
                       </div>
                     </div>
@@ -558,6 +562,7 @@ export default function SettingsPage() {
                         onChange={(e) => handleInputChange("payment", "promptPayId", e.target.value)}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
                         placeholder="เบอร์โทรศัพท์หรือเลขประจำตัวประชาชน"
+                        aria-label="หมายเลขพร้อมเพย์"
                       />
                     </div>
                   </div>
@@ -575,6 +580,8 @@ export default function SettingsPage() {
                         onChange={(e) => handleInputChange("payment", "codFee", Number.parseInt(e.target.value))}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
                         min="0"
+                        placeholder="ค่าธรรมเนียม (บาท)"
+                        aria-label="ค่าธรรมเนียมเก็บเงินปลายทาง"
                       />
                     </div>
                   </div>
@@ -1077,6 +1084,8 @@ export default function SettingsPage() {
                             }))
                           }
                           className="w-4 h-4 text-pink-600 border-gray-300 rounded focus:ring-pink-500"
+                          aria-label="เปิด/ปิดบริการอีเมล"
+                          title="เปิด/ปิดบริการอีเมล"
                         />
                       </div>
                     </div>
@@ -1105,6 +1114,8 @@ export default function SettingsPage() {
                           }))
                         }
                         className="w-4 h-4 text-pink-600 border-gray-300 rounded focus:ring-pink-500"
+                        aria-label="เปิด/ปิดบริการพร้อมเพย์"
+                        title="เปิด/ปิดบริการพร้อมเพย์"
                       />
                     </div>
 
@@ -1126,6 +1137,8 @@ export default function SettingsPage() {
                           }))
                         }
                         className="w-4 h-4 text-pink-600 border-gray-300 rounded focus:ring-pink-500"
+                        aria-label="เปิด/ปิดบริการ Stripe"
+                        title="เปิด/ปิดบริการ Stripe"
                       />
                     </div>
                   </div>
@@ -1166,6 +1179,8 @@ export default function SettingsPage() {
                             }))
                           }
                           className="w-4 h-4 text-pink-600 border-gray-300 rounded focus:ring-pink-500"
+                          aria-label={`เปิด/ปิดบริการจัดส่ง ${service === "thailandPost" ? "ไปรษณีย์ไทย" : service === "kerry" ? "Kerry Express" : "Flash Express"}`}
+                          title={`เปิด/ปิดบริการจัดส่ง ${service === "thailandPost" ? "ไปรษณีย์ไทย" : service === "kerry" ? "Kerry Express" : "Flash Express"}`}
                         />
                       </div>
                     ))}

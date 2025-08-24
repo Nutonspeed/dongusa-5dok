@@ -43,7 +43,7 @@ export const SegmentedTabs: React.FC<SegmentedTabsProps> = ({ tabs, value, onCha
           <button
             key={t.key}
             role="tab"
-            aria-selected={active}
+            aria-selected={active ? "true" : "false"}
             tabIndex={active ? 0 : -1}
             onClick={() => onChange(t.key)}
             className={[
