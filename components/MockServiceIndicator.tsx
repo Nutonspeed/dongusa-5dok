@@ -37,7 +37,9 @@ export function MockServiceIndicator() {
     },
   ])
 
-  const enableMockServices = process.env.ENABLE_MOCK_SERVICES === "true"
+  const enableMockServices =
+    typeof window !== "undefined" &&
+    (process.env.NEXT_PUBLIC_ENABLE_MOCK_SERVICES === "true" || process.env.NODE_ENV === "development")
 
   // Toggle visibility with keyboard shortcut when enabled
   useEffect(() => {
@@ -102,8 +104,8 @@ export function MockServiceIndicator() {
                         service.status === "connected"
                           ? "border-green-400 text-green-400"
                           : service.status === "mock"
-                          ? "border-yellow-400 text-yellow-400"
-                          : "border-red-400 text-red-400"
+                            ? "border-yellow-400 text-yellow-400"
+                            : "border-red-400 text-red-400"
                       }`}
                     >
                       {service.status.toUpperCase()}

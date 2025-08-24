@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge"
 import { useLanguage } from "../contexts/LanguageContext"
 import { useCart } from "../contexts/CartContext"
 import { supabase } from "@/lib/supabase/client"
+import { USE_SUPABASE } from "@/lib/runtime"
 
 interface Product {
   id: string
@@ -40,43 +41,99 @@ export default function FeaturedProducts() {
   useEffect(() => {
     const fetchFeaturedProducts = async () => {
       try {
-        const { data: productsData, error } = await supabase
-          .from("products")
-          .select(`
-            id,
-            name,
-            description,
-            price,
-            compare_at_price,
-            images,
-            is_active,
-            categories (
+        if (USE_SUPABASE) {
+          const { data: productsData, error } = await supabase
+            .from("products")
+            .select(`
+              id,
               name,
-              slug
-            )
-          `)
-          .eq("is_active", true)
-          .limit(4)
-          .order("created_at", { ascending: false })
+              description,
+              price,
+              compare_at_price,
+              images,
+              is_active,
+              categories (
+                name,
+                slug
+              )
+            `)
+            .eq("is_active", true)
+            .limit(4)
+            .order("created_at", { ascending: false })
 
-        if (error) throw error
+          if (error) throw error
 
-        if (productsData) {
-          const formattedProducts = productsData.map((product: any) => ({
-            id: product.id,
-            name: product.name,
-            description: product.description || "",
-            price: product.price,
-            compare_at_price: product.compare_at_price,
-            images: product.images || [],
-            rating: 4.5, // Mock rating
-            reviews: Math.floor(Math.random() * 50) + 10, // Mock reviews
-            category: product.categories,
-            is_featured: true,
-            is_new: Math.random() > 0.7, // Random new badge
-            colors: ["#8B1538", "#2D4A22", "#1E3A8A", "#92400E"], // Mock colors
-          }))
-          setProducts(formattedProducts)
+          if (productsData) {
+            const formattedProducts = productsData.map((product: any) => ({
+              id: product.id,
+              name: product.name,
+              description: product.description || "",
+              price: product.price,
+              compare_at_price: product.compare_at_price,
+              images: product.images || [],
+              rating: 4.5, // Mock rating
+              reviews: Math.floor(Math.random() * 50) + 10, // Mock reviews
+              category: product.categories,
+              is_featured: true,
+              is_new: Math.random() > 0.7, // Random new badge
+              colors: ["#8B1538", "#2D4A22", "#1E3A8A", "#92400E"], // Mock colors
+            }))
+            setProducts(formattedProducts)
+          }
+        } else {
+          setProducts([
+            {
+              id: "1",
+              name: "ผ้าคลุมโซฟากำมะหยี่พรีเมียม",
+              description: "ผ้าคลุมโซฟาคุณภาพสูง ทำจากกำมะหยี่นุ่ม กันน้ำ กันคราบ",
+              price: 2890,
+              compare_at_price: 3490,
+              images: ["/premium-velvet-sofa-cover.png"],
+              rating: 4.8,
+              reviews: 127,
+              category: { name: "ผ้าคลุมโซฟา", slug: "sofa-covers" },
+              is_featured: true,
+              is_new: true,
+              colors: ["#8B1538", "#2D4A22", "#1E3A8A"],
+            },
+            {
+              id: "2",
+              name: "ผ้าคลุมโซฟากันน้ำ",
+              description: "ผ้าคลุมโซฟากันน้ำ 100% เหมาะสำหรับครอบครัวที่มีเด็กเล็ก",
+              price: 1950,
+              images: ["/waterproof-sofa-cover.png"],
+              rating: 4.6,
+              reviews: 89,
+              category: { name: "ผ้าคลุมโซฟา", slug: "sofa-covers" },
+              is_featured: true,
+              colors: ["#374151", "#6B7280", "#9CA3AF"],
+            },
+            {
+              id: "3",
+              name: "หมอนอิงลายเดียวกัน",
+              description: "หมอนอิงที่เข้าชุดกับผ้าคลุมโซฟา ขนาด 45x45 ซม.",
+              price: 350,
+              images: ["/matching-throw-pillow.png"],
+              rating: 4.4,
+              reviews: 156,
+              category: { name: "หมอนอิง", slug: "pillows" },
+              is_featured: true,
+              colors: ["#8B1538", "#2D4A22"],
+            },
+            {
+              id: "4",
+              name: "ผ้าคลุมโซฟาเซ็กชั่นแนล",
+              description: "ผ้าคลุมโซฟาสำหรับโซฟาเซ็กชั่นแนล ขนาดใหญ่ ครอบคลุมได้ดี",
+              price: 4200,
+              compare_at_price: 4890,
+              images: ["/sectional-sofa-cover.png"],
+              rating: 4.7,
+              reviews: 73,
+              category: { name: "ผ้าคลุมโซฟา", slug: "sofa-covers" },
+              is_featured: true,
+              colors: ["#1F2937", "#374151", "#6B7280"],
+            },
+          ])
         }
       } catch (error) {
         logger.error("Error fetching featured products:", error)
@@ -87,50 +144,13 @@ export default function FeaturedProducts() {
             description: "ผ้าคลุมโซฟาคุณภาพสูง ทำจากกำมะหยี่นุ่ม กันน้ำ กันคราบ",
             price: 2890,
             compare_at_price: 3490,
-            images: ["/placeholder-lxdvw.png"],
+            images: ["/premium-velvet-sofa-cover.png"],
             rating: 4.8,
             reviews: 127,
             category: { name: "ผ้าคลุมโซฟา", slug: "sofa-covers" },
             is_featured: true,
             is_new: true,
             colors: ["#8B1538", "#2D4A22", "#1E3A8A"],
-          },
-          {
-            id: "2",
-            name: "ผ้าคลุมโซฟากันน้ำ",
-            description: "ผ้าคลุมโซฟากันน้ำ 100% เหมาะสำหรับครอบครัวที่มีเด็กเล็ก",
-            price: 1950,
-            images: ["/placeholder-is3lc.png"],
-            rating: 4.6,
-            reviews: 89,
-            category: { name: "ผ้าคลุมโซฟา", slug: "sofa-covers" },
-            is_featured: true,
-            colors: ["#374151", "#6B7280", "#9CA3AF"],
-          },
-          {
-            id: "3",
-            name: "หมอนอิงลายเดียวกัน",
-            description: "หมอนอิงที่เข้าชุดกับผ้าคลุมโซฟา ขนาด 45x45 ซม.",
-            price: 350,
-            images: ["/placeholder-jnqsq.png"],
-            rating: 4.4,
-            reviews: 156,
-            category: { name: "หมอนอิง", slug: "pillows" },
-            is_featured: true,
-            colors: ["#8B1538", "#2D4A22"],
-          },
-          {
-            id: "4",
-            name: "ผ้าคลุมโซฟาเซ็กชั่นแนล",
-            description: "ผ้าคลุมโซฟาสำหรับโซฟาเซ็กชั่นแนล ขนาดใหญ่ ครอบคลุมได้ดี",
-            price: 4200,
-            compare_at_price: 4890,
-            images: ["/placeholder-4x94x.png"],
-            rating: 4.7,
-            reviews: 73,
-            category: { name: "ผ้าคลุมโซฟา", slug: "sofa-covers" },
-            is_featured: true,
-            colors: ["#1F2937", "#374151", "#6B7280"],
           },
         ])
       } finally {
