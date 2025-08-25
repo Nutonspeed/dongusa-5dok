@@ -29,4 +29,3 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Failed to process voice command" }, { status: 500 })
   }
 }
-

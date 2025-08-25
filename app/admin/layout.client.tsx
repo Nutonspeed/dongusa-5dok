@@ -58,7 +58,7 @@ const navigation: NavItem[] = [
   { name: "Demo", href: "/admin/demo", icon: TestTube },
 ]
 
-export default function AdminLayoutClient({ children }: { children: React.ReactNode }) {
+function AdminLayoutClient({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const router = useRouter()
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -226,3 +226,6 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
     </div>
   )
 }
+
+export { AdminLayoutClient }
+export default AdminLayoutClient

@@ -51,6 +51,7 @@
   },
   "dependencies": {
     "@ai-sdk/xai": "latest",
+    "@headlessui/react": "latest",
     "@neondatabase/serverless": "latest",
     "@radix-ui/react-accordion": "latest",
     "@radix-ui/react-alert-dialog": "latest",
@@ -86,11 +87,14 @@
     "@vercel/blob": "latest",
     "ai": "latest",
     "autoprefixer": "^10.4.14",
+    "child_process": "latest",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "latest",
+    "crypto": "latest",
     "date-fns": "^3.6.0",
     "embla-carousel-react": "latest",
+    "fs": "latest",
     "input-otp": "latest",
     "isomorphic-dompurify": "latest",
     "jspdf": "latest",
@@ -99,6 +103,7 @@
     "next-themes": "latest",
     "node-cron": "latest",
     "nodemailer": "latest",
+    "path": "latest",
     "pg": "latest",
     "pg-native": "latest",
     "postcss": "^8.4.31",
@@ -114,10 +119,10 @@
     "tailwind-merge": "^2.5.5",
     "tailwindcss": "^3.4.17",
     "tailwindcss-animate": "^1.0.7",
+    "util": "latest",
     "vaul": "latest",
     "xlsx": "latest",
-    "zod": "^3.22.4",
-    "@headlessui/react": "^1.7.18"
+    "zod": "^3.22.4"
   },
   "devDependencies": {
     "@edge-runtime/vm": "^5.0.0",
